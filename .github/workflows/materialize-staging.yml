@@ -1,0 +1,42 @@
+name: Materialize staging site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "build-payload/**"
+      - ".github/workflows/materialize-staging.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Reconstruct verified staging package
+        shell: bash
+        run: |
+          cat build-payload/part-00.b64               build-payload/part-01.b64               build-payload/part-02.b64               build-payload/part-03.b64             | tr -d '\n' | base64 -d > /tmp/staging.zip
+          echo "ebcbf3405a2bef69ea5672c959950660f672f047d4edde5f3a6fe5ba189df2db  /tmp/staging.zip" | sha256sum -c -
+          rm -rf docs
+          mkdir docs
+          unzip -q /tmp/staging.zip -d docs
+          touch docs/.nojekyll
+
+      - name: Commit materialized site
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "build: materialize verified staging site"
+            git push
+          fi

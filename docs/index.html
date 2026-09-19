@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07101d">
+<title>Finanzas Familiares · Staging</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 80% 0,#24205d 0,transparent 34%),#07101d;color:#eef4ff;display:grid;place-items:center;padding:22px}.card{width:min(460px,100%);background:#0d1727;border:1px solid rgba(255,255,255,.09);border-radius:26px;padding:28px;box-shadow:0 25px 80px rgba(0,0,0,.35)}.badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.12em;color:#ffc791;background:rgba(241,160,109,.1);border:1px solid rgba(241,160,109,.22);padding:7px 10px;border-radius:999px}.logo{width:54px;height:54px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(135deg,#806cff,#42d6b5);font-weight:900;font-size:27px;margin:20px 0 14px}h1{font-size:34px;line-height:1.02;letter-spacing:-.04em;margin:0 0 9px}p{color:#91a3bc;line-height:1.5}label{display:grid;gap:7px;margin-top:14px;font-size:12px;font-weight:700;color:#a4b5ca}input{width:100%;padding:13px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:#091321;color:#eef4ff;font:inherit;outline:none}button{width:100%;border:0;border-radius:14px;padding:13px 16px;margin-top:17px;background:linear-gradient(135deg,#806cff,#6179ff);color:white;font-weight:800;font:inherit;cursor:pointer}.secondary{background:#152339;margin-top:10px}.status{margin-top:16px;padding:12px 14px;border-radius:13px;background:#091321;color:#a9bad0;font-size:13px;line-height:1.45}.ok{color:#69e0bb}.err{color:#ff9aa5}.user{margin-top:20px;padding:17px;border:1px solid rgba(70,213,173,.2);background:rgba(70,213,173,.06);border-radius:17px}small{color:#72849a}
+</style>
+</head>
+<body>
+<main class="card">
+<span class="badge">STAGING · PRUEBA 1</span>
+<div class="logo">F</div>
+<h1>Finanzas Familiares</h1>
+<p>Prueba aislada de acceso y persistencia. No modifica movimientos ni patrimonio.</p>
+<div id="loggedOut">
+<label>Email<input id="email" type="email" autocomplete="email"></label>
+<label>Contraseña<input id="password" type="password" autocomplete="current-password"></label>
+<button id="login">Entrar</button>
+</div>
+<div id="loggedIn" hidden>
+<div class="user"><strong>Sesión restaurada correctamente</strong><p id="who"></p><small>Puedes cerrar esta pestaña y volver a abrirla para comprobar que te recuerda.</small></div>
+<button id="logout" class="secondary">Cerrar sesión</button>
+</div>
+<div id="status" class="status">Comprobando sesión guardada…</div>
+</main>
+<script>
+(function(){
+const URL='https://lqsoxkoiwczouhvefmgg.supabase.co';
+const KEY=['sb_publishable_ctmNZLxW2y5f_','7CJJ8FDMw_xyRqnRT_'].join('');
+const STORE='ff_session_github_staging_v1';
+const $=id=>document.getElementById(id);
+function setStatus(msg,cls){$('status').textContent=msg;$('status').className='status '+(cls||'')}
+function save(s){localStorage.setItem(STORE,JSON.stringify(s))}
+function load(){try{return JSON.parse(localStorage.getItem(STORE)||'null')}catch{return null}}
+function clear(){localStorage.removeItem(STORE)}
+async function req(path,opt={}){
+ const headers=Object.assign({'apikey':KEY,'Content-Type':'application/json'},opt.headers||{});
+ const r=await fetch(URL+path,Object.assign({},opt,{headers}));
+ const text=await r.text(); let data={}; try{data=text?JSON.parse(text):{}}catch{data={message:text}}
+ if(!r.ok) throw new Error(data.msg||data.message||data.error_description||('HTTP '+r.status));
+ return data;
+}
+async function user(access){return req('/auth/v1/user',{headers:{Authorization:'Bearer '+access}})}
+async function refresh(s){
+ if(!s||!s.refresh_token)return null;
+ const d=await req('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:s.refresh_token})});
+ save(d);return d;
+}
+function showUser(u){$('loggedOut').hidden=true;$('loggedIn').hidden=false;$('who').textContent=u.email||u.id;setStatus('✓ Login y almacenamiento local funcionando.','ok')}
+function showLogin(msg){$('loggedOut').hidden=false;$('loggedIn').hidden=true;setStatus(msg||'No hay una sesión guardada. Inicia sesión una vez.')}
+async function restore(){
+ const s=load(); if(!s)return showLogin();
+ try{const u=await user(s.access_token);showUser(u)}
+ catch(e){try{const n=await refresh(s);const u=await user(n.access_token);showUser(u)}catch{clear();showLogin('La sesión guardada ya no es válida. Inicia sesión de nuevo.')}}
+}
+$('login').onclick=async()=>{
+ const email=$('email').value.trim(),password=$('password').value;
+ if(!email||!password)return setStatus('Introduce email y contraseña.','err');
+ setStatus('Entrando…');
+ try{
+  const d=await req('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
+  save(d); const u=d.user||await user(d.access_token); showUser(u);
+ }catch(e){setStatus(e.message,'err')}
+};
+$('logout').onclick=async()=>{const s=load();try{if(s?.access_token)await req('/auth/v1/logout',{method:'POST',headers:{Authorization:'Bearer '+s.access_token}})}catch{}clear();showLogin('Sesión cerrada en este dispositivo.')};
+restore();
+})();
+</script>
+</body></html>

@@ -353,7 +353,7 @@ async function loadAll(silent=false){
    rpc('expense_category_breakdown',{p_household:h,p_from:mr.from,p_to:mr.to}),
    rest('categories','household_id=eq.'+h+'&select=id,name,kind&order=sort_order.asc'),
    rest('transactions','household_id=eq.'+h+'&select=id,transaction_date,amount,type,concept,category_id,person_label,person_user_id,account_id,destination_account_id,investment_id,notes,external_id,raw_input,classification_confidence,classification_reason,classification_confirmed&order=transaction_date.desc,created_at.desc&limit=500'),
-   rest('account_balances_current','household_id=eq.'+h+'&select=id,name,type,currency,current_balance,include_in_cash,include_in_net_worth&order=name.asc'),
+   rest('account_balances_current','household_id=eq.'+h+'&select=id,name,type,currency,current_balance,balance_base_date,include_in_cash,include_in_net_worth&order=name.asc'),
    rest('investment_values_current','household_id=eq.'+h+'&select=id,name,provider,asset_type,currency,current_value,valuation_date&order=name.asc'),
    rest('assets','household_id=eq.'+h+'&is_archived=eq.false&select=id,name,type,current_value,valuation_date&order=name.asc'),
    rest('liabilities','household_id=eq.'+h+'&is_archived=eq.false&select=id,name,type,lender,outstanding_balance,monthly_payment&order=name.asc'),

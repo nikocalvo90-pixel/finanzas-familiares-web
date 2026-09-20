@@ -463,8 +463,11 @@ async function buildWorkbookSheets(){
 async function exportWorkbook(){
  try{
    const sheets=await buildWorkbookSheets(),blob=buildXlsx(sheets),name='Finanzas_Familia_'+todayISO()+'.xlsx',file=new File([blob],name,{type:blob.type});
-   if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Finanzas Familiares'})}
-   else{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+   const fallback=()=>{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2500)};
+   if(navigator.canShare&&navigator.canShare({files:[file]})){
+     try{await navigator.share({files:[file],title:'Finanzas Familiares'})}
+     catch(e){if(e&&e.name==='AbortError')return;fallback()}
+   }else fallback();
    toast('Excel acumulativo preparado');
  }catch(e){alert('No se pudo generar el Excel: '+e.message)}
 }

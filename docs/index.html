@@ -554,7 +554,7 @@ function currentView(){const x=(location.hash||'#inicio').slice(1);return['inici
 function shell(content){
  const initials=(state.member?.display_name||state.user.email||'F').slice(0,1).toUpperCase();
  root.innerHTML='<div class="app"><aside class="sidebar"><div class="brand"><div class="logo">F</div><div class="brand-copy"><b>Finanzas</b><small>'+esc(state.household.name)+'</small></div></div><nav class="nav">'+navButton('inicio','Inicio','⌂')+navButton('movimientos','Movimientos','⇄')+navButton('analisis','Análisis','◔')+navButton('patrimonio','Patrimonio','▥')+navButton('ajustes','Ajustes','⚙')+'</nav><div class="side-foot"><div class="user"><div class="avatar">'+initials+'</div><div class="user-copy"><b>'+esc(state.member?.display_name||'Usuario')+'</b><small>'+esc(state.user.email||'')+'</small></div></div></div></aside>'+
- '<main class="main"><div class="mobile-top"><div class="brand"><div class="logo">F</div><div class="brand-copy"><b>Finanzas</b><small>'+esc(state.household.name)+'</small></div></div><span class="stg">STAGING</span></div>'+content+'</main>'+
+ '<main class="main"><div class="mobile-top"><div class="brand"><div class="logo">F</div><div class="brand-copy"><b>Finanzas</b><small>'+esc(state.household.name)+'</small></div></div></div>'+content+'</main>'+
  '<nav class="bottom-nav">'+[['inicio','⌂','Inicio'],['movimientos','⇄','Movim.'],['analisis','◔','Análisis'],['patrimonio','▥','Patrim.'],['ajustes','⚙','Ajustes']].map(([id,ic,l])=>'<button data-view="'+id+'" class="'+(currentView()===id?'active':'')+'"><b>'+ic+'</b><span>'+l+'</span></button>').join('')+'</nav><button class="fab" title="Registrar movimiento">+</button></div>';
  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{location.hash=b.dataset.view});
 }
@@ -566,7 +566,7 @@ function txRows(list,editable=false){
    return '<div class="tx '+(editable?'editable':'')+'"><div class="ico '+meta.cls+'">'+meta.icon+'</div><div class="tx-main"><b>'+esc(t.concept)+'</b><span>'+esc(cat)+' · '+esc(t.person_label||'Familia')+' · '+dateFmt.format(d)+'</span></div><div class="amt '+(meta.cls==='in'?'green':meta.cls==='out'?'red':'blue')+'">'+meta.sign+money(t.amount)+'</div>'+actions+'</div>'
  }).join('')||'<div class="empty">No hay movimientos.</div>'
 }
-function head(ey,title,desc){return '<header class="page-head"><div><span class="eyebrow">'+ey+'</span><h1>'+title+'</h1><p>'+desc+'</p></div><div class="actions"><span class="stg">STAGING</span><button class="btn" id="new-tx">+ Registrar</button><button class="btn" id="refresh">Actualizar</button></div></header>'}
+function head(ey,title,desc){return '<header class="page-head"><div><span class="eyebrow">'+ey+'</span><h1>'+title+'</h1><p>'+desc+'</p></div><div class="actions"><button class="btn" id="new-tx">+ Registrar</button><button class="btn" id="refresh">Actualizar</button></div></header>'}
 function bindCommon(){const r=document.getElementById('refresh');if(r)r.onclick=async()=>{await loadAll();renderApp()};const n=document.getElementById('new-tx');if(n)n.onclick=openRegister;const f=document.querySelector('.fab');if(f)f.onclick=openRegister}
 function viewInicio(){
  const m=state.data.metrics,n=state.data.networth,cashOut=Number(m.expenses||0)+Number(m.invested||0);

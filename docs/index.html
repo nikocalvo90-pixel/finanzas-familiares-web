@@ -76,6 +76,7 @@ async function performDeviceUnlock(){
  state.deviceUnlocked=true;return true;
 }
 function renderDeviceLock(msg){
+ document.querySelectorAll('.modal-back').forEach(x=>x.remove());
  const label=lockLabel();
  root.innerHTML='<div class="lock-screen"><main class="lock-card"><div class="lock-icon">⌁</div><h1>Finanzas protegidas</h1><p>Desbloquea la app con '+esc(label)+'. Tu sesión sigue guardada y no necesitas escribir la contraseña.</p><button class="primary" id="device-unlock">Desbloquear con '+esc(label)+'</button><button class="btn" id="device-password">Entrar con contraseña</button><div class="status '+(msg?'err':'')+'" id="device-lock-status">'+esc(msg||'La biometría se valida en tu iPhone; la app no recibe ni almacena datos biométricos.')+'</div></main></div>';
  document.getElementById('device-unlock').onclick=async()=>{

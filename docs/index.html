@@ -636,6 +636,92 @@ function txRows(list,editable=false){
 }
 function head(ey,title,desc,primaryLabel='+ Registrar',primaryId='new-tx'){return '<header class="page-head"><div><span class="eyebrow">'+ey+'</span><h1>'+title+'</h1><p>'+desc+'</p></div><div class="actions"><button class="btn" id="'+primaryId+'">'+primaryLabel+'</button><button class="btn" id="refresh">Actualizar</button></div></header>'}
 function bindCommon(){const r=document.getElementById('refresh');if(r)r.onclick=async()=>{await loadAll();renderApp()};const n=document.getElementById('new-tx');if(n)n.onclick=openRegister;const f=document.querySelector('.fab');if(f)f.onclick=currentView()==='tareas'?()=>openTaskEditor(null):openRegister}
+
+function addDaysISO(days){const d=new Date();d.setDate(d.getDate()+days);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function memberName(id){return state.data.members.find(m=>m.user_id===id)?.display_name||'Familia'}
+function taskDueText(t){
+ if(!t.due_date)return 'Sin fecha';
+ const today=todayISO(),tom=addDaysISO(1);
+ if(t.due_date===today)return 'Hoy';
+ if(t.due_date===tom)return 'Mañana';
+ return new Date(t.due_date+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
+}
+function inferTask(raw){
+ let title=String(raw||'').trim(),due='',assigned='',priority='NORMAL',category='';
+ let n=norm(title);
+ if(n.includes('hoy')){due=todayISO();title=title.replace(/\bhoy\b/i,'').trim()}
+ else if(n.includes('mañana')||n.includes('manana')){due=addDaysISO(1);title=title.replace(/\bmañana\b|\bmanana\b/i,'').trim()}
+ for(const m of state.data.members){
+   const display=String(m.display_name||'').trim();if(!display)continue;
+   const phrase='para '+norm(display);
+   if(norm(title).includes(phrase)){
+     const lower=title.toLowerCase(),rawPhrase='para '+display.toLowerCase(),idx=lower.indexOf(rawPhrase);
+     assigned=m.user_id;
+     if(idx>=0)title=(title.slice(0,idx)+title.slice(idx+rawPhrase.length)).trim();
+     break;
+   }
+ }
+ n=norm(title);
+ if(n.includes('importante')||n.includes('urgente')){priority='IMPORTANTE';title=title.replace(/\b(importante|urgente)\b/ig,'').trim()}
+ const nn=norm(title);
+ if(/comprar|compra|supermerc|mercadona/.test(nn))category='Compras';
+ else if(/miguel|colegio|nino|niño/.test(nn))category='Miguel';
+ else if(/coche|tesla|astra|garaje/.test(nn))category='Coche';
+ else if(/cita|llamar|pedir|renovar|gesti/.test(nn))category='Gestiones';
+ else if(/casa|limpiar|limpieza|ordenar/.test(nn))category='Casa';
+ return {title:title.replace(/^[-,:;]+|[-,:;]+$/g,'').trim()||String(raw||'').trim(),due_date:due,assigned_to_user_id:assigned,priority,category,notes:''}
+}
+function openTaskEditor(id,prefill){
+ const t=id?(state.data.tasks||[]).find(x=>x.id===id):Object.assign({title:'',notes:'',assigned_to_user_id:'',due_date:'',priority:'NORMAL',category:'',status:'PENDIENTE'},prefill||{});
+ if(!t)return;
+ const back=document.createElement('div');back.className='modal-back';back.id='task-modal';
+ const assignee='<option value="">Cualquiera</option>'+state.data.members.map(m=>'<option value="'+m.user_id+'" '+(m.user_id===t.assigned_to_user_id?'selected':'')+'>'+esc(m.display_name||'Miembro')+'</option>').join('');
+ back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Familia</span><h2>'+(id?'Editar tarea':'Nueva tarea')+'</h2></div><button class="close" id="task-x">×</button></div><div class="edit-grid"><label class="wide">Tarea<input id="task-title" value="'+esc(t.title)+'" placeholder="Ej. Pedir cita del dentista"></label><label>Responsable<select id="task-assignee">'+assignee+'</select></label><label>Fecha límite<input id="task-due" type="date" value="'+esc(t.due_date||'')+'"></label><label>Prioridad<select id="task-priority"><option value="NORMAL">Normal</option><option value="IMPORTANTE">Importante</option></select></label><label>Categoría<input id="task-category" value="'+esc(t.category||'')+'" placeholder="Casa, Compras, Miguel…"></label><label class="wide">Notas<input id="task-notes" value="'+esc(t.notes||'')+'" placeholder="Opcional"></label></div><div class="notice">Los dos podéis verla y actualizarla. Al marcarla como hecha se guarda quién la completó y cuándo.</div><div id="task-error" class="status err" style="display:none"></div><div class="modal-actions"><button class="btn" id="task-cancel">Cancelar</button><button class="save" id="task-save">Guardar tarea</button></div></div>';
+ document.body.appendChild(back);document.getElementById('task-priority').value=t.priority||'NORMAL';
+ const close=()=>back.remove();document.getElementById('task-x').onclick=close;document.getElementById('task-cancel').onclick=close;back.onclick=e=>{if(e.target===back)close()};document.getElementById('task-save').onclick=()=>saveTaskEditor(id);
+ setTimeout(()=>document.getElementById('task-title')?.focus(),30);
+}
+async function saveTaskEditor(id){
+ const title=document.getElementById('task-title').value.trim(),err=document.getElementById('task-error'),btn=document.getElementById('task-save');
+ const fail=m=>{err.textContent=m;err.style.display='block';return};if(!title)return fail('Escribe una tarea.');
+ const payload={household_id:state.household.id,title,notes:document.getElementById('task-notes').value.trim()||null,assigned_to_user_id:document.getElementById('task-assignee').value||null,due_date:document.getElementById('task-due').value||null,priority:document.getElementById('task-priority').value,category:document.getElementById('task-category').value.trim()||null};
+ if(!id){payload.created_by=state.user.id;payload.status='PENDIENTE'}
+ btn.disabled=true;btn.textContent='Guardando…';
+ try{id?await updateTask(id,payload):await insertTask(payload);document.getElementById('task-modal')?.remove();await loadAll(true);renderApp();toast('Tarea guardada')}
+ catch(e){btn.disabled=false;btn.textContent='Guardar tarea';fail(e.message)}
+}
+async function toggleTask(id){
+ const t=(state.data.tasks||[]).find(x=>x.id===id);if(!t)return;
+ try{await updateTask(id,{status:t.status==='HECHA'?'PENDIENTE':'HECHA'});await loadAll(true);renderApp();toast(t.status==='HECHA'?'Tarea reabierta':'Tarea completada')}
+ catch(e){alert('No se pudo actualizar: '+e.message)}
+}
+async function removeTask(id){
+ const t=(state.data.tasks||[]).find(x=>x.id===id);if(!t||!confirm('¿Borrar la tarea “'+t.title+'”?'))return;
+ try{await deleteTask(id);await loadAll(true);renderApp();toast('Tarea borrada')}catch(e){alert('No se pudo borrar: '+e.message)}
+}
+function taskRows(list){
+ const today=todayISO();
+ return (list||[]).map(t=>{
+   const overdue=t.status!=='HECHA'&&t.due_date&&t.due_date<today,assignee=t.assigned_to_user_id?memberName(t.assigned_to_user_id):'Cualquiera';
+   return '<div class="task-row '+(t.status==='HECHA'?'done':'')+'"><button class="task-check" data-task-toggle="'+t.id+'" aria-label="'+(t.status==='HECHA'?'Reabrir':'Completar')+'">'+(t.status==='HECHA'?'✓':'')+'</button><div class="task-main"><div class="task-title">'+esc(t.title)+'</div><div class="task-meta"><span>'+esc(assignee)+'</span><span class="'+(overdue?'task-overdue':'')+'">'+esc(taskDueText(t))+'</span>'+(t.category?'<span>'+esc(t.category)+'</span>':'')+(t.priority==='IMPORTANTE'?'<span class="important">IMPORTANTE</span>':'')+(t.status==='HECHA'&&t.completed_by?'<span>Hecha por '+esc(memberName(t.completed_by))+'</span>':'')+'</div></div><div class="task-actions"><button class="mini" data-task-edit="'+t.id+'">Editar</button><button class="mini danger" data-task-delete="'+t.id+'">Borrar</button></div></div>'
+ }).join('')||'<div class="empty">No hay tareas aquí.</div>'
+}
+function bindTaskActions(){
+ document.querySelectorAll('[data-task-toggle]').forEach(b=>b.onclick=()=>toggleTask(b.dataset.taskToggle));
+ document.querySelectorAll('[data-task-edit]').forEach(b=>b.onclick=()=>openTaskEditor(b.dataset.taskEdit));
+ document.querySelectorAll('[data-task-delete]').forEach(b=>b.onclick=()=>removeTask(b.dataset.taskDelete));
+}
+function viewTareas(){
+ const tasks=state.data.tasks||[],pending=tasks.filter(t=>t.status==='PENDIENTE'),mine=pending.filter(t=>t.assigned_to_user_id===state.user.id),important=pending.filter(t=>t.priority==='IMPORTANTE'),today=pending.filter(t=>t.due_date===todayISO());
+ shell(head('Organización familiar','Tareas','Lista compartida para Nico y Bea. Todo cambio se sincroniza en ambos móviles.','+ Nueva tarea','new-task')+
+ '<section class="metrics"><div class="metric"><span>Pendientes</span><strong>'+pending.length+'</strong><small>Total familiar</small></div><div class="metric"><span>Para ti</span><strong class="blue">'+mine.length+'</strong><small>Asignadas a '+esc(state.member?.display_name||'ti')+'</small></div><div class="metric"><span>Hoy</span><strong class="'+(today.length?'orange':'')+'">'+today.length+'</strong><small>Con fecha de hoy</small></div><div class="metric"><span>Importantes</span><strong class="'+(important.length?'red':'')+'">'+important.length+'</strong><small>Prioridad alta</small></div></section>'+
+ '<section class="panel"><div class="panel-head"><div><span class="sub">Añadir rápido</span><h2>¿Qué hay que hacer?</h2></div></div><div class="task-quick"><input id="task-quick-input" placeholder="Ej.: Comprar leche mañana para Bea"><button class="btn" id="task-quick-add">Preparar tarea</button></div><div class="inline-help">Entiende “hoy”, “mañana”, “para Nico/Bea” e “importante”. Siempre podrás revisar antes de guardar.</div><div class="task-tabs"><button class="task-tab active" data-task-filter="pending">Pendientes</button><button class="task-tab" data-task-filter="mine">Mías</button><button class="task-tab" data-task-filter="done">Completadas</button><button class="task-tab" data-task-filter="all">Todas</button></div><div id="task-list" class="task-list"></div></section>');
+ bindCommon();document.getElementById('new-task').onclick=()=>openTaskEditor(null);
+ const input=document.getElementById('task-quick-input');document.getElementById('task-quick-add').onclick=()=>{const q=input.value.trim();if(q)openTaskEditor(null,inferTask(q))};input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('task-quick-add').click()}};
+ let mode='pending';
+ const draw=()=>{let list=tasks;if(mode==='pending')list=tasks.filter(t=>t.status==='PENDIENTE');else if(mode==='mine')list=tasks.filter(t=>t.status==='PENDIENTE'&&t.assigned_to_user_id===state.user.id);else if(mode==='done')list=tasks.filter(t=>t.status==='HECHA');document.getElementById('task-list').innerHTML=taskRows(list);bindTaskActions()};
+ document.querySelectorAll('[data-task-filter]').forEach(b=>b.onclick=()=>{mode=b.dataset.taskFilter;document.querySelectorAll('[data-task-filter]').forEach(x=>x.classList.toggle('active',x===b));draw()});draw()
+}
 function viewInicio(){
  const m=state.data.metrics,n=state.data.networth,cashOut=Number(m.expenses||0)+Number(m.invested||0);
  shell(head('Resumen del mes','Inicio','Una vista rápida de caja, coste y patrimonio.')+

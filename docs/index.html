@@ -547,7 +547,7 @@ const H=vals=>vals.map(v=>({v,s:1})),C=v=>({v:Number(v||0),s:2});
 async function buildWorkbookSheets(){
  const h=state.household.id;
  toast('Preparando Excel acumulativo…');
- const [tx,cats,accRaw,accNow,invRaw,invNow,assets,liabs,schedules,allocs,closures,invVals,assetVals,liabVals,nwSnaps]=await Promise.all([
+ const [tx,cats,accRaw,accNow,invRaw,invNow,assets,liabs,schedules,allocs,closures,invVals,assetVals,liabVals,nwSnaps,recons]=await Promise.all([
    restAll('transactions','household_id=eq.'+h+'&select=*&order=transaction_date.asc,created_at.asc'),
    restAll('categories','household_id=eq.'+h+'&select=*'),
    restAll('accounts','household_id=eq.'+h+'&select=*'),
@@ -562,7 +562,8 @@ async function buildWorkbookSheets(){
    restAll('investment_valuations','household_id=eq.'+h+'&select=*&order=valuation_date.asc'),
    restAll('asset_valuations','household_id=eq.'+h+'&select=*&order=valuation_date.asc'),
    restAll('liability_balance_snapshots','household_id=eq.'+h+'&select=*&order=snapshot_date.asc'),
-   restAll('net_worth_snapshots','household_id=eq.'+h+'&select=*&order=snapshot_date.asc')
+   restAll('net_worth_snapshots','household_id=eq.'+h+'&select=*&order=snapshot_date.asc'),
+   restAll('reconciliations','household_id=eq.'+h+'&select=*&order=created_at.asc')
  ]);
  const cat=Object.fromEntries(cats.map(x=>[x.id,x.name])),acc=Object.fromEntries(accRaw.map(x=>[x.id,x.name])),inv=Object.fromEntries(invRaw.map(x=>[x.id,x.name])),members=Object.fromEntries((state.data.members||[]).map(x=>[x.user_id,x.display_name]));
  const txMap=Object.fromEntries(tx.map(x=>[x.id,x])),activeSchedule=new Map(schedules.filter(x=>x.active).map(x=>[x.transaction_id,x]));
@@ -599,7 +600,9 @@ async function buildWorkbookSheets(){
  invVals.forEach(v=>vals.push(['Inversión',inv[v.investment_id]||'',v.valuation_date,C(v.value),v.notes||'']));
  const assetMap=Object.fromEntries(assets.map(a=>[a.id,a.name]));assetVals.forEach(v=>vals.push(['Activo',assetMap[v.asset_id]||'',v.valuation_date,C(v.value),v.notes||'']));
  const liabMap=Object.fromEntries(liabs.map(a=>[a.id,a.name]));liabVals.forEach(v=>vals.push(['Deuda',liabMap[v.liability_id]||'',v.snapshot_date,C(v.outstanding_balance),v.notes||'']));
- return {'Movimientos':mov,'Resumen mensual':summary,'Categorías':catsSheet,'Cuentas':accSheet,'Inversiones':invSheet,'Patrimonio':patr,'Periodizaciones':per,'Cierres':cls,'Valoraciones':vals};
+ const recon=[H(['Fecha','Tipo','Elemento','Valor calculado','Valor real','Diferencia','Persona','Nota'])],assetNames=Object.fromEntries(assets.map(x=>[x.id,x.name])),liabNames=Object.fromEntries(liabs.map(x=>[x.id,x.name]));
+ recons.forEach(r=>{const name=r.entity_type==='CUENTA'?acc[r.entity_id]:r.entity_type==='INVERSION'?inv[r.entity_id]:r.entity_type==='ACTIVO'?assetNames[r.entity_id]:liabNames[r.entity_id];recon.push([r.as_of_date,r.entity_type,name||r.entity_id,C(r.expected_value),C(r.actual_value),C(r.difference),members[r.created_by]||'',r.note||''])});
+ return {'Movimientos':mov,'Resumen mensual':summary,'Categorías':catsSheet,'Cuentas':accSheet,'Inversiones':invSheet,'Patrimonio':patr,'Periodizaciones':per,'Cierres':cls,'Valoraciones':vals,'Reconciliaciones':recon};
 }
 async function exportWorkbook(){
  try{

@@ -1012,6 +1012,75 @@ async function saveRecurringEditor(id){
  try{id?await updateRecurring(id,payload):await insertRecurring(payload);const modal=document.getElementById('recurring-modal');if(modal)modal.remove();await loadAll();renderApp();toast('Recurrente guardado')}
  catch(e){btn.disabled=false;btn.textContent='Guardar recurrente';fail(e.message)}
 }
+function wealthKindLabel(kind){return ({account:'Cuenta',investment:'Inversión',asset:'Activo',liability:'Deuda'})[kind]||kind}
+function wealthRpcType(kind){return ({account:'ACCOUNT',investment:'INVESTMENT',asset:'ASSET',liability:'LIABILITY'})[kind]||kind.toUpperCase()}
+function wealthEntity(kind,id){
+ if(kind==='account')return (state.data.accounts||[]).find(x=>x.id===id);
+ if(kind==='investment')return (state.data.investments||[]).find(x=>x.id===id);
+ if(kind==='asset')return (state.data.assets||[]).find(x=>x.id===id);
+ return (state.data.liabilities||[]).find(x=>x.id===id)
+}
+function wealthValue(kind,x){
+ if(!x)return 0;
+ return Number(kind==='account'?x.current_balance:kind==='investment'?x.current_value:kind==='asset'?x.current_value:x.outstanding_balance)||0
+}
+function wealthOwnerOptions(selected=''){
+ return '<option value="">Compartido / sin titular único</option>'+state.data.members.map(m=>'<option value="'+m.user_id+'" '+(m.user_id===selected?'selected':'')+'>'+esc(m.display_name||'Miembro')+'</option>').join('')
+}
+function wealthAccountOptions(selected=''){
+ return '<option value="">Sin cuenta vinculada</option>'+state.data.accounts.map(a=>'<option value="'+a.id+'" '+(a.id===selected?'selected':'')+'>'+esc(a.name)+'</option>').join('')
+}
+function wealthAssetOptions(selected=''){
+ return '<option value="">Sin activo vinculado</option>'+state.data.assets.map(a=>'<option value="'+a.id+'" '+(a.id===selected?'selected':'')+'>'+esc(a.name)+'</option>').join('')
+}
+function openNewWealthPicker(){
+ const back=document.createElement('div');back.className='modal-back';back.id='wealth-picker';
+ back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Patrimonio</span><h2>Añadir al patrimonio</h2></div><button class="close" id="wealth-picker-x">×</button></div><p style="color:#879bb3;font-size:11px;line-height:1.5;margin:0">Elige qué quieres dar de alta. El valor inicial quedará fechado para conservar el histórico.</p><div class="wealth-choice-grid"><button class="wealth-choice-card" data-new-wealth="account"><span class="wealth-choice-icon">€</span><span><b>Cuenta</b><span>Banco, efectivo, ahorro o tarjeta.</span></span></button><button class="wealth-choice-card" data-new-wealth="investment"><span class="wealth-choice-icon">↗</span><span><b>Inversión</b><span>Fondos, cartera, depósito u otra inversión.</span></span></button><button class="wealth-choice-card" data-new-wealth="asset"><span class="wealth-choice-icon">⌂</span><span><b>Activo</b><span>Vivienda, vehículo u otro bien.</span></span></button><button class="wealth-choice-card" data-new-wealth="liability"><span class="wealth-choice-icon">−</span><span><b>Deuda</b><span>Hipoteca, préstamo, crédito u otra deuda.</span></span></button></div><div class="archive-note">Por ahora el patrimonio se lleva en EUR. Así evitamos sumar monedas distintas sin una conversión fiable.</div></div>';
+ document.body.appendChild(back);const close=()=>back.remove();document.getElementById('wealth-picker-x').onclick=close;back.onclick=e=>{if(e.target===back)close()};
+ document.querySelectorAll('[data-new-wealth]').forEach(b=>b.onclick=()=>{const k=b.dataset.newWealth;close();openNewWealthEditor(k)})
+}
+function openNewWealthEditor(kind){
+ const back=document.createElement('div');back.className='modal-back';back.id='new-wealth-modal';
+ const owners=wealthOwnerOptions(),today=todayISO();
+ let form='';
+ if(kind==='account'){
+   form='<div class="edit-grid"><label class="wide">Nombre<input id="nw-name" placeholder="Ej. Cuenta nómina"></label><label>Tipo<select id="nw-type"><option value="CORRIENTE">Cuenta corriente</option><option value="AHORRO">Ahorro</option><option value="EFECTIVO">Efectivo</option><option value="TARJETA">Tarjeta</option><option value="INVERSION">Cuenta de inversión</option><option value="OTRA">Otra</option></select></label><label>Titular<select id="nw-owner">'+owners+'</select></label><label>Institución<input id="nw-secondary" placeholder="Banco o entidad"></label><label>Saldo actual<input id="nw-value" inputmode="decimal" placeholder="0,00"></label><label>Fecha del saldo<input id="nw-date" type="date" value="'+today+'"></label></div><div class="check-grid"><label class="check-card"><input id="nw-cash" type="checkbox" checked><span>Incluir en caja real disponible</span></label><label class="check-card"><input id="nw-net" type="checkbox" checked><span>Incluir en patrimonio neto</span></label></div>';
+ }else if(kind==='investment'){
+   form='<div class="edit-grid"><label class="wide">Nombre<input id="nw-name" placeholder="Ej. Fondos indexados"></label><label>Proveedor<input id="nw-secondary" placeholder="Broker o entidad"></label><label>Tipo de inversión<input id="nw-type" placeholder="Fondos, ETF, depósito…"></label><label>Titular<select id="nw-owner">'+owners+'</select></label><label>Cuenta vinculada<select id="nw-linked">'+wealthAccountOptions()+'</select></label><label>Valor actual<input id="nw-value" inputmode="decimal" placeholder="0,00"></label><label>Fecha de valoración<input id="nw-date" type="date" value="'+today+'"></label></div>';
+ }else if(kind==='asset'){
+   form='<div class="edit-grid"><label class="wide">Nombre<input id="nw-name" placeholder="Ej. Vivienda principal"></label><label>Tipo<select id="nw-type"><option value="VIVIENDA">Vivienda</option><option value="VEHICULO">Vehículo</option><option value="OTRO_BIEN">Otro bien</option></select></label><label>Titular<select id="nw-owner">'+owners+'</select></label><label>Fecha de compra<input id="nw-purchase-date" type="date"></label><label>Valor de compra<input id="nw-purchase-value" inputmode="decimal" placeholder="Opcional"></label><label>Valor actual<input id="nw-value" inputmode="decimal" placeholder="0,00"></label><label>Fecha de valoración<input id="nw-date" type="date" value="'+today+'"></label><label class="wide">Notas<input id="nw-notes" placeholder="Opcional"></label></div>';
+ }else{
+   form='<div class="edit-grid"><label class="wide">Nombre<input id="nw-name" placeholder="Ej. Hipoteca vivienda"></label><label>Tipo<select id="nw-type"><option value="HIPOTECA">Hipoteca</option><option value="PRESTAMO">Préstamo</option><option value="CREDITO">Crédito</option><option value="OTRA_DEUDA">Otra deuda</option></select></label><label>Prestamista<input id="nw-secondary" placeholder="Banco o entidad"></label><label>Titular<select id="nw-owner">'+owners+'</select></label><label>Activo vinculado<select id="nw-linked">'+wealthAssetOptions()+'</select></label><label>Importe original<input id="nw-original" inputmode="decimal" placeholder="Opcional"></label><label>Saldo pendiente<input id="nw-value" inputmode="decimal" placeholder="0,00"></label><label>Fecha del saldo<input id="nw-date" type="date" value="'+today+'"></label><label>Interés anual (%)<input id="nw-interest" inputmode="decimal" placeholder="Opcional"></label><label>Cuota mensual<input id="nw-payment" inputmode="decimal" placeholder="Opcional"></label><label>Fecha de inicio<input id="nw-start" type="date"></label><label>Vencimiento<input id="nw-maturity" type="date"></label><label class="wide">Notas<input id="nw-notes" placeholder="Opcional"></label></div>';
+ }
+ back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Patrimonio</span><h2>Nueva '+esc(wealthKindLabel(kind).toLowerCase())+'</h2></div><button class="close" id="nw-x">×</button></div>'+form+'<div class="notice">No se crea ningún gasto ni ingreso. Este alta define el elemento patrimonial y su valor de referencia.</div><div id="nw-error" class="status err" style="display:none"></div><div class="modal-actions"><button class="btn" id="nw-cancel">Cancelar</button><button class="save" id="nw-save">Guardar</button></div></div>';
+ document.body.appendChild(back);const close=()=>back.remove();document.getElementById('nw-x').onclick=close;document.getElementById('nw-cancel').onclick=close;back.onclick=e=>{if(e.target===back)close()};document.getElementById('nw-save').onclick=()=>saveNewWealthEditor(kind);setTimeout(()=>document.getElementById('nw-name')?.focus(),30)
+}
+async function saveNewWealthEditor(kind){
+ const err=document.getElementById('nw-error'),btn=document.getElementById('nw-save'),name=document.getElementById('nw-name').value.trim(),raw=document.getElementById('nw-value').value.trim(),value=raw===''?null:Number(raw.replace(',','.')),date=document.getElementById('nw-date').value,owner=document.getElementById('nw-owner').value||null;
+ const nullableNumber=id=>{const el=document.getElementById(id),v=el?.value.trim()||'';return v===''?null:Number(v.replace(',','.'))};
+ const fail=m=>{err.textContent=m;err.style.display='block';return};
+ if(!name)return fail('Escribe un nombre.');
+ if(value===null||!Number.isFinite(value)||!date)return fail('Introduce un valor y una fecha válidos.');
+ if(kind!=='account'&&value<0)return fail('El valor no puede ser negativo.');
+ btn.disabled=true;btn.textContent='Guardando…';
+ try{
+   const h=state.household.id;
+   if(kind==='account'){
+     await rpc('create_account_from_app',{p_household:h,p_name:name,p_type:document.getElementById('nw-type').value,p_owner_user_id:owner,p_institution:document.getElementById('nw-secondary').value.trim()||null,p_balance:value,p_balance_date:date,p_include_in_cash:document.getElementById('nw-cash').checked,p_include_in_net_worth:document.getElementById('nw-net').checked});
+   }else if(kind==='investment'){
+     await rpc('create_investment_from_app',{p_household:h,p_name:name,p_provider:document.getElementById('nw-secondary').value.trim()||null,p_asset_type:document.getElementById('nw-type').value.trim()||null,p_owner_user_id:owner,p_linked_account_id:document.getElementById('nw-linked').value||null,p_value:value,p_valuation_date:date});
+   }else if(kind==='asset'){
+     const purchase=nullableNumber('nw-purchase-value');if(purchase!==null&&(!Number.isFinite(purchase)||purchase<0)){btn.disabled=false;btn.textContent='Guardar';return fail('El valor de compra no es válido.')}
+     await rpc('create_asset_from_app',{p_household:h,p_name:name,p_type:document.getElementById('nw-type').value,p_owner_user_id:owner,p_purchase_date:document.getElementById('nw-purchase-date').value||null,p_purchase_value:purchase,p_current_value:value,p_valuation_date:date,p_notes:document.getElementById('nw-notes').value.trim()||null});
+   }else{
+     const original=nullableNumber('nw-original'),interest=nullableNumber('nw-interest'),payment=nullableNumber('nw-payment');
+     if([original,interest,payment].some(v=>v!==null&&(!Number.isFinite(v)||v<0))){btn.disabled=false;btn.textContent='Guardar';return fail('Revisa los importes de la deuda.')}
+     const start=document.getElementById('nw-start').value||null,maturity=document.getElementById('nw-maturity').value||null;if(start&&maturity&&maturity<start){btn.disabled=false;btn.textContent='Guardar';return fail('El vencimiento no puede ser anterior al inicio.')}
+     await rpc('create_liability_from_app',{p_household:h,p_name:name,p_type:document.getElementById('nw-type').value,p_lender:document.getElementById('nw-secondary').value.trim()||null,p_owner_user_id:owner,p_linked_asset_id:document.getElementById('nw-linked').value||null,p_original_amount:original,p_outstanding_balance:value,p_interest_rate:interest,p_monthly_payment:payment,p_start_date:start,p_maturity_date:maturity,p_balance_date:date,p_notes:document.getElementById('nw-notes').value.trim()||null});
+   }
+   document.getElementById('new-wealth-modal')?.remove();await loadAll(true);renderApp();toast(wealthKindLabel(kind)+' añadida');
+ }catch(e){btn.disabled=false;btn.textContent='Guardar';fail(e.message)}
+}
 function openWealthEditor(kind,id){
  let x;if(kind==='account')x=state.data.accounts.find(a=>a.id===id);else if(kind==='investment')x=state.data.investments.find(a=>a.id===id);else if(kind==='asset')x=state.data.assets.find(a=>a.id===id);else x=state.data.liabilities.find(a=>a.id===id);if(!x)return;
  const value=kind==='account'?x.current_balance:kind==='investment'?x.current_value:kind==='asset'?x.current_value:x.outstanding_balance;

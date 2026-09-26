@@ -851,9 +851,13 @@ function openTaskEditor(id,prefill){
  setTimeout(()=>document.getElementById('task-title')?.focus(),30);
 }
 async function saveTaskEditor(id){
- const title=document.getElementById('task-title').value.trim(),err=document.getElementById('task-error'),btn=document.getElementById('task-save');
- const fail=m=>{err.textContent=m;err.style.display='block';return};if(!title)return fail('Escribe una tarea.');
- const payload={household_id:state.household.id,title,notes:document.getElementById('task-notes').value.trim()||null,assigned_to_user_id:document.getElementById('task-assignee').value||null,due_date:document.getElementById('task-due').value||null,priority:document.getElementById('task-priority').value,category:document.getElementById('task-category').value.trim()||null};
+ const title=document.getElementById('task-title').value.trim(),err=document.getElementById('task-error'),btn=document.getElementById('task-save'),due=document.getElementById('task-due').value||null,freq=document.getElementById('task-recurrence').value,interval=Math.max(1,Math.min(60,Number(document.getElementById('task-interval').value)||1)),reminderRaw=document.getElementById('task-reminder').value,endDate=document.getElementById('task-end').value||null,existing=id?(state.data.tasks||[]).find(x=>x.id===id):null;
+ const fail=m=>{err.textContent=m;err.style.display='block';return};
+ if(!title)return fail('Escribe una tarea.');
+ if(freq!=='NONE'&&!due)return fail('Una tarea recurrente necesita una fecha de inicio.');
+ if(endDate&&due&&endDate<due)return fail('La fecha final de repetición no puede ser anterior a la primera fecha.');
+ const anchor=freq==='NONE'?null:(existing&&existing.recurrence_frequency===freq&&existing.due_date===due&&existing.recurrence_anchor_date?existing.recurrence_anchor_date:due);
+ const payload={household_id:state.household.id,title,notes:document.getElementById('task-notes').value.trim()||null,assigned_to_user_id:document.getElementById('task-assignee').value||null,due_date:due,priority:document.getElementById('task-priority').value,category:document.getElementById('task-category').value.trim()||null,reminder_days_before:due?(reminderRaw===''?null:Number(reminderRaw)):null,recurrence_frequency:freq,recurrence_interval_count:freq==='NONE'?1:interval,recurrence_end_date:freq==='NONE'?null:endDate,recurrence_anchor_date:anchor};
  if(!id){payload.created_by=state.user.id;payload.status='PENDIENTE'}
  btn.disabled=true;btn.textContent='Guardando…';
  try{id?await updateTask(id,payload):await insertTask(payload);document.getElementById('task-modal')?.remove();await loadAll(true);renderApp();toast('Tarea guardada')}
@@ -861,7 +865,8 @@ async function saveTaskEditor(id){
 }
 async function toggleTask(id){
  const t=(state.data.tasks||[]).find(x=>x.id===id);if(!t)return;
- try{await updateTask(id,{status:t.status==='HECHA'?'PENDIENTE':'HECHA'});await loadAll(true);renderApp();toast(t.status==='HECHA'?'Tarea reabierta':'Tarea completada')}
+ const wasDone=t.status==='HECHA',isRecurring=t.recurrence_frequency&&t.recurrence_frequency!=='NONE';
+ try{await updateTask(id,{status:wasDone?'PENDIENTE':'HECHA'});await loadAll(true);renderApp();toast(wasDone?'Tarea reabierta':isRecurring?'Tarea completada · siguiente preparada':'Tarea completada')}
  catch(e){alert('No se pudo actualizar: '+e.message)}
 }
 async function removeTask(id){

@@ -462,14 +462,14 @@ async function loadAll(silent=false){
    rest('transactions','household_id=eq.'+h+'&select=id,transaction_date,amount,type,concept,category_id,person_label,person_user_id,account_id,destination_account_id,investment_id,notes,external_id,raw_input,classification_confidence,classification_reason,classification_confirmed&order=transaction_date.desc,created_at.desc&limit=500'),
    rest('account_balances_current','household_id=eq.'+h+'&select=id,name,type,currency,current_balance,balance_base_date,include_in_cash,include_in_net_worth&order=name.asc'),
    rest('investment_values_current','household_id=eq.'+h+'&select=id,name,provider,asset_type,currency,current_value,valuation_date&order=name.asc'),
-   rest('assets','household_id=eq.'+h+'&is_archived=eq.false&select=id,name,type,current_value,valuation_date&order=name.asc'),
-   rest('liabilities','household_id=eq.'+h+'&is_archived=eq.false&select=id,name,type,lender,outstanding_balance,monthly_payment&order=name.asc'),
+   rest('assets','household_id=eq.'+h+'&select=id,name,type,owner_user_id,purchase_date,purchase_value,current_value,valuation_date,notes,is_archived,archived_at,archived_by,archive_note&order=is_archived.asc,name.asc'),
+   rest('liabilities','household_id=eq.'+h+'&select=id,name,type,lender,owner_user_id,linked_asset_id,original_amount,outstanding_balance,interest_rate,monthly_payment,start_date,maturity_date,notes,is_archived,archived_at,archived_by,archive_note&order=is_archived.asc,name.asc'),
    rest('household_members','household_id=eq.'+h+'&select=user_id,role,display_name,joined_at&order=joined_at.asc'),
    state.member.role==='OWNER'?rest('household_invites','household_id=eq.'+h+'&select=id,code,expires_at,max_uses,uses,revoked_at,created_at&order=created_at.desc&limit=10'):Promise.resolve([]),
    rpc('transaction_sync_state',{p_household:h}),
    rest('recurring_rules','household_id=eq.'+h+'&select=id,name,type,amount,concept,category_id,person_user_id,person_label,account_id,destination_account_id,investment_id,frequency,interval_count,start_date,end_date,next_due_date,auto_post,active,normalize_months,notes,exclude_from_normalized&order=active.desc,next_due_date.asc,name.asc'),
-   rest('accounts','household_id=eq.'+h+'&select=id,institution,owner_user_id,opening_balance,opening_balance_date,is_archived'),
-   rest('investments','household_id=eq.'+h+'&select=id,linked_account_id,owner_user_id,is_archived'),
+   rest('accounts','household_id=eq.'+h+'&select=id,name,type,institution,owner_user_id,currency,opening_balance,opening_balance_date,include_in_cash,include_in_net_worth,is_archived,archived_at,archived_by,archive_note&order=is_archived.asc,name.asc'),
+   rest('investments','household_id=eq.'+h+'&select=id,name,provider,asset_type,currency,linked_account_id,owner_user_id,is_archived,archived_at,archived_by,archive_note&order=is_archived.asc,name.asc'),
    rest('family_tasks','household_id=eq.'+h+'&select=id,title,notes,assigned_to_user_id,due_date,priority,status,category,created_by,completed_by,completed_at,created_at,updated_at,reminder_days_before,recurrence_frequency,recurrence_interval_count,recurrence_end_date,recurrence_anchor_date,generated_from_task_id&order=status.asc,due_date.asc.nullslast,created_at.desc&limit=500'),
    rest('reconciliations','household_id=eq.'+h+'&select=id,entity_type,entity_id,as_of_date,expected_value,actual_value,difference,note,created_by,created_at&order=created_at.desc&limit=250'),
    rest('savings_goals_current','household_id=eq.'+h+'&select=*&order=is_archived.asc,target_date.asc.nullslast,created_at.asc'),
@@ -478,8 +478,15 @@ async function loadAll(silent=false){
    rest('push_subscriptions','household_id=eq.'+h+'&user_id=eq.'+state.user.id+'&disabled_at=is.null&select=id,endpoint,last_seen_at&order=updated_at.desc'),
    rest('notification_public_config','select=vapid_public&limit=1')
  ]);
- const ar=Object.fromEntries((result[14]||[]).map(x=>[x.id,x])),ir=Object.fromEntries((result[15]||[]).map(x=>[x.id,x]));
- state.data={metrics:result[0]?.[0]||{},networth:result[1]?.[0]||{},trend:result[2]||[],breakdown:result[3]||[],categories:result[4]||[],transactions:result[5]||[],accounts:(result[6]||[]).map(x=>Object.assign({},ar[x.id]||{},x)),investments:(result[7]||[]).map(x=>Object.assign({},ir[x.id]||{},x)),assets:result[8]||[],liabilities:result[9]||[],members:result[10]||[],invites:result[11]||[],recurring:result[13]||[],tasks:result[16]||[],reconciliations:result[17]||[],goals:result[18]||[],notificationPrefs:result[19]?.[0]||null,notifications:result[20]||[],pushSubscriptions:result[21]||[],notificationConfig:result[22]?.[0]||null};
+ const accountRaw=result[14]||[],investmentRaw=result[15]||[],assetRaw=result[8]||[],liabilityRaw=result[9]||[];
+ const ar=Object.fromEntries(accountRaw.map(x=>[x.id,x])),ir=Object.fromEntries(investmentRaw.map(x=>[x.id,x]));
+ const archivedWealth=[
+   ...accountRaw.filter(x=>x.is_archived).map(x=>Object.assign({kind:'account'},x)),
+   ...investmentRaw.filter(x=>x.is_archived).map(x=>Object.assign({kind:'investment'},x)),
+   ...assetRaw.filter(x=>x.is_archived).map(x=>Object.assign({kind:'asset'},x)),
+   ...liabilityRaw.filter(x=>x.is_archived).map(x=>Object.assign({kind:'liability'},x))
+ ].sort((a,b)=>String(b.archived_at||'').localeCompare(String(a.archived_at||''))||String(a.name||'').localeCompare(String(b.name||'')));
+ state.data={metrics:result[0]?.[0]||{},networth:result[1]?.[0]||{},trend:result[2]||[],breakdown:result[3]||[],categories:result[4]||[],transactions:result[5]||[],accounts:(result[6]||[]).map(x=>Object.assign({},ar[x.id]||{},x)),investments:(result[7]||[]).map(x=>Object.assign({},ir[x.id]||{},x)),assets:assetRaw.filter(x=>!x.is_archived),liabilities:liabilityRaw.filter(x=>!x.is_archived),archivedWealth,members:result[10]||[],invites:result[11]||[],recurring:result[13]||[],tasks:result[16]||[],reconciliations:result[17]||[],goals:result[18]||[],notificationPrefs:result[19]?.[0]||null,notifications:result[20]||[],pushSubscriptions:result[21]||[],notificationConfig:result[22]?.[0]||null};
  state.syncSignature=JSON.stringify(result[12]||{});
  updateAppBadge();
  return true;

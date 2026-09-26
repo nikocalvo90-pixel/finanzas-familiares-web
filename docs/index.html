@@ -114,7 +114,7 @@ function renderDeviceLock(msg){
    try{await performDeviceUnlock();await finishAuthenticated(state.user)}
    catch(e){st.textContent=e.name==='NotAllowedError'?'No se completó la verificación. Inténtalo de nuevo.':e.message;st.className='status err'}
  };
- document.getElementById('device-password').onclick=()=>{clearDeviceLock();clearSession();state.deviceUnlocked=false;state.user=null;renderLogin('Protección biométrica restablecida. Entra con tu contraseña.','login')};
+ document.getElementById('device-password').onclick=async()=>{try{await disablePushNotifications(true)}catch(e){}clearDeviceLock();clearSession();state.deviceUnlocked=false;state.user=null;renderLogin('Protección biométrica restablecida. Entra con tu contraseña.','login')};
 }
 function lockDeviceNow(){
  if(!lockApplies())return;
@@ -699,7 +699,7 @@ async function enablePushNotifications(){
  if(/iPhone|iPad|iPod/i.test(navigator.userAgent)&&!isStandaloneApp())throw new Error('En iPhone, abre Finanzas desde el icono de la pantalla de inicio para activar notificaciones.');
  const cfg=state.data.notificationConfig;if(!cfg?.vapid_public)throw new Error('La configuración de notificaciones aún no está disponible.');
  const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error('No se concedió permiso para las notificaciones.');
- const reg=await registerNotificationWorker()||await navigator.serviceWorker.ready;
+ await registerNotificationWorker();const reg=await navigator.serviceWorker.ready;
  let sub=await reg.pushManager.getSubscription();
  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64urlToBytes(cfg.vapid_public)});
  const j=sub.toJSON(),keys=j.keys||{};
@@ -721,7 +721,7 @@ async function disablePushNotifications(silent=false){
 }
 async function testLocalNotification(){
  if(notificationPermission()!=='granted')throw new Error('Activa primero las notificaciones.');
- const reg=await registerNotificationWorker()||await navigator.serviceWorker.ready;
+ await registerNotificationWorker();const reg=await navigator.serviceWorker.ready;
  await reg.showNotification('Finanzas Familiares',{body:'La prueba ha funcionado. Recibirás avisos familiares aunque la app esté cerrada.',tag:'finanzas-test'});
 }
 function notificationMeta(kind){return ({TASK_DUE:['✓','Tarea'],RECURRING_DUE:['↻','Recurrente'],GOAL_DUE:['◎','Objetivo'],MONTH_CLOSE:['◫','Cierre'],RECONCILIATION:['≋','Patrimonio']})[kind]||['•','Aviso']}
@@ -768,7 +768,7 @@ function txRows(list,editable=false){
  }).join('')||'<div class="empty">No hay movimientos.</div>'
 }
 function head(ey,title,desc,primaryLabel='+ Registrar',primaryId='new-tx'){const n=unreadNotifications();return '<header class="page-head"><div><span class="eyebrow">'+ey+'</span><h1>'+title+'</h1><p>'+desc+'</p></div><div class="actions"><button class="btn notice-open">Avisos'+(n?' · '+n:'')+'</button><button class="btn" id="'+primaryId+'">'+primaryLabel+'</button><button class="btn" id="refresh">Actualizar datos</button></div></header>'}
-function bindCommon(){const r=document.getElementById('refresh');if(r)r.onclick=async()=>{await loadAll();renderApp()};const n=document.getElementById('new-tx');if(n)n.onclick=openRegister;document.querySelectorAll('.notice-open').forEach(b=>b.onclick=openNotificationCenter);const f=document.querySelector('.fab');if(f)f.onclick=currentView()==='tareas'?()=>openTaskEditor(null):currentView()==='objetivos'?()=>openGoalEditor(null):openRegister}
+function bindCommon(){const r=document.getElementById('refresh');if(r)r.onclick=async()=>{await loadAll();renderApp()};const n=document.getElementById('new-tx');if(n)n.onclick=openRegister;document.querySelectorAll('.notice-open').forEach(b=>b.onclick=openNotificationCenter);document.querySelectorAll('[data-notification-open]').forEach(b=>b.onclick=()=>markNotificationRead(b.dataset.notificationOpen,true));const f=document.querySelector('.fab');if(f)f.onclick=currentView()==='tareas'?()=>openTaskEditor(null):currentView()==='objetivos'?()=>openGoalEditor(null):openRegister}
 
 function addDaysISO(days){const d=new Date();d.setDate(d.getDate()+days);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function memberName(id){return state.data.members.find(m=>m.user_id===id)?.display_name||'Familia'}

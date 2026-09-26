@@ -603,10 +603,10 @@ async function buildWorkbookSheets(){
  });
  const catAgg=new Map();tx.forEach(t=>{if(t.type!=='GASTO'&&t.type!=='DEVOLUCION')return;const k=t.category_id||'none',x=catAgg.get(k)||{g:0,d:0,n:0};if(t.type==='GASTO')x.g+=Number(t.amount||0);else x.d+=Number(t.amount||0);x.n++;catAgg.set(k,x)});
  const catsSheet=[H(['Categoría','Gastos','Devoluciones','Neto','Nº movimientos'])];[...catAgg.entries()].sort((a,b)=>b[1].g-a[1].g).forEach(([k,x],i)=>{const r=i+2;catsSheet.push([cat[k]||'Sin categoría',C(x.g),C(x.d),{f:'B'+r+'-C'+r,v:x.g-x.d,s:2},x.n])});
- const bal=Object.fromEntries(accNow.map(x=>[x.id,x.current_balance])),accSheet=[H(['Cuenta','Tipo','Institución','Saldo apertura','Fecha apertura','Saldo actual','Incluye en caja','Incluye en patrimonio'])];
- accRaw.forEach(a=>accSheet.push([a.name,a.type,a.institution||'',C(a.opening_balance),a.opening_balance_date||'',C(bal[a.id]),a.include_in_cash?'Sí':'No',a.include_in_net_worth?'Sí':'No']));
- const iv=Object.fromEntries(invNow.map(x=>[x.id,x])),invSheet=[H(['Inversión','Proveedor','Tipo','Titular','Cuenta vinculada','Valor actual','Fecha valoración'])];
- invRaw.forEach(i=>invSheet.push([i.name,i.provider||'',i.asset_type||'',members[i.owner_user_id]||'',acc[i.linked_account_id]||'',C(iv[i.id]?.current_value),iv[i.id]?.valuation_date||'']));
+ const bal=Object.fromEntries(accNow.map(x=>[x.id,x.current_balance])),accSheet=[H(['Cuenta','Tipo','Institución','Saldo apertura','Fecha apertura','Saldo actual','Incluye en caja','Incluye en patrimonio','Archivada','Fecha archivo','Motivo archivo'])];
+ accRaw.forEach(a=>accSheet.push([a.name,a.type,a.institution||'',C(a.opening_balance),a.opening_balance_date||'',a.is_archived?'':C(bal[a.id]),a.include_in_cash?'Sí':'No',a.include_in_net_worth?'Sí':'No',a.is_archived?'Sí':'No',a.archived_at||'',a.archive_note||'']));
+ const iv=Object.fromEntries(invNow.map(x=>[x.id,x])),invSheet=[H(['Inversión','Proveedor','Tipo','Titular','Cuenta vinculada','Valor actual','Fecha valoración','Archivada','Fecha archivo','Motivo archivo'])];
+ invRaw.forEach(i=>invSheet.push([i.name,i.provider||'',i.asset_type||'',members[i.owner_user_id]||'',acc[i.linked_account_id]||'',i.is_archived?'':C(iv[i.id]?.current_value),i.is_archived?'':(iv[i.id]?.valuation_date||''),i.is_archived?'Sí':'No',i.archived_at||'',i.archive_note||'']));
  const patr=[H(['Componente','Nombre','Tipo','Valor actual'])];
  accNow.filter(a=>a.include_in_net_worth).forEach(a=>patr.push(['Cuenta',a.name,a.type,C(a.current_balance)]));
  invNow.forEach(i=>patr.push(['Inversión',i.name,i.asset_type||'',C(i.current_value)]));
@@ -625,7 +625,12 @@ async function buildWorkbookSheets(){
  const recon=[H(['Fecha','Tipo','Elemento','Valor calculado','Valor real','Diferencia','Persona','Nota'])],assetNames=Object.fromEntries(assets.map(x=>[x.id,x.name])),liabNames=Object.fromEntries(liabs.map(x=>[x.id,x.name]));
  recons.forEach(r=>{const name=r.entity_type==='CUENTA'?acc[r.entity_id]:r.entity_type==='INVERSION'?inv[r.entity_id]:r.entity_type==='ACTIVO'?assetNames[r.entity_id]:liabNames[r.entity_id];recon.push([r.as_of_date,r.entity_type,name||r.entity_id,C(r.expected_value),C(r.actual_value),C(r.difference),members[r.created_by]||'',r.note||''])});
  const goalSheet=[H(['Objetivo','Tipo','Seguimiento','Inicio','Fecha objetivo','Meta','Progreso','Pendiente','Archivado','Notas'])];goals.forEach(g=>goalSheet.push([g.name,g.goal_type,goalTrackingLabel(g.tracking_mode),g.start_date||'',g.target_date||'',C(g.target_amount),C(g.progress_amount),C(g.remaining_amount),g.is_archived?'Sí':'No',g.notes||'']));
- return {'Movimientos':mov,'Resumen mensual':summary,'Categorías':catsSheet,'Cuentas':accSheet,'Inversiones':invSheet,'Patrimonio':patr,'Periodizaciones':per,'Cierres':cls,'Valoraciones':vals,'Reconciliaciones':recon,'Objetivos':goalSheet};
+ const archivedSheet=[H(['Clase','Nombre','Tipo','Archivado el','Archivado por','Motivo'])];
+ accRaw.filter(x=>x.is_archived).forEach(x=>archivedSheet.push(['Cuenta',x.name,x.type,x.archived_at||'',members[x.archived_by]||'',x.archive_note||'']));
+ invRaw.filter(x=>x.is_archived).forEach(x=>archivedSheet.push(['Inversión',x.name,x.asset_type||'',x.archived_at||'',members[x.archived_by]||'',x.archive_note||'']));
+ assets.filter(x=>x.is_archived).forEach(x=>archivedSheet.push(['Activo',x.name,x.type,x.archived_at||'',members[x.archived_by]||'',x.archive_note||'']));
+ liabs.filter(x=>x.is_archived).forEach(x=>archivedSheet.push(['Deuda',x.name,x.type,x.archived_at||'',members[x.archived_by]||'',x.archive_note||'']));
+ return {'Movimientos':mov,'Resumen mensual':summary,'Categorías':catsSheet,'Cuentas':accSheet,'Inversiones':invSheet,'Patrimonio':patr,'Archivados':archivedSheet,'Periodizaciones':per,'Cierres':cls,'Valoraciones':vals,'Reconciliaciones':recon,'Objetivos':goalSheet};
 }
 async function exportWorkbook(){
  try{

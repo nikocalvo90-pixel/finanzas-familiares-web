@@ -779,30 +779,64 @@ function taskDueText(t){
  if(t.due_date===tom)return 'Mañana';
  return new Date(t.due_date+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
 }
+function nextWeekdayISO(day){
+ const d=new Date(),delta=(day-d.getDay()+7)%7;d.setDate(d.getDate()+delta);
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
+}
+function recurrenceLabel(t){
+ const f=t?.recurrence_frequency||'NONE',n=Number(t?.recurrence_interval_count||1);
+ if(f==='NONE')return '';
+ const unit=f==='DAILY'?(n===1?'día':'días'):f==='WEEKLY'?(n===1?'semana':'semanas'):f==='MONTHLY'?(n===1?'mes':'meses'):(n===1?'año':'años');
+ return n===1?'Cada '+unit:'Cada '+n+' '+unit
+}
+function reminderLabel(v){
+ if(v===null||v===undefined||v==='')return '';
+ const n=Number(v);if(n===0)return 'Aviso el mismo día';if(n===1)return 'Aviso 1 día antes';if(n===7)return 'Aviso 1 semana antes';return 'Aviso '+n+' días antes'
+}
 function inferTask(raw){
- let title=String(raw||'').trim(),due='',assigned='',priority='NORMAL',category='';
+ let title=String(raw||'').trim(),due='',assigned='',priority='NORMAL',category='',recurrence_frequency='NONE',recurrence_interval_count=1,recurrence_end_date='',reminder_days_before=0;
  let n=norm(title);
  if(n.includes('hoy')){due=todayISO();title=title.replace(/\bhoy\b/i,'').trim()}
  else if(n.includes('mañana')||n.includes('manana')){due=addDaysISO(1);title=title.replace(/\bmañana\b|\bmanana\b/i,'').trim()}
+ const weekdays=[['domingo',0],['lunes',1],['martes',2],['miercoles',3],['jueves',4],['viernes',5],['sabado',6]];
+ n=norm(title);
+ for(const [name,day] of weekdays){
+   if(n.includes('cada '+name)){
+     recurrence_frequency='WEEKLY';due=due||nextWeekdayISO(day);
+     const rx=name==='miercoles'?/cada\s+mi[eé]rcoles/i:name==='sabado'?/cada\s+s[aá]bado/i:new RegExp('cada\\s+'+name,'i');
+     title=title.replace(rx,'').trim();break
+   }
+ }
+ if(recurrence_frequency==='NONE'){
+   const multi=norm(title).match(/cada\s+(\d+)\s+(dia|dias|semana|semanas|mes|meses|ano|anos)\b/);
+   if(multi){
+     recurrence_interval_count=Math.max(1,Math.min(60,Number(multi[1])||1));
+     const u=multi[2];recurrence_frequency=u.startsWith('dia')?'DAILY':u.startsWith('semana')?'WEEKLY':u.startsWith('mes')?'MONTHLY':'YEARLY';
+     due=due||todayISO();title=title.replace(/cada\s+\d+\s+(d[ií]a|d[ií]as|semana|semanas|mes|meses|a[nñ]o|a[nñ]os)\b/i,'').trim()
+   }else{
+     const single=norm(title).match(/cada\s+(dia|semana|mes|ano)\b/);
+     if(single){
+       recurrence_frequency=single[1]==='dia'?'DAILY':single[1]==='semana'?'WEEKLY':single[1]==='mes'?'MONTHLY':'YEARLY';
+       due=due||todayISO();title=title.replace(/cada\s+(d[ií]a|semana|mes|a[nñ]o)\b/i,'').trim()
+     }
+   }
+ }
  for(const m of state.data.members){
    const display=String(m.display_name||'').trim();if(!display)continue;
    const phrase='para '+norm(display);
    if(norm(title).includes(phrase)){
      const lower=title.toLowerCase(),rawPhrase='para '+display.toLowerCase(),idx=lower.indexOf(rawPhrase);
-     assigned=m.user_id;
-     if(idx>=0)title=(title.slice(0,idx)+title.slice(idx+rawPhrase.length)).trim();
-     break;
+     assigned=m.user_id;if(idx>=0)title=(title.slice(0,idx)+title.slice(idx+rawPhrase.length)).trim();break
    }
  }
- n=norm(title);
- if(n.includes('importante')||n.includes('urgente')){priority='IMPORTANTE';title=title.replace(/\b(importante|urgente)\b/ig,'').trim()}
+ n=norm(title);if(n.includes('importante')||n.includes('urgente')){priority='IMPORTANTE';title=title.replace(/\b(importante|urgente)\b/ig,'').trim()}
  const nn=norm(title);
  if(/comprar|compra|supermerc|mercadona/.test(nn))category='Compras';
  else if(/miguel|colegio|nino|niño/.test(nn))category='Miguel';
  else if(/coche|tesla|astra|garaje/.test(nn))category='Coche';
  else if(/cita|llamar|pedir|renovar|gesti/.test(nn))category='Gestiones';
  else if(/casa|limpiar|limpieza|ordenar/.test(nn))category='Casa';
- return {title:title.replace(/^[-,:;]+|[-,:;]+$/g,'').trim()||String(raw||'').trim(),due_date:due,assigned_to_user_id:assigned,priority,category,notes:''}
+ return {title:title.replace(/^[-,:;]+|[-,:;]+$/g,'').trim()||String(raw||'').trim(),due_date:due,assigned_to_user_id:assigned,priority,category,notes:'',reminder_days_before,recurrence_frequency,recurrence_interval_count,recurrence_end_date}
 }
 function openTaskEditor(id,prefill){
  const t=id?(state.data.tasks||[]).find(x=>x.id===id):Object.assign({title:'',notes:'',assigned_to_user_id:'',due_date:'',priority:'NORMAL',category:'',status:'PENDIENTE'},prefill||{});

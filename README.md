@@ -124,3 +124,19 @@ Validación: 52 pruebas Node, sintaxis y diff. Probados borradores por usuario/h
 caducidad, errores de almacenamiento, respuestas de guardado perdidas, nombres
 editados con identidad estable y selección masiva con exclusiones. Falta probar
 la interacción completa con sesión autenticada en un iPhone real.
+
+## Compra compartida (20260927.10)
+
+Sección Compra para añadir productos, cantidad libre, nota, sección y marca de
+habitual. Agrupa pendientes, conserva comprados y permite volver a añadir o
+retirar y recuperar productos. No registra gastos al marcar comprado.
+Nombres únicos por hogar sin distinguir mayúsculas evitan duplicados accidentales.
+Cambios sincronizados mediante sondeo cada 8 segundos con app visible y sin
+modal abierto; Actualizar datos fuerza la lectura. No hay modo de edición offline.
+
+Tabla shopping_items con RLS, permisos de miembro, auditoría y sin DELETE para
+usuarios. Las copias ZIP nuevas la incluyen como tabla opcional: las antiguas
+siguen siendo verificables. Migración aplicada 20260927194004_shopping_list.
+54 pruebas Node pasan; prueba SQL de dos miembros, aislamiento, duplicados,
+restauración y permisos pasa con ROLLBACK. Sin nuevas advertencias de seguridad.
+Pendiente interacción completa desde dos sesiones autenticadas en dispositivos.

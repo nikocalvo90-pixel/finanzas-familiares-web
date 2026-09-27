@@ -58,5 +58,6 @@ async function verify(bytes,cryptoImpl){
  if(data.transaction_documents.filter(d=>d.status==='READY').length!==manifest.documents)throw Error('Recuento de documentos incorrecto.');
  return manifest;
 }
-const api={TABLES,LIMIT,build,verify,hash};if(typeof module==='object'&&module.exports)module.exports=api;else root.FinanceBackups=api;
+const OPTIONAL_TABLES=['shopping_items'];
+const api={TABLES,OPTIONAL_TABLES,LIMIT,build,verify,hash};if(typeof module==='object'&&module.exports)module.exports=api;else root.FinanceBackups=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

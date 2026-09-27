@@ -24,7 +24,7 @@ async function build({read,download,zip,cryptoImpl,build,progress=()=>{}}){
  const bytes=zip(files);if(bytes.length>LIMIT)throw Error('El ZIP supera 100 MB.');
  await verify(bytes,cryptoImpl);return {bytes,manifest};
 }
-async function verify(bytes,cryptoImpl){
+async function verify(bytes,cryptoImpl,unpack=false){
  if(bytes.length>LIMIT)throw Error('Archivo mayor de 100 MB.');
  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),files={},entries={};let p=0;
  while(p+4<=bytes.length&&view.getUint32(p,true)===0x04034b50){
@@ -56,7 +56,7 @@ async function verify(bytes,cryptoImpl){
  for(const table of [...TABLES,'households','household_members','transaction_tags'])if(!Array.isArray(data[table]))throw Error('Falta la tabla '+table);
  for(const d of data.transaction_documents){if(d.status==='READY'){const item=manifest.files['documentos/'+d.id+'.'+d.extension];if(!item||item.sha256!==d.sha256||item.size!==Number(d.size_bytes))throw Error('Documento incompleto.')}}
  if(data.transaction_documents.filter(d=>d.status==='READY').length!==manifest.documents)throw Error('Recuento de documentos incorrecto.');
- return manifest;
+ return unpack?{manifest,data,files}:manifest;
 }
 const OPTIONAL_TABLES=['shopping_items'];
 const api={TABLES,OPTIONAL_TABLES,LIMIT,build,verify,hash};if(typeof module==='object'&&module.exports)module.exports=api;else root.FinanceBackups=api;

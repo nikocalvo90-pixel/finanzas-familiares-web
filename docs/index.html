@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20260927.10">
+<link rel="manifest" href="./manifest.webmanifest?v=20260927.11">
 <title>Finanzas Familiares</title>
 <style>
 :root{--bg:#07101d;--panel:#0d1727;--panel2:#101d31;--line:rgba(255,255,255,.085);--text:#eef4ff;--muted:#8ea2ba;--purple:#806cff;--green:#46d5ad;--red:#ff7d8a;--blue:#67bdff;--orange:#f1a06d;--sidebar:232px}
@@ -26,13 +26,13 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto">F</div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20260927.10"></script>
-<script src="./shopping.js?v=20260927.10"></script>
-<script src="./entry-drafts.js?v=20260927.10"></script>
-<script src="./backups.js?v=20260927.10"></script>
-<script src="./this-month.js?v=20260927.10"></script>
-<script src="./monthly-reports.js?v=20260927.10"></script>
-<script src="./transaction-documents.js?v=20260927.10"></script>
+<script src="./smart-rules.js?v=20260927.11"></script>
+<script src="./shopping.js?v=20260927.11"></script>
+<script src="./entry-drafts.js?v=20260927.11"></script>
+<script src="./backups.js?v=20260927.11"></script>
+<script src="./this-month.js?v=20260927.11"></script>
+<script src="./monthly-reports.js?v=20260927.11"></script>
+<script src="./transaction-documents.js?v=20260927.11"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -41,7 +41,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20260927.10';
+const APP_BUILD='20260927.11';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -1844,13 +1844,64 @@ function openCategoryRuleEditor(id){
    catch(e){busy=false;back.querySelectorAll('input,select,button').forEach(x=>x.disabled=false);el('save').textContent='Guardar regla';fail(/duplicate|unique|23505/i.test(e.message)?'Otra persona ya ha guardado esta regla. Actualiza la app y edítala.':e.message)}
  };
 }
-function backupPanel(){return '<section class="panel"><h2>Copias de seguridad</h2><p>Descarga los datos financieros y de organización del hogar junto con los documentos guardados, incluidos los retirados.</p><p class="bank-help">ZIP de hasta 100 MB. Incluye un inventario y comprobaciones de integridad. Se excluyen contraseñas, sesiones, invitaciones, notificaciones y auditoría. Las subidas pendientes conservan sus datos, pero no incluyen un archivo original todavía.</p><p class="bank-help">Guarda la copia en un lugar privado: el ZIP no está cifrado. Evitad editar el hogar mientras se genera. Esta versión comprueba copias; todavía no restaura datos.</p><div class="invite-actions"><button class="btn" id="backup-create">Preparar copia ZIP</button></div><div id="backup-save"></div><hr><label>Comprobar una copia guardada<input id="backup-check" type="file" accept=".zip,application/zip"></label><p class="bank-help">La comprobación se hace en este dispositivo. No sube el archivo ni modifica el hogar.</p><div id="backup-status" class="bank-help" aria-live="polite"></div></section>'}
+function backupPanel(){return '<section class="panel"><h2>Copias de seguridad</h2><p>Descarga los datos financieros y de organización del hogar junto con los documentos guardados, incluidos los retirados.</p><p class="bank-help">ZIP de hasta 100 MB. Incluye un inventario y comprobaciones de integridad. Se excluyen contraseñas, sesiones, invitaciones, notificaciones y auditoría. Las subidas pendientes conservan sus datos, pero no incluyen un archivo original todavía.</p><p class="bank-help">Guarda la copia en un lugar privado: el ZIP no está cifrado. Evitad editar el hogar mientras se genera. La restauración recupera registros ausentes del mismo hogar, sin sobrescribir los existentes.</p><div class="invite-actions"><button class="btn" id="backup-create">Preparar copia ZIP</button></div><div id="backup-save"></div><hr><label>Comprobar una copia guardada<input id="backup-check" type="file" accept=".zip,application/zip"></label><p class="bank-help">La comprobación se hace en este dispositivo. No sube el archivo ni modifica el hogar.</p><div id="backup-status" class="bank-help" aria-live="polite"></div></section>'+restoreBackupPanel()}
+function restoreBackupPanel(){
+ if(state.member.role!=='OWNER')return '<section class="panel"><h2>Restaurar una copia</h2><p>La restauración está disponible para el propietario del hogar.</p></section>';
+ return '<section class="panel"><h2>Restaurar una copia</h2><p>Primero se comprueba el ZIP y se muestra una vista previa. Solo se recuperan registros ausentes del mismo hogar; los registros diferentes se conservan como están.</p><p class="bank-help">Al analizar se envían los datos de la copia al servidor del hogar para comprobarlos, sin conservar cambios. Los documentos se suben después de confirmar. Las reglas recurrentes recuperadas quedan pausadas. No se restauran miembros ni permisos. Los repartos normalizados se regeneran al recuperar su calendario; los repartos de calendarios ya existentes no se modifican. Los meses cerrados siguen protegidos.</p><label>Copia ZIP<input id="restore-file" type="file" accept=".zip,application/zip"></label><div id="restore-summary"></div><p id="restore-status" class="bank-help" aria-live="polite"></p></section>';
+}
+function bindRestoreBackup(){
+ const input=document.getElementById('restore-file');if(!input)return;
+ const summary=document.getElementById('restore-summary'),status=document.getElementById('restore-status');let backup=null,plan=null;
+ const labels={categories:'Categorías',accounts:'Cuentas',assets:'Bienes',investments:'Inversiones',liabilities:'Deudas',payees:'Comercios',tags:'Etiquetas',recurring_rules:'Recurrentes (se recuperan pausados)',transactions:'Movimientos',normalization_schedules:'Periodizaciones',account_balance_snapshots:'Histórico de saldos',investment_valuations:'Valoraciones de inversión',asset_valuations:'Valoraciones de bienes',liability_snapshots:'Histórico de deudas',liability_balance_snapshots:'Saldos de deuda',net_worth_snapshots:'Patrimonio histórico',reconciliations:'Conciliaciones',family_tasks:'Tareas',savings_goals:'Objetivos',budgets:'Presupuestos',category_rules:'Reglas de categoría',shopping_items:'Compra',transaction_documents:'Documentos',monthly_closures:'Cierres',transaction_tags:'Etiquetas de movimientos'};
+ const lock=value=>{state.backupBusy=value;input.disabled=value;document.querySelectorAll('#backup-create,#backup-check,#restore-analyze,#restore-apply').forEach(x=>x.disabled=value)};
+ const analyze=async()=>{
+   if(state.backupBusy||!backup)return;lock(true);plan=null;summary.innerHTML='';status.textContent='Analizando la copia y comprobando referencias…';
+   try{
+     const r=await rpc('restore_household_backup',{p_household:state.household.id,p_data:backup.data,p_apply:false});
+     if(!r.ok)throw Error(r.error);plan=r;
+     const missing=Object.values(r.tables).reduce((n,x)=>n+x.add,0);
+     summary.innerHTML='<h3>Vista previa</h3><p>'+missing+' registros ausentes · '+r.conflicts.length+' diferentes que se conservarán · '+r.documents.length+' archivos por recuperar.</p><div style="overflow:auto"><table class="trend"><thead><tr><th>Datos</th><th>Recuperar</th><th>Ya existen</th></tr></thead><tbody>'+Object.entries(r.tables).filter(([k,v])=>v.add||v.existing).map(([k,v])=>'<tr><td>'+esc(labels[k]||k)+'</td><td>'+v.add+'</td><td>'+v.existing+'</td></tr>').join('')+'</tbody></table></div>'+(r.conflicts.length?'<details><summary>Ver registros diferentes (se mantiene la versión actual)</summary>'+r.conflicts.slice(0,100).map(x=>'<p>'+esc(labels[x.table]||x.table)+' · '+esc(x.label)+'</p>').join('')+(r.conflicts.length>100?'<p>Se muestran los primeros 100.</p>':'')+'</details>':'')+'<p class="bank-help">Guarda una copia reciente antes de continuar. Los datos se recuperan juntos; después se suben los archivos. Si una subida falla, vuelve a analizar este mismo ZIP para reintentar lo pendiente.</p><div class="invite-actions"><button class="btn" id="restore-analyze">Volver a analizar</button>'+((missing||r.documents.length)?'<button class="save" id="restore-apply">Confirmar recuperación</button>':'')+'</div>';
+     summary.querySelector('#restore-analyze').onclick=analyze;
+     const apply=summary.querySelector('#restore-apply');if(apply)apply.onclick=applyRestore;
+     status.textContent=missing||r.documents.length?'Vista previa lista. Todavía no se ha guardado ningún cambio.':'No hay registros ausentes ni archivos pendientes de recuperar.';
+   }catch(e){status.textContent='No se puede continuar: '+e.message}finally{lock(false)}
+ };
+ const applyRestore=async()=>{
+   if(state.backupBusy||!plan)return;
+   if(!confirm('¿Recuperar los registros ausentes y los archivos indicados? Las versiones actuales se conservarán y las reglas recurrentes recuperadas quedarán pausadas.'))return;
+   lock(true);status.textContent='Recuperando los datos…';let committed=false;
+   try{
+     const result=await rpc('restore_household_backup',{p_household:state.household.id,p_data:backup.data,p_apply:true,p_expected:plan.token});
+     if(!result.ok)throw Error(result.error);committed=true;let uploaded=0;const errors=[];
+     for(const entry of result.documents){
+       const original=backup.data.transaction_documents.find(d=>d.id===entry.id),bytes=backup.files['documentos/'+entry.id+'.'+original.extension];
+       status.textContent='Datos recuperados. Comprobando archivo '+(uploaded+errors.length+1)+' de '+result.documents.length+'…';
+       try{
+         const d=(await rest('transaction_documents','household_id=eq.'+state.household.id+'&id=eq.'+entry.id+'&select=*'))?.[0];if(!d||!bytes)throw Error('Falta el original o su registro');
+         if(d.status!=='READY'){
+           try{await authed('/storage/v1/object/finanzas-documents/'+d.object_path,{method:'POST',headers:{'Content-Type':d.mime_type,'x-upsert':'false'},body:bytes})}catch{}
+           await writeDocument(d.id,{status:'READY'});
+         }
+         uploaded++;
+       }catch(e){errors.push(original.filename+': '+e.message)}
+     }
+     summary.innerHTML='<button class="btn" id="restore-analyze">Volver a analizar la misma copia</button>';summary.querySelector('button').onclick=analyze;plan=null;
+     status.textContent=errors.length?'Datos recuperados; '+uploaded+' archivos completados y '+errors.length+' pendientes. Vuelve a analizar para reintentar. '+errors.join(' · '):'Recuperación completada: datos guardados y '+uploaded+' archivos recuperados. Actualiza los datos para verlos.';
+   }catch(e){plan=null;summary.innerHTML='<button class="btn" id="restore-analyze">Volver a analizar</button>';summary.querySelector('button').onclick=analyze;status.textContent=(committed?'Los datos ya están recuperados. ':'No se pudo confirmar el resultado. Analiza de nuevo antes de reintentar. ')+e.message}finally{lock(false)}
+ };
+ input.onchange=async()=>{
+   if(state.backupBusy)return;const file=input.files?.[0];if(!file)return;backup=null;plan=null;summary.innerHTML='';lock(true);status.textContent='Comprobando integridad del ZIP…';
+   try{if(file.size>FinanceBackups.LIMIT)throw Error('El ZIP supera 100 MB.');backup=await FinanceBackups.verify(new Uint8Array(await file.arrayBuffer()),crypto,true);if(backup.manifest.household_id!==state.household.id)throw Error('Esta copia pertenece a otro hogar.');}
+   catch(e){backup=null;status.textContent=e.message}finally{lock(false);input.value=''}
+   if(backup)await analyze();
+ };
+}
 function bindBackups(){
  const create=document.getElementById('backup-create'),check=document.getElementById('backup-check'),status=document.getElementById('backup-status'),save=document.getElementById('backup-save');
  let busy=false,prepared=null;
  const lock=value=>{busy=value;state.backupBusy=value;create.disabled=value;check.disabled=value};
  create.onclick=async()=>{
-   if(busy)return;lock(true);save.innerHTML='';prepared=null;
+   if(busy||state.backupBusy)return;lock(true);save.innerHTML='';prepared=null;
    const household=state.household.id;
    const read=async()=>{
      if(state.household?.id!==household)throw Error('El hogar ha cambiado.');
@@ -1881,7 +1932,7 @@ function bindBackups(){
    }catch(e){status.textContent='No se ha generado la copia: '+e.message}finally{lock(false)}
  };
  check.onchange=async()=>{
-   const file=check.files?.[0];if(busy||!file)return;lock(true);status.textContent='Comprobando copia en este dispositivo…';
+   const file=check.files?.[0];if(busy||state.backupBusy||!file)return;lock(true);status.textContent='Comprobando copia en este dispositivo…';
    try{if(file.size>FinanceBackups.LIMIT)throw Error('El archivo supera 100 MB.');const m=await FinanceBackups.verify(new Uint8Array(await file.arrayBuffer()),crypto);status.textContent='Integridad verificada. Copia del '+new Date(m.created_at).toLocaleString('es-ES')+': '+m.counts.transactions+' movimientos, '+m.documents+' documentos.'+(m.pending_documents?' '+m.pending_documents+' subidas pendientes sin original.':'')+' No se ha restaurado ni modificado ningún dato.'}
    catch(e){status.textContent='No se pudo verificar: '+e.message}finally{check.value='';lock(false)}
  };
@@ -1931,7 +1982,7 @@ function viewAjustes(){
  bindCommon();
  const goBack=()=>{state.settingsSection=null;viewAjustes()};const hb=document.getElementById('settings-back');if(hb)hb.onclick=goBack;const mb=document.getElementById('settings-back-mobile');if(mb)mb.onclick=goBack;
 
- if(section==='copias')bindBackups();
+ if(section==='copias'){bindBackups();bindRestoreBackup()}
  if(section==='recurrentes'){
    const nr=document.getElementById('new-recurring');if(nr)nr.onclick=()=>openRecurringEditor(null);
    document.querySelectorAll('[data-recurring]').forEach(b=>b.onclick=()=>openRecurringEditor(b.dataset.recurring));

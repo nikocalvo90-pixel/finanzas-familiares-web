@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20260927.5">
+<link rel="manifest" href="./manifest.webmanifest?v=20260927.6">
 <title>Finanzas Familiares</title>
 <style>
 :root{--bg:#07101d;--panel:#0d1727;--panel2:#101d31;--line:rgba(255,255,255,.085);--text:#eef4ff;--muted:#8ea2ba;--purple:#806cff;--green:#46d5ad;--red:#ff7d8a;--blue:#67bdff;--orange:#f1a06d;--sidebar:232px}
@@ -25,8 +25,9 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto">F</div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20260927.5"></script>
-<script src="./transaction-documents.js?v=20260927.5"></script>
+<script src="./smart-rules.js?v=20260927.6"></script>
+<script src="./monthly-reports.js?v=20260927.6"></script>
+<script src="./transaction-documents.js?v=20260927.6"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -35,7 +36,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20260927.5';
+const APP_BUILD='20260927.6';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -1437,13 +1438,44 @@ function viewMovimientos(){
  function draw(){const term=q.value.trim().toLowerCase(),tp=type.value,n=Number(limit.value);const list=state.data.transactions.filter(t=>(!tp||t.type===tp)&&(!term||(t.concept||'').toLowerCase().includes(term)||(cm[t.category_id]||'').toLowerCase().includes(term))).slice(0,n);document.getElementById('txlist').innerHTML=txRows(list,true);bindTransactionActions()}
  q.oninput=draw;type.onchange=draw;limit.onchange=draw;draw()
 }
+let reportMonths=null;
+function monthlyComparisonPanel(){
+ if(!reportMonths){const now=localMonth().slice(0,7),d=new Date(Number(now.slice(0,4)),Number(now.slice(5))-2,1);reportMonths=[now,d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')]}
+ return '<section class="panel"><div class="panel-head"><div><span class="sub">Informes mensuales</span><h2>Comparar meses</h2></div></div><div class="invite-actions"><label>Mes analizado <input type="month" id="report-current" value="'+reportMonths[0]+'"></label><label>Comparar con <input type="month" id="report-previous" value="'+reportMonths[1]+'"></label><button class="btn" id="report-load">Comparar</button></div><p class="bank-help">Meses completos según fecha del movimiento. El mes en curso está incompleto. Ahorro = ingresos + devoluciones − gastos; las transferencias e inversiones quedan fuera de este cálculo.</p><div id="report-result" aria-live="polite">Cargando comparativa…</div></section>';
+}
+function bindMonthlyComparison(){
+ const button=document.getElementById('report-load'),target=document.getElementById('report-result');
+ let generation=0;
+ const load=async()=>{
+   const ticket=++generation,a=document.getElementById('report-current').value,b=document.getElementById('report-previous').value;
+   button.disabled=true;target.textContent='Cargando todos los movimientos de ambos meses…';
+   try{
+     const ab=MonthlyReports.bounds(a),bb=MonthlyReports.bounds(b),h=state.household.id;
+     const fetchMonth=range=>restAll('transactions','household_id=eq.'+h+'&transaction_date=gte.'+range.from+'&transaction_date=lte.'+range.to+'&select=id,transaction_date,type,amount,concept,category_id,person_label&order=transaction_date.desc,id.asc');
+     const sets=await Promise.all(a===b?[fetchMonth(ab)]:[fetchMonth(ab),fetchMonth(bb)]);
+     if(ticket!==generation||!target.isConnected||state.household.id!==h)return;
+     const rows=sets.flat(),r=MonthlyReports.report(rows,a,b,state.data.categories);reportMonths=[a,b];
+     const delta=x=>(x.delta>0?'+':'')+money(x.delta/100)+' · '+(x.percent===null?(x.current===0?'Sin variación':'Sin base porcentual'):(x.percent>0?'+':'')+x.percent.toLocaleString('es-ES',{maximumFractionDigits:1})+' %');
+     const cell=(value,metric,period,category)=>'<button class="mini" data-report-metric="'+metric+'" data-report-period="'+period+'"'+(category===undefined?'':' data-report-category="'+esc(category)+'"')+'>'+money(value/100)+'</button>';
+     const headings='<thead><tr><th>Concepto</th><th>'+esc(monthName(a+'-01'))+'</th><th>'+esc(monthName(b+'-01'))+'</th><th>Variación</th></tr></thead>';
+     target.innerHTML='<p class="bank-help">Pulsa cualquier importe para ver sus movimientos. Los importes sin movimientos son cero; no confirman que el mes esté completamente registrado.</p><div style="overflow:auto"><table class="trend">'+headings+'<tbody>'+Object.entries({income:'Ingresos',expenses:'Gastos',refunds:'Devoluciones',savings:'Ahorro operativo'}).map(([k,label])=>'<tr><td>'+label+'</td><td>'+cell(r.metrics[k].current,k,a)+'</td><td>'+cell(r.metrics[k].previous,k,b)+'</td><td>'+delta(r.metrics[k])+'</td></tr>').join('')+'</tbody></table></div><h3>Gasto neto por categoría</h3><p class="bank-help">Gastos menos devoluciones. Una cifra negativa indica más devoluciones que gastos. La variación compara el mes analizado con el segundo mes.</p><div style="overflow:auto"><table class="trend">'+headings+'<tbody>'+(r.breakdown.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+cell(x.current,'category',a,x.id)+'</td><td>'+cell(x.previous,'category',b,x.id)+'</td><td>'+delta(x)+'</td></tr>').join('')||'<tr><td colspan="4">No hay gastos ni devoluciones en estos meses.</td></tr>')+'</tbody></table></div><div id="report-detail"></div>';
+     target.querySelectorAll('[data-report-metric]').forEach(el=>el.onclick=()=>{
+       const k=el.dataset.reportMetric,m=el.dataset.reportPeriod;
+       const selected=k==='category'?rows.filter(t=>t.transaction_date.slice(0,7)===m&&['GASTO','DEVOLUCION'].includes(t.type)&&(t.category_id||'')===el.dataset.reportCategory):MonthlyReports.select(rows,m,k);
+       const detail=target.querySelector('#report-detail');detail.innerHTML='<h3>Movimientos · '+esc(monthName(m+'-01'))+'</h3><p class="bank-help">'+selected.length+' movimientos · Total '+el.textContent+'</p>'+txRows(selected,false);detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+     });
+   }catch(e){if(target.isConnected)target.textContent='No se pudo cargar la comparativa: '+e.message}
+   finally{button.disabled=false}
+ };
+ button.onclick=load;load();
+}
 function viewAnalisis(){
  const b=state.data.breakdown,t=state.data.trend,max=Math.max(1,...b.map(x=>Number(x.amount||0)));
- shell(head('Evolución','Análisis','Tendencias mensuales, categorías y control de cierre.')+
+ shell(head('Evolución','Análisis','Tendencias mensuales, categorías y control de cierre.')+monthlyComparisonPanel()+
  '<section class="grid"><div class="panel"><div class="panel-head"><div><span class="sub">12 meses</span><h2>Evolución financiera</h2></div></div><div style="overflow:auto"><table class="trend"><thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Inversión</th><th>Ahorro</th><th>Normalizado</th></tr></thead><tbody>'+t.map(r=>'<tr><td>'+esc(monthName(r.month))+'</td><td class="green">'+money(r.income)+'</td><td class="red">'+money(r.expenses)+'</td><td class="purple">'+money(r.invested)+'</td><td>'+money(r.operating_savings)+'</td><td>'+money(r.normalized_cost)+'</td></tr>').join('')+'</tbody></table></div></div>'+
  '<div class="panel"><div class="panel-head"><div><span class="sub">Mes actual</span><h2>Gasto por categoría</h2></div></div><div class="bars">'+(b.length?b.map(x=>'<div><div class="bar-head"><span>'+esc(x.category_name)+'</span><strong>'+money(x.amount)+'</strong></div><div class="track"><i style="width:'+Math.max(2,Math.round(Number(x.amount||0)/max*100))+'%"></i></div></div>').join(''):'<div class="empty">Sin gasto categorizado.</div>')+'</div></div></section>'+
  '<section class="panel"><div class="panel-head"><div><span class="sub">Control mensual</span><h2>Cierre y Excel acumulativo</h2></div><span class="chip-ok">AUDITADO</span></div><p style="color:#879bb3;font-size:12px;line-height:1.5;margin:0">Revisa duplicados, bloquea el mes cerrado y genera un Excel con movimientos, resumen mensual, categorías, cuentas, inversiones, patrimonio, periodizaciones, cierres y valoraciones.</p><div class="invite-actions"><button class="btn" id="open-month-close">Revisar cierre mensual</button><button class="btn" id="export-workbook">Exportar Excel ahora</button></div><div class="excel-note">El mes en curso puede revisarse y exportarse, pero no cerrarse hasta su último día.</div></section>');
- bindCommon();document.getElementById('open-month-close').onclick=openMonthClose;document.getElementById('export-workbook').onclick=exportWorkbook
+ bindCommon();bindMonthlyComparison();document.getElementById('open-month-close').onclick=openMonthClose;document.getElementById('export-workbook').onclick=exportWorkbook
 }
 
 function recurringMeta(r){

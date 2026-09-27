@@ -65,3 +65,16 @@ infinitos. No modifica movimientos ni la base de datos.
 Pruebas: `node --test tests/*.test.cjs` (35 pruebas). El cálculo tiene pruebas
 de devoluciones, precisión, meses iguales, bases negativas/cero y más de 500
 registros. La vista autenticada requiere comprobación desde una sesión real.
+
+## Este mes (20260927.7)
+
+Inicio muestra progreso del mes, ahorro operativo registrado y su proporción de
+los ingresos, tres categorías con mayor gasto y próximos vencimientos de reglas
+de gasto/inversión hasta fin de mes. Muestra el siguiente vencimiento de cada
+regla, no una proyección de todas las repeticiones ni un saldo disponible.
+Las fechas pasadas se marcan para revisar y los pagos manuales no se presentan
+como impagados confirmados. Gestionar abre Ajustes → Recurrentes.
+Al cambiar de mes la sincronización refresca los indicadores aunque no haya
+cambios de movimientos. No cambia datos ni crea movimientos adicionales.
+Validación: 39 pruebas Node y revisión sintáctica. UI autenticada pendiente de
+comprobación desde una sesión real.

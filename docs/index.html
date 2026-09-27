@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20260927.1">
+<link rel="manifest" href="./manifest.webmanifest?v=20260927.2">
 <title>Finanzas Familiares</title>
 <style>
 :root{--bg:#07101d;--panel:#0d1727;--panel2:#101d31;--line:rgba(255,255,255,.085);--text:#eef4ff;--muted:#8ea2ba;--purple:#806cff;--green:#46d5ad;--red:#ff7d8a;--blue:#67bdff;--orange:#f1a06d;--sidebar:232px}
@@ -31,7 +31,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20260927.1';
+const APP_BUILD='20260927.2';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -488,14 +488,14 @@ async function bankBuildRows(parsed,accountId,snapshot){
    if(!!debit===!!credit)return null;
    return {amount:(debit||credit).amount,sign:debit?-1:1,explicit:true};
  });
- if(!split&&!amounts.some(a=>a?.sign<0)&&amounts.some(a=>a&&a.sign===0))
+ if(!split&&!entries.some((e,i)=>e.cells.length===parsed.width&&amounts[i]?.sign<0)&&entries.some((e,i)=>e.cells.length===parsed.width&&amounts[i]&&amounts[i].sign===0))
    throw new Error('El extracto solo tiene importes positivos sin signo. No se puede distinguir ingresos de gastos; exporta importes con signo o columnas Debe/Haber.');
  const counts=new Map(),rows=[];
  for(let i=0;i<entries.length;i++){
    const e=entries[i],a=amounts[i],date=bankDate(get(e.cells,columns.date));
    const concept=get(e.cells,columns.concept).replace(/\s+/g,' ').slice(0,300);
    const reference=get(e.cells,columns.reference),signed=a?(a.sign<0?-1:1)*a.amount:0;
-   const error=!date?'Fecha no reconocida.':!a?'Importe o columnas Debe/Haber inválidos.':!concept?'Falta el concepto.':'';
+   const error=e.cells.length!==parsed.width?'El número de columnas no coincide con la cabecera; revisa separadores y comillas.':!date?'Fecha no reconocida.':!a?'Importe o columnas Debe/Haber inválidos.':!concept?'Falta el concepto.':'';
    let type=signed<0?'GASTO':'INGRESO',needsReview=false;
    const interpreted=interpretNatural(concept);
    if(signed<0&&interpreted.type==='INVERSION'){type='INVERSION';needsReview=true}

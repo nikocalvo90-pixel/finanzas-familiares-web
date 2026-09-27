@@ -45,6 +45,16 @@ test('European amounts and dates are validated strictly',()=>{
   assert.equal(run('bankAmount')('0,00'),null);
 });
 
+test('unquoted decimal commas cannot silently change an imported amount',async()=>{
+  const csv='Fecha,Concepto,Importe\n27/09/2026,Super,-18,50\n28/09/2026,Super,-5.00';
+  const rows=await run('bankBuildRows')(run('bankReadCsv')(csv),account,snapshot());
+  assert.match(rows[0].error,/columnas no coincide/);
+  assert.equal(rows[0].selected,false);
+  assert.equal(rows[1].amount,5);
+  const ambiguous=run('bankReadCsv')('Fecha,Concepto,Importe\n27/09/2026,Super,-18,50\n28/09/2026,Entrada,5.00');
+  await assert.rejects(run('bankBuildRows')(ambiguous,account,snapshot()),/sin signo/);
+});
+
 test('unsigned all-positive amounts are rejected, but Debe/Haber supplies direction',async()=>{
   const signed=run('bankReadCsv')('Fecha,Concepto,Importe\n27/09/2026,Super,12.30');
   await assert.rejects(run('bankBuildRows')(signed,account,snapshot()),/sin signo/);

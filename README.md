@@ -140,3 +140,34 @@ siguen siendo verificables. Migración aplicada 20260927194004_shopping_list.
 54 pruebas Node pasan; prueba SQL de dos miembros, aislamiento, duplicados,
 restauración y permisos pasa con ROLLBACK. Sin nuevas advertencias de seguridad.
 Pendiente interacción completa desde dos sesiones autenticadas en dispositivos.
+
+## Restauración conservadora (20260927.11)
+
+Ajustes → Copias de seguridad → Restaurar una copia (solo propietario). Verifica
+el ZIP y analiza los datos en el servidor con una transacción revertida, incluida
+su auditoría. La confirmación requiere el token de la vista previa: si cambian
+los datos se debe analizar de nuevo. Solo inserta registros ausentes; diferencias
+con el mismo ID se muestran y se conserva el registro actual. Conflictos de
+restricciones únicas o referencias inválidas bloquean el lote sin aplicar cambios.
+Máximo 20 MB de JSON y 20000 registros; ZIP mantiene límite de 100 MB.
+
+Recuperación de datos atómica con permisos del usuario y comprobación de
+referencias del mismo hogar. No restaura miembros/permisos, no reabre meses
+cerrados ni vuelve a entrenar reglas de categoría. Las reglas recurrentes nuevas
+quedan pausadas. Las periodizaciones recuperadas regeneran sus repartos; los
+repartos faltantes de calendarios existentes no se reconstruyen en esta versión.
+Dependencias de tareas/movimientos se ordenan antes de insertar; ciclos bloquean.
+
+Los originales se suben después de los datos. Fallos de subida dejan registros
+PENDING que se recuperan reanalizando el mismo ZIP. No se sobrescriben originales
+existentes. Los documentos huérfanos conservan su referencia y estado retirado.
+Se permite devolver READY a PENDING únicamente si el objeto original está ausente.
+El ZIP se verifica localmente; el análisis envía su JSON al Supabase del hogar, y
+la confirmación envía los originales pendientes.
+
+Validación: 56 pruebas Node. SQL con ROLLBACK verifica vista previa, aplicación,
+token obsoleto, no sobrescritura, permisos, datos ajenos, recuperación de documentos
+huérfanos, movimientos sin reaprendizaje y periodizaciones con recurrentes pausados.
+La simulación de una instantánea real da cero inserciones/conflictos. Sin nuevas
+advertencias de seguridad. Pendiente flujo autenticado completo y transporte físico
+de archivos; los tests de Storage usan metadatos sintéticos, no originales reales.

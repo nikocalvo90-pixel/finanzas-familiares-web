@@ -50,3 +50,18 @@ Validación: `node --test tests/*.test.cjs` (30 pruebas).
 metadatos, duplicados y conservación con `ROLLBACK`. La prueba SQL usa metadatos
 sintéticos de Storage; no ejercita el transporte físico de archivos. El flujo
 completo de subida desde una sesión autenticada queda pendiente de comprobación.
+
+## Comparativa mensual (20260927.6)
+
+Análisis permite elegir dos meses y comparar ingresos, gastos, devoluciones y
+ahorro operativo en euros y porcentaje. Pulsa un importe para ver todos sus
+movimientos. El desglose por categoría muestra gasto neto de devoluciones e
+incluye categorías presentes solo en uno de los meses y movimientos sin categoría.
+Se consultan ambos meses con paginación, sin el límite de 500 de Movimientos.
+Los importes se suman en céntimos; inversión y transferencias no son gasto.
+Un mes en curso se señala como incompleto y una base cero no genera porcentajes
+infinitos. No modifica movimientos ni la base de datos.
+
+Pruebas: `node --test tests/*.test.cjs` (35 pruebas). El cálculo tiene pruebas
+de devoluciones, precisión, meses iguales, bases negativas/cero y más de 500
+registros. La vista autenticada requiere comprobación desde una sesión real.

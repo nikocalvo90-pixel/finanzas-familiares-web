@@ -78,3 +78,23 @@ Al cambiar de mes la sincronización refresca los indicadores aunque no haya
 cambios de movimientos. No cambia datos ni crea movimientos adicionales.
 Validación: 39 pruebas Node y revisión sintáctica. UI autenticada pendiente de
 comprobación desde una sesión real.
+
+## Copias portables (20260927.8)
+
+Ajustes → Copias de seguridad prepara un ZIP de hasta 100 MB y ofrece un botón
+separado Guardar para descargar o compartir desde iPhone. Incluye datos completos
+paginados de 24 tablas financieras/organización, hogar, miembros, etiquetas de
+movimientos y originales READY de documentos, incluidos retirados. No incluye
+autenticación, sesiones, invitaciones, notificaciones, auditoría ni originales
+de subidas pendientes; estos últimos se declaran en el manifiesto.
+
+Dos lecturas iguales detectan cambios durante la generación; no sustituyen una
+instantánea transaccional de servidor. SHA-256 y CRC validan los archivos y ZIP.
+La comprobación de un ZIP es local, no envía el archivo ni modifica datos. Es
+una verificación de integridad, no una firma de autenticidad. ZIP sin cifrar.
+No hay programación automática ni restauración desde la app en esta versión.
+Los límites o fallos impiden entregar una copia parcial.
+
+Validación: 46 pruebas Node; pruebas de originales retirados, subidas pendientes,
+cambios concurrentes, límite, corrupción y tablas ausentes. Falta comprobar la
+exportación completa con sesión autenticada y la descarga en un iPhone real.

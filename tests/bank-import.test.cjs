@@ -24,7 +24,7 @@ const expense='00000000-0000-0000-0000-000000000001';
 const income='00000000-0000-0000-0000-000000000002';
 const account='00000000-0000-0000-0000-000000000003';
 const ctx=vm.createContext({
-  crypto:webcrypto,TextEncoder,TextDecoder,setTimeout,clearTimeout,APP_BUILD:'20260927.3',
+  crypto:webcrypto,TextEncoder,TextDecoder,setTimeout,clearTimeout,APP_BUILD:'20260927.4',FinanceRules:require('../docs/smart-rules.js'),
   norm:s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(),
   state:{data:{
     transactions:[],
@@ -212,7 +212,7 @@ test('file selection runs the complete standalone browser parser through a dispo
   let terminated=false;
   ctx.Worker=class{
     constructor(url){
-      assert.equal(url,'./bank-excel-worker.js?v=20260927.3');
+      assert.equal(url,'./bank-excel-worker.js?v=20260927.4');
       this.worker=new NodeWorker(`
         const {parentPort,workerData}=require('node:worker_threads');
         const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
@@ -239,4 +239,20 @@ test('file selection runs the complete standalone browser parser through a dispo
   await assert.rejects(run('bankReadFile')({name:'extracto.pdf'}),/CSV, XLS o XLSX/);
   const csv=await run('bankReadFile')({name:'extracto.csv',arrayBuffer:async()=>new TextEncoder().encode('Fecha;Concepto;Importe\n27/09/2026;Super;-18').buffer});
   assert.equal(csv[0].parsed.entries.length,1);
+});
+
+test('bank rows use learned rules without changing direction or duplicate identifiers',async()=>{
+ const parsed=run('bankReadCsv')('Fecha;Concepto;Importe\n27/09/2026;Super España;-18');
+ const before=await run('bankBuildRows')(parsed,account,snapshot());
+ ctx.state.data.smartRules=[{id:'rule',pattern:'super espana',match_mode:'EXACT',transaction_type:'GASTO',category_id:expense,active:true,origin:'LEARNED'}];
+ try{
+   const after=await run('bankBuildRows')(parsed,account,snapshot());
+   assert.match(after[0].reason,/Regla aprendida/);
+   assert.equal(after[0].signed,-18);
+   assert.equal(after[0].externalId,before[0].externalId);
+   assert.equal(after[0].manual,false,'a suggestion does not become a new learning event');
+   ctx.state.data.smartRules[0].transaction_type='INGRESO';ctx.state.data.smartRules[0].category_id=income;
+   const opposite=await run('bankBuildRows')(parsed,account,snapshot());
+   assert.equal(opposite[0].type,'GASTO');assert.equal(opposite[0].categoryId,expense);
+ }finally{ctx.state.data.smartRules=[]}
 });

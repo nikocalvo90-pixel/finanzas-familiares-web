@@ -98,3 +98,29 @@ Los límites o fallos impiden entregar una copia parcial.
 Validación: 46 pruebas Node; pruebas de originales retirados, subidas pendientes,
 cambios concurrentes, límite, corrupción y tablas ausentes. Falta comprobar la
 exportación completa con sesión autenticada y la descarga en un iPhone real.
+
+## Registro móvil e importación (20260927.9)
+
+Nuevo movimiento ofrece Rellenar campos sin interpretar texto. El borrador guarda
+texto y formulario en localStorage, separado por usuario/hogar, con caducidad de
+30 días. Se recupera al abrir Registrar; cerrar conserva, Descartar elimina y el
+éxito de guardado limpia el borrador. No sincroniza borradores entre dispositivos.
+Si el navegador rechaza almacenamiento se indica explícitamente.
+
+Cada alta conserva un external_id durante los reintentos. Consulta antes de
+insertar y tras un fallo ambiguo; la restricción única existente del servidor
+evita duplicados. Un envío incierto congela el contenido para comprobar/reintentar
+el mismo movimiento; errores definitivos de validación/permisos permiten editar.
+La sincronización de fondo espera mientras haya un formulario modal abierto.
+Controles móviles ajustados a 44 px y campos de 16 px para facilitar el uso.
+
+La vista previa Excel/CSV permite renombrar conceptos conservando el identificador
+del extracto y la comprobación de posibles duplicados del concepto original.
+Seleccionar todas las válidas incluye filas revisables, previa advertencia si hay
+dudas, pero excluye filas inválidas, ya importadas o de meses cerrados. También
+permite desmarcar todas. Los movimientos guardados siguen editándose desde Editar.
+
+Validación: 52 pruebas Node, sintaxis y diff. Probados borradores por usuario/hogar,
+caducidad, errores de almacenamiento, respuestas de guardado perdidas, nombres
+editados con identidad estable y selección masiva con exclusiones. Falta probar
+la interacción completa con sesión autenticada en un iPhone real.

@@ -256,3 +256,17 @@ test('bank rows use learned rules without changing direction or duplicate identi
    assert.equal(opposite[0].type,'GASTO');assert.equal(opposite[0].categoryId,expense);
  }finally{ctx.state.data.smartRules=[]}
 });
+
+test('renaming a bank concept preserves exact identity and original duplicate warnings',async()=>{
+ const parsed=run('bankReadCsv')('Fecha;Concepto;Importe\n27/09/2026;Super original;-20');
+ const rows=await run('bankBuildRows')(parsed,account,snapshot()),r=rows[0],id=r.externalId;
+ r.concept='Compra de casa';const snap=snapshot();snap.matches.add(run('bankExistingKey')(account,r.date,r.amount,r.type,'Super original'));
+ run('bankApplySnapshot')(rows,snap);assert.equal(r.probable,true);assert.equal(r.externalId,id);
+ snap.ids.add(id);run('bankApplySnapshot')(rows,snap);assert.equal(r.existingExact,true);assert.equal(r.selected,false);
+ r.existingExact=false;r.concept=' ';assert.match(run('bankRowProblem')(r,new Set()),/concepto/);
+});
+test('select all includes reviewable rows but excludes closed months and exact duplicates',async()=>{
+ const parsed=run('bankReadCsv')('Fecha;Concepto;Importe\n27/09/2026;Super;-20\n27/09/2026;Otro;-30\n27/08/2026;Super;-10');
+ const rows=await run('bankBuildRows')(parsed,account,snapshot());rows[0].existingExact=true;
+ assert.equal(run('bankSelectAll')(rows,new Set(['2026-08'])),1);assert.equal(rows[1].selected,true);assert.equal(rows[0].selected,false);assert.equal(rows[2].selected,false);
+});

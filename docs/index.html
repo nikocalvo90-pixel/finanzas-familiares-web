@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20260927.8">
+<link rel="manifest" href="./manifest.webmanifest?v=20260927.9">
 <title>Finanzas Familiares</title>
 <style>
 :root{--bg:#07101d;--panel:#0d1727;--panel2:#101d31;--line:rgba(255,255,255,.085);--text:#eef4ff;--muted:#8ea2ba;--purple:#806cff;--green:#46d5ad;--red:#ff7d8a;--blue:#67bdff;--orange:#f1a06d;--sidebar:232px}
@@ -21,15 +21,17 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 .bank-intro{margin-bottom:14px}.bank-intro p{color:var(--muted);font-size:12px;line-height:1.5;margin:6px 0 12px}.bank-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.bank-form label,.bank-edit label{display:grid;gap:5px;color:#91a6bf;font-size:11px}.bank-form input,.bank-form select,.bank-edit select{width:100%;min-width:0;border:1px solid var(--line);border-radius:11px;background:#091321;color:var(--text);padding:10px}.bank-file{grid-column:1/-1}.bank-summary{position:sticky;top:0;z-index:2;background:#0d1727;padding:12px;border:1px solid var(--line);border-radius:13px;margin:12px 0}.bank-list{display:grid;gap:8px;max-height:46vh;overflow:auto}.bank-row{border:1px solid var(--line);border-radius:13px;background:#081321;padding:10px}.bank-row[open]{border-color:rgba(128,108,255,.4)}.bank-row summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer}.bank-row summary::-webkit-details-marker{display:none}.bank-row summary input{flex:none;accent-color:#806cff}.bank-row summary b{min-width:0;flex:1;overflow-wrap:anywhere;font-size:12px}.bank-row summary small{white-space:nowrap;font-size:10px}.bank-row p{color:#9aacc2;font-size:10px;line-height:1.45;margin:8px 0}.bank-edit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.bank-bad{color:#ff9aa5!important}.bank-caution{color:#ffc08e!important}.bank-help{color:#a9cce5;font-size:11px;line-height:1.5}.bank-actions{position:sticky;bottom:0;background:#0d1727;padding:12px 0 0;display:flex;gap:8px;justify-content:flex-end}.bank-actions .save:disabled{opacity:.5;cursor:not-allowed}@media(max-width:760px){.bank-form,.bank-edit{grid-template-columns:1fr}.bank-file{grid-column:1}.bank-list{max-height:48vh}.bank-row summary{flex-wrap:wrap}.bank-row summary small{margin-left:auto}}
 .rule-remember{display:flex;align-items:center;gap:8px;font-size:12px;color:#a9cce5;margin:12px 0;line-height:1.5}.rule-remember input{width:auto;accent-color:#806cff}.rule-test{margin-top:12px;color:#a9cce5;font-size:12px;line-height:1.5}
 .document-upload{display:grid;gap:8px;margin:16px 0;color:#a9cce5;font-size:12px}.document-upload input{max-width:100%}.document-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.manage-main strong{overflow-wrap:anywhere}.tx-actions{flex-wrap:wrap}
+@media(max-width:700px){.bank-edit input,.edit-grid input,.edit-grid select{font-size:16px;min-height:44px}.modal-actions button,.bank-actions button{min-height:44px}.modal{padding-bottom:max(20px,env(safe-area-inset-bottom))}}
 </style>
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto">F</div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20260927.8"></script>
-<script src="./backups.js?v=20260927.8"></script>
-<script src="./this-month.js?v=20260927.8"></script>
-<script src="./monthly-reports.js?v=20260927.8"></script>
-<script src="./transaction-documents.js?v=20260927.8"></script>
+<script src="./smart-rules.js?v=20260927.9"></script>
+<script src="./entry-drafts.js?v=20260927.9"></script>
+<script src="./backups.js?v=20260927.9"></script>
+<script src="./this-month.js?v=20260927.9"></script>
+<script src="./monthly-reports.js?v=20260927.9"></script>
+<script src="./transaction-documents.js?v=20260927.9"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -38,7 +40,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20260927.8';
+const APP_BUILD='20260927.9';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -473,6 +475,7 @@ async function bankExternalId(account,date,signedCents,concept,reference,occurre
 }
 function bankRowProblem(row,closures){
  if(row.error)return row.error;
+ if(!String(row.concept||'').trim())return 'Escribe un concepto para el movimiento.';
  if(closures.has(row.date.slice(0,7)))return 'El mes está cerrado.';
  if(row.existingExact)return 'Ya importado: mismo identificador bancario.';
  if(!row.accountId)return 'Selecciona una cuenta de origen.';
@@ -484,6 +487,7 @@ function bankRowProblem(row,closures){
  if(row.categoryId&&(!cat||cat.kind!==row.type))return 'La categoría no corresponde al tipo.';
  return '';
 }
+function bankSelectAll(rows,closed){rows.forEach(r=>r.selected=!bankRowProblem(r,closed));return rows.filter(r=>r.selected).length}
 function bankSnapshot(household){
  return Promise.all([
    restAll('transactions','household_id=eq.'+encodeURIComponent(household)+'&select=external_id,account_id,transaction_date,amount,type,concept'),
@@ -497,20 +501,44 @@ function bankSnapshot(household){
 function bankApplySnapshot(rows,snapshot){
  for(const row of rows){
    row.existingExact=!!(row.externalId&&snapshot.ids.has(row.externalId));
-   row.probable=!!(row.date&&snapshot.matches.has(bankExistingKey(row.accountId,row.date,row.amount,row.type,row.concept)));
+   row.probable=!!(row.date&&snapshot.matches.has(bankExistingKey(row.accountId,row.date,row.amount,row.type,row.concept))||snapshot.matches.has(bankExistingKey(row.accountId,row.date,row.amount,row.type,row.originalConcept||row.concept)));
    if(row.existingExact||snapshot.closed.has((row.date||'').slice(0,7)))row.selected=false;
  }
 }
 function toast(msg){const x=document.createElement('div');x.className='toast';x.textContent=msg;document.body.appendChild(x);setTimeout(()=>x.remove(),2600)}
 function optionList(items,value,labelFn){return '<option value="">Seleccionar…</option>'+items.map(x=>'<option value="'+x.id+'" '+(x.id===value?'selected':'')+'>'+esc(labelFn(x))+'</option>').join('')}
+const entryFields=['amount','date','concept','type','category','account','dest','investment','person'];
+function captureEntryDraft(){
+ const modal=document.getElementById('register-modal');if(!modal)return;
+ const form={};for(const name of entryFields){const el=modal.querySelector('#f-'+name);if(el)form[name]=el.value}
+ const value={raw:modal.querySelector('#raw').value,draft:state.draft||null,form,remember:modal.querySelector('#f-remember')?.checked!==false,external:state.entryExternal,pending:state.entryPending||null};
+ try{EntryDrafts.write(localStorage,state.user.id,state.household.id,value);modal.querySelector('#draft-status').textContent=state.entryPending?'Guardado pendiente de confirmar. Reintenta para comprobarlo sin duplicarlo.':'Borrador guardado en este dispositivo. No se ha enviado.'}
+ catch{modal.querySelector('#draft-status').textContent='No se pudo guardar el borrador en este dispositivo. Mantén esta pantalla abierta.'}
+}
+function lockEntryPending(){
+ if(!state.entryPending)return;
+ const modal=document.getElementById('register-modal');modal.querySelectorAll('input,select,textarea,#interpret,#entry-manual,.example,#cancel-preview').forEach(el=>el.disabled=true);
+ modal.querySelector('#save-tx').textContent='Comprobar y reintentar guardado';
+}
 function openRegister(){
+ if(document.getElementById('register-modal'))return;
+ state.draft=null;state.entryPending=null;state.entryExternal='manual:'+crypto.randomUUID();
+ const stored=EntryDrafts.read(localStorage,state.user.id,state.household.id);
  const back=document.createElement('div');back.className='modal-back';back.id='register-modal';
- back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Nuevo movimiento</span><h2>Escríbelo como quieras</h2></div><button class="close" id="close-modal">×</button></div><textarea class="quick-input" id="raw" placeholder="Ej.: 51 euros Mercadona"></textarea><div class="examples"><button class="example">51 Mercadona</button><button class="example">176 intereses Trade</button><button class="example">1000 fondos indexados</button><button class="example">150 devolución frigorífico</button></div><div class="modal-actions"><button class="btn" id="interpret">Interpretar</button></div><div id="preview"></div></div>';
+ back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Nuevo movimiento</span><h2>Escríbelo como quieras</h2></div><button class="close" id="close-modal">×</button></div><textarea class="quick-input" id="raw" placeholder="Ej.: 51 euros Mercadona"></textarea><div class="examples"><button class="example">51 Mercadona</button><button class="example">176 intereses Trade</button><button class="example">1000 fondos indexados</button><button class="example">150 devolución frigorífico</button></div><div class="modal-actions"><button class="btn" id="entry-manual">Rellenar campos</button><button class="btn" id="interpret">Interpretar</button></div><p class="bank-help" id="draft-status">Borrador local: solo se guarda en el hogar al confirmar.</p><button class="mini" id="discard-entry">Descartar borrador</button><div id="preview"></div></div>';
  document.body.appendChild(back);
- const close=()=>back.remove();document.getElementById('close-modal').onclick=close;back.onclick=e=>{if(e.target===back)close()};
+ const close=()=>{if(state.entrySaving)return;captureEntryDraft();back.remove()};document.getElementById('close-modal').onclick=close;back.onclick=e=>{if(e.target===back)close()};
  back.querySelectorAll('.example').forEach(b=>b.onclick=()=>{document.getElementById('raw').value=b.textContent;showPreview(interpretNatural(b.textContent))});
  document.getElementById('interpret').onclick=()=>showPreview(interpretNatural(document.getElementById('raw').value));
- document.getElementById('raw').focus();
+ document.getElementById('entry-manual').onclick=()=>{const raw=document.getElementById('raw');if(!raw.value.trim())raw.value='Nuevo movimiento';showPreview({...interpretNatural(raw.value),amount:0,concept:raw.value==='Nuevo movimiento'?'':raw.value,type:'GASTO',category_id:'',confidence:0,reason:'Entrada manual.'});document.getElementById('f-amount').focus()};
+ back.addEventListener('input',captureEntryDraft);back.addEventListener('change',captureEntryDraft);
+ document.getElementById('discard-entry').onclick=()=>{if(state.entrySaving)return;if(!confirm(state.entryPending?'El guardado puede haberse completado. Revisa Movimientos antes de crear otra entrada. ¿Descartar este borrador?':'¿Descartar este borrador local?'))return;EntryDrafts.clear(localStorage,state.user.id,state.household.id);state.entryPending=null;state.draft=null;back.remove()};
+ if(stored){
+   document.getElementById('raw').value=stored.raw;state.entryExternal=stored.external||state.entryExternal;
+   if(stored.draft&&stored.form){showPreview(stored.draft);for(const name of entryFields){const el=document.getElementById('f-'+name);if(el&&stored.form[name]!=null){el.value=stored.form[name];if(name==='type')el.onchange()}}document.getElementById('f-remember').checked=stored.remember!==false}
+   state.entryPending=stored.pending||null;lockEntryPending();captureEntryDraft();document.getElementById('draft-status').textContent=state.entryPending?'Borrador recuperado con guardado pendiente de comprobar.':'Borrador recuperado. Revisa la fecha antes de confirmar.';
+ }
+ if(!state.entryPending)document.getElementById('raw').focus();
 }
 function showPreview(d){
  state.draft=d;const host=document.getElementById('preview');
@@ -521,26 +549,36 @@ function showPreview(d){
  document.getElementById('f-type').value=d.type;
  const sync=()=>{const t=document.getElementById('f-type').value;const cs=document.getElementById('f-category'),cv=cs.value;cs.innerHTML=optionList(state.data.categories.filter(c=>!c.is_archived&&c.kind===t),cv,c=>c.name);document.getElementById('dest-wrap').style.display=t==='TRANSFERENCIA_INTERNA'?'grid':'none';document.getElementById('inv-wrap').style.display=(t==='INVERSION'||t==='RETIRADA_INVERSION')?'grid':'none'};
  document.getElementById('f-type').onchange=sync;sync();
- document.getElementById('cancel-preview').onclick=()=>host.innerHTML='';
- document.getElementById('save-tx').onclick=savePreview;
+ document.getElementById('cancel-preview').onclick=()=>{host.innerHTML='';state.draft=null;captureEntryDraft()};
+ document.getElementById('save-tx').onclick=savePreview;captureEntryDraft();
 }
 async function savePreview(){
+ if(state.entrySaving)return;
  const err=document.getElementById('form-error'),btn=document.getElementById('save-tx');
  const amount=Number(String(document.getElementById('f-amount').value).replace(',','.')),date=document.getElementById('f-date').value,concept=document.getElementById('f-concept').value.trim(),type=document.getElementById('f-type').value,category=document.getElementById('f-category').value,account=document.getElementById('f-account').value,dest=document.getElementById('f-dest').value,investment=document.getElementById('f-investment').value,person=document.getElementById('f-person').value.trim();
  const fail=m=>{err.textContent=m;err.style.display='block';return};
+ if(!state.entryPending){
  if(!(amount>0))return fail('El importe debe ser mayor que cero.');
  if(!date||!concept)return fail('Fecha y concepto son obligatorios.');
  if(!account)return fail('Selecciona la cuenta afectada. Así la caja y los saldos seguirán cuadrando.');
  if(type==='TRANSFERENCIA_INTERNA'&&(!dest||dest===account))return fail('La transferencia necesita una cuenta destino distinta.');
  if((type==='INVERSION'||type==='RETIRADA_INVERSION')&&!investment)return fail('Selecciona la inversión asociada.');
+ }
  err.style.display='none';btn.disabled=true;btn.textContent='Guardando…';
- const external='staging:'+crypto.randomUUID();
+ const external=state.entryExternal;
  const learn=FinanceRules.shouldLearn(state.draft,category,type,document.getElementById('f-remember').checked);
  const payload={household_id:state.household.id,transaction_date:date,amount,concept,type,category_id:category||null,person_user_id:person===state.member?.display_name?state.user.id:null,person_label:person||null,account_id:account,destination_account_id:type==='TRANSFERENCIA_INTERNA'?dest:null,investment_id:(type==='INVERSION'||type==='RETIRADA_INVERSION')?investment:null,created_by:state.user.id,source:'MANUAL',external_id:external,notes:'Alta desde GitHub staging',raw_input:state.draft?.raw||null,classification_confidence:state.draft?.confidence||null,classification_reason:state.draft?.reason||null,classification_confirmed:true};
  payload.learn_category=learn;
  if(FinanceRules.shouldLearn(state.draft,category,type,true)){payload.classification_confidence=null;payload.classification_reason=learn?'Categoría corregida y recordada por el hogar.':'Categoría corregida por el hogar.'}
- try{await insertTransaction(payload);localStorage.setItem('ff_last_account_v1',account);document.getElementById('register-modal')?.remove();toast('Movimiento guardado correctamente');await loadAll();location.hash='movimientos';renderApp()}
- catch(e){btn.disabled=false;btn.textContent='Confirmar y guardar';fail(e.message)}
+ state.entryPending=state.entryPending||payload;captureEntryDraft();lockEntryPending();state.entrySaving=true;
+ let saved=false;
+ try{
+   const result=await EntryDrafts.saveOnce(state.entryPending,{find:async external=>(await rest('transactions','household_id=eq.'+state.household.id+'&external_id=eq.'+encodeURIComponent(external)+'&select=id&limit=1'))?.[0],insert:insertTransaction});
+   saved=true;try{EntryDrafts.clear(localStorage,state.user.id,state.household.id);localStorage.setItem('ff_last_account_v1',account)}catch{}
+   state.entryPending=null;state.draft=null;document.getElementById('register-modal')?.remove();toast(result.existing?'El movimiento ya estaba guardado. No se ha duplicado.':'Movimiento guardado correctamente');
+   await loadAll();location.hash='movimientos';renderApp();
+ }catch(e){if(saved){alert('El movimiento está guardado, pero no se pudo actualizar la pantalla. Recarga la app.')}else{if([400,403,422].includes(e.status)){state.entryPending=null;document.getElementById('register-modal')?.querySelectorAll('input,select,textarea,button').forEach(el=>el.disabled=false);captureEntryDraft()}btn.disabled=false;btn.textContent=state.entryPending?'Comprobar y reintentar guardado':'Confirmar y guardar';fail('No se pudo confirmar el guardado. El borrador se conserva. '+e.message)}}
+ finally{state.entrySaving=false}
 }
 async function bankBuildRows(parsed,accountId,snapshot){
  const {columns,entries}=parsed,split=columns.debit>=0&&columns.credit>=0;
@@ -572,7 +610,7 @@ async function bankBuildRows(parsed,accountId,snapshot){
    const suggestion=bankCategorySuggestion(concept,type);
    const key=[accountId,date,signed,norm(concept),reference.trim().toUpperCase().replace(/\s+/g,' ')].join('|');
    const occurrence=(counts.get(key)||0)+1;counts.set(key,occurrence);
-   const row={line:e.line,date,concept,amount:a?.amount||0,signed,type,accountId,destinationId:'',
+   const row={line:e.line,date,concept,originalConcept:concept,amount:a?.amount||0,signed,type,accountId,destinationId:'',
      investmentId:'',categoryId:suggestion.id,confidence:suggestion.confidence,reason:suggestion.reason,
      externalId:error?'':await bankExternalId(accountId,date,Math.round(signed*100),concept,reference,occurrence),
      repeated:occurrence>1,needsReview,error,selected:false,existingExact:false,probable:false,manual:false,remember:true};
@@ -614,7 +652,8 @@ function openBankImport(){
    const selected=rows.filter(r=>r.selected&&!bankRowProblem(r,snapshot.closed));
    const blocked=rows.filter(r=>bankRowProblem(r,snapshot.closed)).length;
    const suspicious=rows.filter(r=>r.probable||r.repeated||r.needsReview||r.confidence<.87).length;
-   preview.innerHTML='<div class="bank-summary"><b>'+rows.length+' filas · '+selected.length+' seleccionadas</b><div class="bank-help">'+blocked+' bloqueadas · '+suspicious+' requieren revisión. Abre cada fila para cambiar tipo, categoría, inversión o cuentas.</div></div>'+
+   preview.innerHTML='<div class="bank-summary"><b>'+rows.length+' filas · '+selected.length+' seleccionadas</b><div class="bank-help">'+blocked+' bloqueadas · '+suspicious+' requieren revisión. Abre cada fila para cambiar concepto, tipo, categoría, inversión o cuentas.</div></div>'+
+   '<div class="invite-actions"><button class="btn" id="bank-select-all" '+(busy?'disabled':'')+'>Seleccionar todas las válidas</button><button class="btn" id="bank-select-none" '+(busy?'disabled':'')+'>Desmarcar todas</button></div>'+
    '<div class="bank-list">'+rows.map((r,i)=>{
      const issue=bankRowProblem(r,snapshot.closed);
      const warning=r.probable?'Posible duplicado ya registrado; comprueba antes de incluirlo.':
@@ -626,20 +665,27 @@ function openBankImport(){
      const types=r.signed<0?['GASTO','INVERSION','TRANSFERENCIA_INTERNA']:['INGRESO','DEVOLUCION','RETIRADA_INVERSION','TRANSFERENCIA_INTERNA'];
      return '<details class="bank-row" data-row="'+i+'"><summary><input type="checkbox" data-field="selected" aria-label="Importar fila '+r.line+'" '+(r.selected?'checked':'')+' '+(issue?'disabled':'')+'><b>'+esc(r.concept||'Fila sin concepto')+'</b><small class="'+(issue?'bank-bad':warning?'bank-caution':'')+'">'+esc(r.date||'Fecha inválida')+' · '+(r.signed>0?'+':'−')+money(r.amount)+'</small></summary>'+
        '<p class="'+(issue?'bank-bad':warning?'bank-caution':'')+'">Fila '+r.line+' · '+esc(issue||warning||r.reason)+' · '+(r.manual?'Revisión manual':'Confianza '+Math.round(r.confidence*100)+'%')+'</p>'+
-       '<div class="bank-edit"><label>Tipo<select data-field="type">'+types.map(t=>'<option '+(t===r.type?'selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
+       '<div class="bank-edit"><label>Concepto<input data-field="concept" maxlength="300" value="'+esc(r.concept)+'"></label><label>Tipo<select data-field="type">'+types.map(t=>'<option '+(t===r.type?'selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
        '<label>Categoría<select data-field="categoryId">'+optionList(options,r.categoryId,c=>c.name)+'</select></label>'+
        (transfer?'<label>Cuenta de origen<select data-field="accountId">'+optionList(accounts,r.accountId,a=>a.name)+'</select></label><label>Cuenta de destino<select data-field="destinationId">'+optionList(accounts,r.destinationId,a=>a.name)+'</select></label>':'')+
        (investment?'<label>Inversión<select data-field="investmentId">'+optionList(state.data.investments.filter(x=>!x.is_archived),r.investmentId,x=>x.name)+'</select></label>':'')+
        '</div>'+(r.manual&&r.categoryId?'<label class="rule-remember"><input type="checkbox" data-field="remember" '+(r.remember?'checked':'')+'>Recordar esta categoría para el mismo concepto</label>':'')+'</details>';
    }).join('')+'</div><div class="bank-actions"><button class="btn" id="bank-cancel">Cancelar</button><button class="save" id="bank-confirm" '+(!selected.length||busy?'disabled':'')+'>Importar '+selected.length+' movimientos</button></div>';
    preview.querySelector('#bank-cancel').onclick=close;
+   preview.querySelector('#bank-select-none').onclick=()=>{if(busy)return;rows.forEach(r=>r.selected=false);render()};
+   preview.querySelector('#bank-select-all').onclick=()=>{
+     if(busy)return;
+     const eligible=rows.filter(r=>!bankRowProblem(r,snapshot.closed)),warnings=eligible.filter(r=>r.probable||r.repeated||r.needsReview||r.confidence<.87);
+     if(warnings.length&&!confirm('Se seleccionarán '+eligible.length+' filas, incluidas '+warnings.length+' que requieren revisión o podrían estar duplicadas. ¿Seleccionarlas todas?'))return;
+     bankSelectAll(rows,snapshot.closed);render();
+   };
    preview.querySelector('#bank-confirm').onclick=commit;
    preview.querySelectorAll('[data-field]').forEach(input=>input.disabled=busy||input.dataset.field==='selected'&&!!bankRowProblem(rows[Number(input.closest('[data-row]').dataset.row)],snapshot.closed));
    preview.querySelectorAll('[data-field]').forEach(input=>input.onchange=async e=>{
      if(busy)return;
      const el=e.target,r=rows[Number(el.closest('[data-row]').dataset.row)],field=el.dataset.field;
      if(field==='selected'||field==='remember'){r[field]=el.checked;render();return}
-     r[field]=el.value;
+     r[field]=field==='concept'?el.value.trim().slice(0,300):el.value;
      if(field==='type'){
        r.categoryId='';r.selected=false;
        if(r.type==='TRANSFERENCIA_INTERNA'){
@@ -647,8 +693,9 @@ function openBankImport(){
          else{r.accountId=account.value;r.destinationId=''}
        }else{r.accountId=account.value;r.destinationId=''}
      }
+     if(field==='concept'){r.manual=true;r.remember=false;r.reason='Concepto editado durante la importación.'}
      if(field==='type'||field==='categoryId'){r.manual=true;r.confidence=null;r.reason='Elección manual durante la importación.'}
-     r.probable=snapshot.matches.has(bankExistingKey(r.accountId,r.date,r.amount,r.type,r.concept));
+     r.probable=snapshot.matches.has(bankExistingKey(r.accountId,r.date,r.amount,r.type,r.concept))||snapshot.matches.has(bankExistingKey(r.accountId,r.date,r.amount,r.type,r.originalConcept||r.concept));
      r.existingExact=snapshot.ids.has(r.externalId);
      if(bankRowProblem(r,snapshot.closed))r.selected=false;
      const openIndex=Number(el.closest('[data-row]').dataset.row);
@@ -955,7 +1002,7 @@ async function loadAll(silent=false){
  return true;
 }
 async function checkForSharedChanges(){
- if(state.syncBusy||state.backupBusy||!state.household||document.hidden)return;
+ if(state.syncBusy||state.backupBusy||document.querySelector('.modal-back')||!state.household||document.hidden)return;
  state.syncBusy=true;
  try{
    const sig=JSON.stringify(await rpc('transaction_sync_state',{p_household:state.household.id})||{});

@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20260927.2">
+<link rel="manifest" href="./manifest.webmanifest?v=20260927.3">
 <title>Finanzas Familiares</title>
 <style>
 :root{--bg:#07101d;--panel:#0d1727;--panel2:#101d31;--line:rgba(255,255,255,.085);--text:#eef4ff;--muted:#8ea2ba;--purple:#806cff;--green:#46d5ad;--red:#ff7d8a;--blue:#67bdff;--orange:#f1a06d;--sidebar:232px}
@@ -31,7 +31,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20260927.2';
+const APP_BUILD='20260927.3';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -331,11 +331,11 @@ function bankParseCsv(text,delimiter){
  return rows;
 }
 function bankColumns(headings){
- const h=headings.map(x=>norm(x.replace(/^\uFEFF/,'')));
+ const h=headings.map(x=>norm(String(x??'').replace(/^\uFEFF/,'')));
  const find=names=>h.findIndex(x=>names.includes(x));
- const date=find(['fecha','fecha operacion','fecha de operacion','fecha valor','fecha contable','date','booking date','transaction date','operation date']);
+ const date=find(['fecha','fecha operacion','fecha de operacion','f operacion','fecha valor','f valor','fecha contable','date','booking date','transaction date','operation date']);
  const concept=find(['concepto','descripcion','descripcion del movimiento','detalle','movimiento','operacion','comercio','merchant','description','transaction description','concept']);
- const amount=find(['importe','importe eur','importe euros','importe en euros','cantidad','amount','importe del movimiento','valor']);
+ const amount=find(['importe','importe eur','importe euros','importe en euros','importe movimiento','cantidad','amount','importe del movimiento','valor']);
  const debit=find(['debe','cargo','cargos','debit','withdrawal','salida','pagos','retirada']);
  const credit=find(['haber','abono','abonos','credit','deposit','entrada','ingresos']);
  const reference=find(['referencia','referencia bancaria','numero de operacion','numero operacion','id operacion','id movimiento','identificador','reference','transaction id','transaction reference']);
@@ -356,7 +356,47 @@ function bankReadCsv(text){
  if(entries.length>500)throw new Error('El extracto tiene más de 500 filas. Divídelo en archivos de hasta 500 movimientos.');
  return {...best,entries};
 }
-function bankDate(raw){
+function bankReadExcelSheets(sheets){
+ const choices=[];
+ for(const sheet of sheets){
+   if(sheet.error){choices.push({name:sheet.name,error:sheet.error});continue}
+   const header=sheet.rows.slice(0,50).findIndex(r=>bankColumns(r.cells).valid);
+   if(header<0)continue;
+   const cells=sheet.rows[header].cells;
+   const entries=sheet.rows.slice(header+1);
+   choices.push({name:sheet.name,parsed:{columns:bankColumns(cells),width:cells.length,entries,date1904:sheet.date1904}});
+ }
+ if(!choices.length)throw new Error('No se reconocen las columnas de fecha, concepto e importe (o Debe y Haber) en las primeras 50 filas del Excel.');
+ return choices;
+}
+async function bankReadFile(file){
+ const extension=file.name.split('.').pop().toLowerCase();
+ if(!['csv','txt','xls','xlsx'].includes(extension))throw new Error('Elige un archivo CSV, XLS o XLSX.');
+ const bytes=await file.arrayBuffer();
+ if(extension==='csv'||extension==='txt'){
+   let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes)}
+   catch{text=new TextDecoder('windows-1252').decode(bytes)}
+   return [{name:file.name,parsed:bankReadCsv(text)}];
+ }
+ const sheets=await new Promise((resolve,reject)=>{
+   const worker=new Worker('./bank-excel-worker.js?v='+APP_BUILD);
+   const finish=(error,result)=>{clearTimeout(timer);worker.terminate();error?reject(new Error(error)):resolve(result)};
+   const timer=setTimeout(()=>finish('La lectura del Excel ha tardado demasiado. Exporta un periodo más corto.'),30000);
+   worker.onmessage=e=>finish(e.data.error,e.data.sheets);
+   worker.onerror=()=>finish('No se pudo cargar el lector de Excel. Comprueba la conexión y vuelve a seleccionar el archivo.');
+   worker.postMessage(bytes,[bytes]);
+ });
+ return bankReadExcelSheets(sheets);
+}
+function bankDate(raw,date1904=false){
+ if(typeof raw==='number'){
+   if(!Number.isFinite(raw)||raw<0)return null;
+   const serial=Math.floor(raw);
+   if(!date1904&&(serial===0||serial===60))return null;
+   const epoch=date1904?Date.UTC(1904,0,1):Date.UTC(1899,11,31);
+   const date=new Date(epoch+(serial-(!date1904&&serial>60?1:0))*86400000);
+   return Number.isNaN(date.getTime())?null:bankDate(date.toISOString().slice(0,10));
+ }
  const s=String(raw||'').trim(),iso=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
  const es=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})(?:\s.*)?$/);
  if(!iso&&!es)return null;
@@ -366,6 +406,11 @@ function bankDate(raw){
  return String(y).padStart(4,'0')+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
 }
 function bankAmount(raw){
+ if(typeof raw==='number'){
+   const cents=Math.round(Math.abs(raw)*100);
+   if(!Number.isSafeInteger(cents)||!cents||Math.abs(cents-Math.abs(raw)*100)>1e-7)return null;
+   return {amount:cents/100,sign:raw<0?-1:0,explicit:raw<0};
+ }
  let s=String(raw||'').trim().replace(/[\s\u00a0\u202f€$]/g,'');
  if(!s)return null;
  let sign=0,explicit=false;
@@ -481,10 +526,15 @@ async function savePreview(){
 }
 async function bankBuildRows(parsed,accountId,snapshot){
  const {columns,entries}=parsed,split=columns.debit>=0&&columns.credit>=0;
- const get=(cells,col)=>col>=0?String(cells[col]||'').trim():'';
+ if(!entries.length)throw new Error('La hoja no contiene movimientos.');
+ if(entries.length>500)throw new Error('El extracto tiene más de 500 filas. Exporta un periodo más corto.');
+ const get=(cells,col)=>col>=0?String(cells[col]??'').trim():'';
+ const amountAt=(cells,col)=>bankAmount(col>=0?cells[col]:'');
+ const emptyAmount=value=>value==null||String(value).trim()===''||/^[+-]?0+(?:[.,]0+)?$/.test(String(value).replace(/[\s\u00a0\u202f€$]/g,''));
  const amounts=entries.map(e=>{
-   if(!split)return bankAmount(get(e.cells,columns.amount));
-   const debit=bankAmount(get(e.cells,columns.debit)),credit=bankAmount(get(e.cells,columns.credit));
+   if(!split)return amountAt(e.cells,columns.amount);
+   const debit=amountAt(e.cells,columns.debit),credit=amountAt(e.cells,columns.credit);
+   if(!debit&&!emptyAmount(e.cells[columns.debit])||!credit&&!emptyAmount(e.cells[columns.credit]))return null;
    if(!!debit===!!credit)return null;
    return {amount:(debit||credit).amount,sign:debit?-1:1,explicit:true};
  });
@@ -492,7 +542,7 @@ async function bankBuildRows(parsed,accountId,snapshot){
    throw new Error('El extracto solo tiene importes positivos sin signo. No se puede distinguir ingresos de gastos; exporta importes con signo o columnas Debe/Haber.');
  const counts=new Map(),rows=[];
  for(let i=0;i<entries.length;i++){
-   const e=entries[i],a=amounts[i],date=bankDate(get(e.cells,columns.date));
+   const e=entries[i],a=amounts[i],date=bankDate(e.cells[columns.date],parsed.date1904);
    const concept=get(e.cells,columns.concept).replace(/\s+/g,' ').slice(0,300);
    const reference=get(e.cells,columns.reference),signed=a?(a.sign<0?-1:1)*a.amount:0;
    const error=e.cells.length!==parsed.width?'El número de columnas no coincide con la cabecera; revisa separadores y comillas.':!date?'Fecha no reconocida.':!a?'Importe o columnas Debe/Haber inválidos.':!concept?'Falta el concepto.':'';
@@ -520,21 +570,24 @@ function openBankImport(){
  const back=document.createElement('div');back.className='modal-back';back.id='bank-import-modal';
  const accounts=state.data.accounts.filter(a=>!a.is_archived);
  const people=state.data.members;
- back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Importación bancaria</span><h2>Revisar extracto CSV</h2></div><button class="close" id="bank-close" aria-label="Cerrar">×</button></div>'+
- '<p class="bank-help">El archivo se lee en este dispositivo. Solo se enviarán los movimientos que selecciones al confirmar. Admite CSV con ; , o tabulador, importes con signo o columnas Debe/Haber y hasta 500 filas. Si una transferencia aparece en las dos cuentas, importa solo uno de los lados.</p>'+
+ back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Importación bancaria</span><h2>Revisar extracto bancario</h2></div><button class="close" id="bank-close" aria-label="Cerrar">×</button></div>'+
+ '<p class="bank-help">Admite Excel (XLS y XLSX) y CSV, con importes con signo o columnas Debe/Haber, hasta 500 filas y 5 MB. El archivo se lee en este dispositivo. Solo se enviarán los movimientos que selecciones al confirmar. Si una transferencia aparece en las dos cuentas, importa solo uno de los lados.</p>'+
  '<div class="bank-form"><label>Cuenta del extracto<select id="bank-account">'+optionList(accounts,localStorage.getItem('ff_last_account_v1')||'',a=>a.name)+'</select></label>'+
  '<label>Titular del movimiento<select id="bank-person"><option value="">Familia (sin asignar)</option>'+people.map(m=>'<option value="'+m.user_id+'">'+esc(m.display_name||'Miembro')+'</option>').join('')+'</select></label>'+
- '<label class="bank-file">Archivo CSV<input id="bank-file" type="file" accept=".csv,.txt,text/csv,text/plain"></label></div>'+
- '<div id="bank-status" class="notice">Selecciona la cuenta y después el CSV para preparar la vista previa.</div><div id="bank-preview"></div>';
+ '<label class="bank-file">Archivo Excel o CSV<input id="bank-file" type="file" accept=".csv,.txt,.xls,.xlsx,text/csv,text/plain,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>'+
+ '<label id="bank-sheet-label" class="bank-file" hidden>Hoja del Excel<select id="bank-sheet"></select></label></div>'+
+ '<div id="bank-status" class="notice">Selecciona la cuenta y después el archivo para preparar la vista previa.</div><div id="bank-preview"></div>';
  document.body.appendChild(back);
- let draft=null,busy=false;
+ let draft=null,busy=false,sheets=[];
  const fileInput=back.querySelector('#bank-file'),account=back.querySelector('#bank-account'),person=back.querySelector('#bank-person');
+ const sheetInput=back.querySelector('#bank-sheet'),sheetLabel=back.querySelector('#bank-sheet-label');
+ sheetLabel.style.display='none';
  const status=back.querySelector('#bank-status'),preview=back.querySelector('#bank-preview');
- const controlsBusy=value=>{account.disabled=value;person.disabled=value;fileInput.disabled=value};
- const close=()=>{if(busy)return;if(draft)draft.rows.length=0;draft=null;back.remove()};
+ const controlsBusy=value=>{account.disabled=value;person.disabled=value;fileInput.disabled=value;sheetInput.disabled=value};
+ const close=()=>{if(busy)return;if(draft)draft.rows.length=0;draft=null;sheets=[];back.remove()};
  back.querySelector('#bank-close').onclick=close;
  back.onclick=e=>{if(e.target===back)close()};
- const reset=()=>{if(busy)return;if(draft)draft.rows.length=0;draft=null;preview.innerHTML='';status.textContent='Selecciona la cuenta y después el CSV para preparar la vista previa.';fileInput.value=''};
+ const reset=()=>{if(busy)return;if(draft)draft.rows.length=0;draft=null;sheets=[];sheetInput.innerHTML='';sheetLabel.style.display='none';preview.innerHTML='';status.textContent='Selecciona la cuenta y después el archivo para preparar la vista previa.';fileInput.value=''};
  account.onchange=()=>{person.value=accounts.find(a=>a.id===account.value)?.owner_user_id||'';reset()};
  if(account.value)person.value=accounts.find(a=>a.id===account.value)?.owner_user_id||'';
  const render=()=>{
@@ -584,22 +637,39 @@ function openBankImport(){
      render();preview.querySelector('[data-row="'+openIndex+'"]')?.setAttribute('open','');
    });
  };
+ const prepareSheet=async index=>{
+   const sheet=sheets[index];if(!sheet)return;
+   if(sheet.error)throw new Error(sheet.error);
+   const snapshot=await bankSnapshot(state.household.id);
+   const rows=await bankBuildRows(sheet.parsed,account.value,snapshot);
+   draft={rows,snapshot};
+   status.textContent='Vista previa local · '+sheet.name+'. Los posibles duplicados y las filas dudosas quedan sin seleccionar.';
+ };
+ sheetInput.onchange=async()=>{
+   if(busy)return;
+   draft=null;preview.innerHTML='';
+   if(sheetInput.value===''){status.textContent='Elige la hoja de movimientos que quieres revisar.';return}
+   busy=true;controlsBusy(true);status.textContent='Comparando movimientos…';
+   try{await prepareSheet(Number(sheetInput.value))}
+   catch(e){status.textContent=e.message}
+   finally{busy=false;controlsBusy(false);if(draft)render()}
+ };
  fileInput.onchange=async()=>{
    if(busy)return;
    const file=fileInput.files?.[0];if(!file)return;
+   draft=null;sheets=[];preview.innerHTML='';sheetInput.innerHTML='';sheetLabel.style.display='none';
    if(!account.value){status.textContent='Selecciona primero la cuenta del extracto.';fileInput.value='';return}
    if(file.size>5*1024*1024){status.textContent='El archivo supera 5 MB. Exporta un periodo más corto.';fileInput.value='';return}
    busy=true;controlsBusy(true);
    status.textContent='Leyendo y comparando movimientos…';preview.innerHTML='';
    try{
-     const bytes=await file.arrayBuffer();let text;
-     try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes)}
-     catch{text=new TextDecoder('windows-1252').decode(bytes)}
-     const parsed=bankReadCsv(text),snapshot=await bankSnapshot(state.household.id);
-     const rows=await bankBuildRows(parsed,account.value,snapshot);
-     draft={rows,snapshot};
-     status.textContent='Vista previa local. Los posibles duplicados y las filas dudosas quedan sin seleccionar.';
-     render();
+     sheets=await bankReadFile(file);
+     if(sheets.length===1)await prepareSheet(0);
+     else{
+       sheetLabel.hidden=false;sheetLabel.style.display='grid';
+       sheetInput.innerHTML='<option value="">Seleccionar hoja…</option>'+sheets.map((s,i)=>'<option value="'+i+'">'+esc(s.name)+'</option>').join('');
+       status.textContent='El Excel contiene varias hojas. Elige la hoja de movimientos que quieres revisar.';
+     }
    }catch(e){draft=null;status.textContent=e.message;fileInput.value=''}
    finally{busy=false;controlsBusy(false);if(draft)render()}
  };
@@ -1255,7 +1325,7 @@ function viewInicio(){
 }
 function viewMovimientos(){
  shell(head('Histórico','Movimientos','Consulta y filtra todos los movimientos cargados.')+
- '<section class="panel bank-intro"><div class="panel-head"><div><span class="sub">Extractos</span><h2>Importación bancaria</h2></div><button class="btn" id="open-bank-import">Importar CSV</button></div><p>Revisa los movimientos de tu banco antes de guardarlos. Detectamos importaciones repetidas, posibles duplicados y meses cerrados.</p></section>'+
+ '<section class="panel bank-intro"><div class="panel-head"><div><span class="sub">Extractos</span><h2>Importación bancaria</h2></div><button class="btn" id="open-bank-import">Importar Excel o CSV</button></div><p>Revisa los movimientos de tu banco antes de guardarlos. Detectamos importaciones repetidas, posibles duplicados y meses cerrados.</p></section>'+
  '<section class="panel"><div class="filters"><input id="q" placeholder="Buscar concepto o categoría"><select id="type"><option value="">Todos los tipos</option><option>GASTO</option><option>INGRESO</option><option>INVERSION</option><option>RETIRADA_INVERSION</option><option>TRANSFERENCIA_INTERNA</option><option>DEVOLUCION</option></select><select id="limit"><option value="30">Últimos 30</option><option value="100">Últimos 100</option><option value="500">Últimos 500</option></select></div><div id="txlist"></div></section>');
  bindCommon();document.getElementById('open-bank-import').onclick=openBankImport;const q=document.getElementById('q'),type=document.getElementById('type'),limit=document.getElementById('limit'),cm=Object.fromEntries(state.data.categories.map(c=>[c.id,c.name]));
  function draw(){const term=q.value.trim().toLowerCase(),tp=type.value,n=Number(limit.value);const list=state.data.transactions.filter(t=>(!tp||t.type===tp)&&(!term||(t.concept||'').toLowerCase().includes(term)||(cm[t.category_id]||'').toLowerCase().includes(term))).slice(0,n);document.getElementById('txlist').innerHTML=txRows(list,true);bindTransactionActions()}

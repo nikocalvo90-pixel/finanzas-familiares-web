@@ -29,3 +29,24 @@ Validación: `node --test tests/*.test.cjs`. El archivo
 `supabase/tests/smart_category_rules.sql` comprueba aprendizaje, pausa, validación,
 importación y aislamiento con el rol autenticado. Sus datos sintéticos se revierten
 con `ROLLBACK`; requiere un hogar con un miembro y una cuenta activa.
+
+## Documentos privados (20260927.5)
+
+En **Movimientos → Documentos** se adjuntan tickets, facturas y justificantes.
+**Ver documentos** abre el archivo del hogar, incluidos los retirados al activar
+«Mostrar retirados». Admite PDF, JPG, PNG, WebP, HEIC y HEIF hasta 10 MB; valida
+cabecera y extensión. HEIC/HEIF puede requerir descarga para abrirse.
+
+Los archivos se guardan en un bucket privado con acceso por hogar. Abrir y
+descargar genera un enlace válido durante 60 segundos. El original es inmutable.
+Una huella SHA-256 evita duplicados por movimiento; si la subida se interrumpe,
+seleccionar el mismo archivo retoma el registro pendiente. Retirar es reversible.
+Eliminar un movimiento conserva sus documentos retirados en el archivo general,
+sin permitir restaurarlos a un movimiento inexistente. No incluye OCR.
+
+`docs/transaction-documents.js` contiene validación y recuperación de subidas.
+Validación: `node --test tests/*.test.cjs` (30 pruebas).
+`supabase/tests/transaction_documents.sql` comprueba permisos, aislamiento,
+metadatos, duplicados y conservación con `ROLLBACK`. La prueba SQL usa metadatos
+sintéticos de Storage; no ejercita el transporte físico de archivos. El flujo
+completo de subida desde una sesión autenticada queda pendiente de comprobación.

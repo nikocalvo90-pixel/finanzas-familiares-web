@@ -171,3 +171,35 @@ huérfanos, movimientos sin reaprendizaje y periodizaciones con recurrentes paus
 La simulación de una instantánea real da cero inserciones/conflictos. Sin nuevas
 advertencias de seguridad. Pendiente flujo autenticado completo y transporte físico
 de archivos; los tests de Storage usan metadatos sintéticos, no originales reales.
+
+## Seguridad e integridad (20260928.13)
+
+El bloqueo se comprueba al navegar, renderizar, consultar datos y recibir avisos.
+Bloquear o cerrar sesión retira datos de la memoria y pantalla, detiene el sondeo,
+cancela peticiones y descarta respuestas tardías, incluidas renovaciones de sesión.
+Cerrar sesión en otra pestaña también limpia la pantalla. El cierre local es
+inmediato; la revocación remota y la baja de avisos de ese dispositivo son intentos
+de red con tiempo limitado, sin desactivar los avisos del resto de dispositivos.
+Entrar con contraseña conserva la configuración biométrica. Los borradores
+locales por usuario/hogar conservan su política anterior de recuperación/caducidad.
+La biometría protege la interfaz local; no sustituye la autorización del servidor.
+
+La base de datos valida 27 relaciones con claves compuestas por hogar, además de
+etiquetas de movimientos y conciliaciones. Hogar e identificador son inmutables.
+Se conservan las acciones de borrado y la restauración de copias entiende las nuevas
+claves. El control de meses comprueba fechas originales y nuevas, periodizaciones
+y sus repartos. Cierre, reapertura y escrituras financieras usan el mismo bloqueo
+transaccional por hogar. Solo el propietario puede cerrar/reabrir y el servidor
+impide cerrar antes del último día del mes, según la zona horaria del hogar.
+
+Validación: 66 pruebas Node, incluidas 10 de sesión con respuestas tardías y
+desbloqueo válido. Las cinco suites SQL de integridad, restauración, documentos,
+reglas y compra pasan con ROLLBACK y rol autenticado. La migración también ejecuta
+su prueba de integridad antes de confirmar, revirtiendo solo sus hogares sintéticos.
+Pendiente comprobación física de Face ID y del flujo completo desde un iPhone.
+
+Sin nuevas advertencias del asesor de seguridad. Siguen pendientes la
+[protección contra contraseñas filtradas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
+y la [ubicación de pg_net](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public).
+Las 18 RPC existentes con autoridad elevada mantienen sus comprobaciones de
+miembro/propietario; los nuevos triggers usan los permisos del usuario.

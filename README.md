@@ -172,7 +172,7 @@ La simulación de una instantánea real da cero inserciones/conflictos. Sin nuev
 advertencias de seguridad. Pendiente flujo autenticado completo y transporte físico
 de archivos; los tests de Storage usan metadatos sintéticos, no originales reales.
 
-## Seguridad e integridad (20260928.13)
+## Seguridad e integridad (20260928.14)
 
 El bloqueo se comprueba al navegar, renderizar, consultar datos y recibir avisos.
 Bloquear o cerrar sesión retira datos de la memoria y pantalla, detiene el sondeo,
@@ -192,7 +192,7 @@ y sus repartos. Cierre, reapertura y escrituras financieras usan el mismo bloque
 transaccional por hogar. Solo el propietario puede cerrar/reabrir y el servidor
 impide cerrar antes del último día del mes, según la zona horaria del hogar.
 
-Validación: 66 pruebas Node, incluidas 10 de sesión con respuestas tardías y
+Validación: 70 pruebas Node, incluidas 14 de sesión con respuestas tardías y
 desbloqueo válido. Las cinco suites SQL de integridad, restauración, documentos,
 reglas y compra pasan con ROLLBACK y rol autenticado. La migración también ejecuta
 su prueba de integridad antes de confirmar, revirtiendo solo sus hogares sintéticos.

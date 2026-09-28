@@ -108,3 +108,28 @@ test('logout revokes only the current session and unsubscribes only this device'
  assert(urls.some(u=>u.includes('/push_subscriptions?endpoint=eq.https%3A%2F%2Fpush.example%2Fcurrent')));
  assert(!urls.some(u=>u.includes('notification_preferences')));
 });
+test('a queued logout event clears the view even if another tab already signed back in',()=>{
+ const s=setup();s.run("saveSession({access_token:'new',user:{id:'user'}})");
+ s.events.storage({key:s.run('STORE'),newValue:null});
+ assert.equal(s.run('state.user'),null);assert.equal(s.run('state.data'),null);
+ assert.equal(s.run('getSession().access_token'),'new');
+});
+test('a redirect session without a user profile cannot retain another account in the view',()=>{
+ const s=setup();s.run("saveSession({access_token:'redirect',refresh_token:'redirect-refresh'})");
+ s.events.storage({key:s.run('STORE'),newValue:'redirect-session'});
+ assert.equal(s.run('state.user'),null);assert.equal(s.run('state.data'),null);
+});
+test('late refresh does not overwrite tokens saved by another tab',async()=>{
+ const s=setup(),pending=deferred();s.ctx.fetch=()=>pending.promise;
+ const result=s.run('refreshSession(getSession())');
+ s.run("saveSession({access_token:'current-token',refresh_token:'current-refresh',user:{id:'user'}})");
+ pending.resolve(response({access_token:'obsolete-token',refresh_token:'obsolete-refresh',user:{id:'user'}}));
+ assert.equal((await result).access_token,'current-token');assert.equal(s.run('getSession().access_token'),'current-token');
+});
+test('a rejected obsolete refresh does not invalidate the current session',async()=>{
+ const s=setup(),pending=deferred();s.ctx.fetch=()=>pending.promise;
+ const result=s.run('refreshSession(getSession())');
+ s.run("saveSession({access_token:'current-token',refresh_token:'current-refresh',user:{id:'user'}})");
+ pending.resolve(response({message:'Refresh token revoked'},400));
+ assert.equal((await result).access_token,'current-token');assert.equal(s.run('getSession().access_token'),'current-token');
+});

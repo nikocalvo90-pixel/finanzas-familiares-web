@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261006.17">
+<link rel="manifest" href="./manifest.webmanifest?v=20261006.18">
 <title>Finanzas Familiares</title>
 <style>
 :root{--bg:#07101d;--panel:#0d1727;--panel2:#101d31;--line:rgba(255,255,255,.085);--text:#eef4ff;--muted:#8ea2ba;--purple:#806cff;--green:#46d5ad;--red:#ff7d8a;--blue:#67bdff;--orange:#f1a06d;--sidebar:232px}
@@ -30,15 +30,15 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto">F</div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20261006.17"></script>
-<script src="./shopping.js?v=20261006.17"></script>
-<script src="./onboarding.js?v=20261006.17"></script>
-<script src="./account-access.js?v=20261006.17"></script>
-<script src="./entry-drafts.js?v=20261006.17"></script>
-<script src="./backups.js?v=20261006.17"></script>
-<script src="./this-month.js?v=20261006.17"></script>
-<script src="./monthly-reports.js?v=20261006.17"></script>
-<script src="./transaction-documents.js?v=20261006.17"></script>
+<script src="./smart-rules.js?v=20261006.18"></script>
+<script src="./shopping.js?v=20261006.18"></script>
+<script src="./onboarding.js?v=20261006.18"></script>
+<script src="./account-access.js?v=20261006.18"></script>
+<script src="./entry-drafts.js?v=20261006.18"></script>
+<script src="./backups.js?v=20261006.18"></script>
+<script src="./this-month.js?v=20261006.18"></script>
+<script src="./monthly-reports.js?v=20261006.18"></script>
+<script src="./transaction-documents.js?v=20261006.18"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -47,7 +47,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261006.17';
+const APP_BUILD='20261006.18';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -1155,7 +1155,7 @@ async function loadAll(silent=false){
    rest('assets','household_id=eq.'+h+'&select=id,name,type,owner_user_id,purchase_date,purchase_value,current_value,valuation_date,notes,is_archived,archived_at,archived_by,archive_note&order=is_archived.asc,name.asc'),
    rest('liabilities','household_id=eq.'+h+'&select=id,name,type,lender,owner_user_id,linked_asset_id,original_amount,outstanding_balance,interest_rate,monthly_payment,start_date,maturity_date,notes,is_archived,archived_at,archived_by,archive_note&order=is_archived.asc,name.asc'),
    rest('household_members','household_id=eq.'+h+'&select=user_id,role,display_name,joined_at&order=joined_at.asc'),
-   state.member.role==='OWNER'?rest('household_invites','household_id=eq.'+h+'&select=id,code,expires_at,max_uses,uses,revoked_at,created_at&order=created_at.desc&limit=10'):Promise.resolve([]),
+   state.member.role==='OWNER'?restAll('household_invites','household_id=eq.'+h+'&select=id,code,expires_at,max_uses,uses,revoked_at,created_at&order=created_at.desc,id.asc'):Promise.resolve([]),
    rpc('transaction_sync_state',{p_household:h}),
    rest('recurring_rules','household_id=eq.'+h+'&select=id,name,type,amount,concept,category_id,person_user_id,person_label,account_id,destination_account_id,investment_id,frequency,interval_count,start_date,end_date,next_due_date,auto_post,active,normalize_months,notes,exclude_from_normalized&order=active.desc,next_due_date.asc,name.asc'),
    rest('accounts','household_id=eq.'+h+'&select=id,name,type,institution,owner_user_id,currency,opening_balance,opening_balance_date,include_in_cash,include_in_net_worth,is_archived,archived_at,archived_by,archive_note&order=is_archived.asc,name.asc'),
@@ -1974,10 +1974,44 @@ async function copyInviteLink(code){
  try{await navigator.clipboard.writeText(u.toString());toast('Enlace de invitación copiado')}
  catch(e){window.prompt('Copia este enlace y envíaselo:',u.toString())}
 }
-async function generateInvite(){
- try{const code=await createHouseholdInvite();await loadAll();renderApp();toast('Nuevo código: '+String(code||''))}
- catch(e){alert('No se pudo crear la invitación: '+e.message)}
+let familyInviteBusy=false;
+function invitationStatus(invite,now=Date.now()){
+ if(invite.revoked_at)return 'Cancelada';
+ if(Number(invite.uses)>=Number(invite.max_uses))return 'Utilizada';
+ if(!Number.isFinite(Date.parse(invite.expires_at))||Date.parse(invite.expires_at)<=now)return 'Caducada';
+ return 'Activa';
 }
+function familyRoleLabel(role){return role==='OWNER'?'Propietario':role==='MEMBER'?'Miembro':'Rol no reconocido'}
+function familyInvitationsPanel(){
+ if(state.member?.role!=='OWNER')return '<div class="notice">El propietario gestiona las invitaciones del hogar.</div>';
+ const invites=state.data.invites||[],active=invites.filter(i=>invitationStatus(i)==='Activa'),history=invites.filter(i=>invitationStatus(i)!=='Activa').slice(0,10);
+ return '<div style="margin-top:14px"><div class="panel-head"><div><span class="sub">Compartir hogar</span><h2>Invitaciones</h2></div><button class="btn" id="new-invite">Crear invitación</button></div><p class="bank-help">Cada enlace permite entrar en este hogar. Compártelo solo con la persona invitada. Crear otro no cancela los anteriores.</p>'+
+ (active.length?active.map(i=>'<div class="manage-row"><div class="manage-main"><strong>'+esc(i.code)+'</strong><span>Caduca el '+esc(new Date(i.expires_at).toLocaleString('es-ES'))+' · '+esc(i.uses)+' de '+esc(i.max_uses)+' usos</span></div><div class="invite-actions"><button class="mini" data-copy-family-invite="'+esc(i.id)+'">Copiar enlace</button><button class="mini danger" data-cancel-family-invite="'+esc(i.id)+'">Cancelar</button></div></div>').join(''):'<div class="empty">No hay invitaciones activas. Crea una para compartir tu hogar.</div>')+
+ '<p id="family-invite-status" class="bank-help" aria-live="polite"></p>'+(history.length?'<details><summary>Últimas invitaciones cerradas ('+history.length+')</summary>'+history.map(i=>'<div class="item"><span>'+esc(invitationStatus(i))+' · '+esc(i.uses)+' de '+esc(i.max_uses)+' usos</span><span>'+esc(new Date(i.created_at).toLocaleDateString('es-ES'))+'</span></div>').join('')+'</details>':'')+'</div>';
+}
+async function revokeFamilyInvitation(id){
+ const epoch=sessionEpoch,household=state.household?.id;assertPrivateAccess();
+ if(state.member?.role!=='OWNER')throw Error('Solo el propietario puede cancelar invitaciones.');
+ if(!(state.data.invites||[]).some(i=>i.id===id&&invitationStatus(i)==='Activa'))throw Error('Esta invitación ya no está activa. Actualiza la pantalla.');
+ const rows=await authed('/rest/v1/household_invites?id=eq.'+encodeURIComponent(id)+'&household_id=eq.'+encodeURIComponent(household)+'&revoked_at=is.null',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({revoked_at:new Date().toISOString()})});
+ assertSessionEpoch(epoch);assertPrivateAccess();
+ if(state.household?.id!==household)throw sessionCancelled();
+ if(!rows?.length||!rows[0].revoked_at)throw Error('No se pudo confirmar la cancelación. Actualiza la pantalla y vuelve a intentarlo.');
+ state.data.invites=state.data.invites.map(i=>i.id===id?rows[0]:i);
+}
+async function manageFamilyInvitation(action,id){
+ if(familyInviteBusy)return;
+ if(action==='cancel'&&!window.confirm('¿Cancelar esta invitación? El enlace dejará de permitir nuevas entradas. Los miembros que ya han entrado conservan su acceso.'))return;
+ familyInviteBusy=true;const epoch=sessionEpoch,status=document.getElementById('family-invite-status');
+ const buttons=[...document.querySelectorAll('#new-invite,[data-cancel-family-invite]')];buttons.forEach(b=>b.disabled=true);
+ if(status)status.textContent=action==='cancel'?'Cancelando invitación…':'Creando invitación…';
+ try{
+   if(action==='cancel')await revokeFamilyInvitation(id);else{assertPrivateAccess();if(state.member?.role!=='OWNER')throw Error('Solo el propietario puede crear invitaciones.');await createHouseholdInvite();await loadAll()}
+   assertSessionEpoch(epoch);renderApp();toast(action==='cancel'?'Invitación cancelada':'Invitación preparada');
+ }catch(e){if(!e.sessionCancelled&&epoch===sessionEpoch&&status?.isConnected)status.textContent=e.message}
+ finally{familyInviteBusy=false;buttons.forEach(b=>b.disabled=false)}
+}
+async function generateInvite(){return manageFamilyInvitation('create')}
 function settingsMenuCard(id,icon,title,desc,status,on=false){
  return '<button class="settings-menu-card" data-settings-section="'+id+'"><span class="settings-menu-icon">'+icon+'</span><span class="settings-menu-copy"><b>'+esc(title)+'</b><span>'+esc(desc)+'</span></span><span class="state-chip '+(on?'on':'')+'">'+esc(status)+'</span><span class="settings-menu-arrow">›</span></button>'
 }
@@ -2130,7 +2164,7 @@ function bindBackups(){
  };
 }
 function viewAjustes(){
- const now=Date.now(),section=state.settingsSection||null,active=(state.data.invites||[]).find(i=>!i.revoked_at&&Number(i.uses)<Number(i.max_uses)&&new Date(i.expires_at).getTime()>now),rr=state.data.recurring||[],activeRules=rr.filter(r=>r.active);
+ const section=state.settingsSection||null,rr=state.data.recurring||[],activeRules=rr.filter(r=>r.active);
  const bioOn=lockApplies(),label=lockLabel(),np=state.data.notificationPrefs||{},permission=notificationPermission(),pushOn=!!(np.push_enabled&&(state.data.pushSubscriptions||[]).length&&permission==='granted'),standalone=isStandaloneApp(),supportsPush=pushSupported();
 
  const recurringPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Automatización</span><h2>Gastos e ingresos recurrentes</h2></div><button class="btn" id="new-recurring">+ Nuevo</button></div><div class="notice" style="margin:0 0 11px"><strong>'+activeRules.length+' reglas activas.</strong> '+rr.filter(r=>r.auto_post).length+' crean movimientos automáticamente al abrir o actualizar la app; el resto sirven como configuración/manual hasta que les asignéis cuenta y activéis el auto-registro.</div>'+(state.recurringRunError?'<div class="status err" style="margin:0 0 11px">No se pudo procesar un vencimiento automático: '+esc(state.recurringRunError)+'</div>':'')+'<div class="manage-list">'+(rr.length?rr.map(r=>'<div class="manage-row"><div class="manage-main"><strong>'+esc(r.name)+'</strong><span>'+esc((state.data.categories.find(c=>c.id===r.category_id)?.name||r.type)+' · '+recurringMeta(r))+'</span></div><div class="manage-side"><strong class="'+(r.type==='INGRESO'?'green':r.type==='INVERSION'?'purple':'')+'">'+money(r.amount)+'</strong><span class="state-chip '+(r.active?'on':'off')+'">'+(r.active?(r.auto_post?'AUTO':'ACTIVO'):'PAUSADO')+'</span><button class="mini" data-recurring="'+r.id+'">Editar</button></div></div>').join(''):'<div class="empty">No hay recurrentes configurados.</div>')+'</div></section>';
@@ -2139,8 +2173,8 @@ function viewAjustes(){
 
  const securityPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Privacidad del dispositivo</span><h2>Seguridad</h2></div><span class="state-chip '+(bioOn?'on':'off')+'">'+(bioOn?'PROTEGIDA':'OPCIONAL')+'</span></div><div class="security-card"><div class="security-head"><div><b>'+(bioOn?'Bloqueo con '+esc(label)+' activado':'Bloquea Finanzas con '+esc(label))+'</b><p>'+(bioOn?'Tras 30 segundos fuera de la app, volverá a pedir '+esc(label)+'. La sesión de Supabase permanece guardada.':'La protección es local a este dispositivo. No se guarda tu rostro ni ningún dato biométrico; iOS realiza la verificación.')+'</p></div></div><div class="invite-actions">'+(bioOn?'<button class="btn" id="lock-now">Bloquear ahora</button><button class="btn" id="disable-device-lock">Desactivar</button>':'<button class="btn" id="enable-device-lock">Activar '+esc(label)+'</button>')+'</div></div><div class="invite-actions"><button class="btn" id="change-password">Cambiar contraseña</button></div></section>';
 
- const inviteBlock=state.member?.role==='OWNER'?'<div style="margin-top:14px"><div class="panel-head"><div><span class="sub">Compartir hogar</span><h2>Invitaciones</h2></div></div>'+(active?'<p style="color:#8fa2b9;font-size:12px">Hay un código pendiente de uso y caduca el '+new Date(active.expires_at).toLocaleDateString('es-ES')+'.</p><div class="join-code">'+esc(active.code)+'</div><div class="invite-actions"><button class="btn" id="copy-invite">Copiar enlace</button><button class="btn" id="new-invite">Generar otro código</button></div>':'<p style="color:#8fa2b9;font-size:12px">No hay una invitación activa.</p><button class="btn" id="new-invite">Generar código</button>')+'</div>':'';
- const familyPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Familia</span><h2>Miembros del hogar</h2></div><span class="state-chip on">'+state.data.members.length+' MIEMBROS</span></div>'+state.data.members.map(m=>'<div class="item"><div><strong>'+esc(m.display_name||'Miembro')+'</strong><br><span>'+esc(m.role)+'</span></div><span>'+new Date(m.joined_at).toLocaleDateString('es-ES')+'</span></div>').join('')+inviteBlock+'</section>';
+ const inviteBlock=familyInvitationsPanel();
+ const familyPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Familia</span><h2>Miembros del hogar</h2></div><span class="state-chip on">'+state.data.members.length+' MIEMBROS</span></div>'+state.data.members.map(m=>'<div class="item"><div><strong>'+esc(m.display_name||'Miembro')+'</strong><br><span>'+esc(familyRoleLabel(m.role))+(m.user_id===state.user.id?' · Tú':'')+'</span></div><span>'+new Date(m.joined_at).toLocaleDateString('es-ES')+'</span></div>').join('')+'<div class="notice">Todos los miembros comparten los gastos, el patrimonio, las tareas y la compra. El propietario también administra las invitaciones, el cierre de meses y la restauración de copias.</div>'+inviteBlock+'</section>';
 
  const appPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Aplicación</span><h2>Estado y sesión</h2></div><span class="state-chip on">v'+APP_BUILD+'</span></div><div class="settings-list"><div class="setting"><b>Sesión persistente</b><span>La app conserva y renueva la sesión. Un fallo de red ya no fuerza a introducir la contraseña otra vez.</span></div><div class="setting"><b>Privacidad local</b><span>'+esc(label)+' puede bloquear la interfaz sin cerrar la sesión.</span></div><div class="setting"><b>Patrimonio editable</b><span>Saldos y valoraciones se guardan con fecha para conservar histórico.</span></div><div class="setting"><b>Actualizaciones</b><span>Versión '+APP_BUILD+' · la app comprueba nuevas versiones automáticamente.</span><div class="invite-actions"><button class="btn" id="check-update">Buscar actualización</button><button class="btn" id="force-refresh">Recargar app</button></div></div><div class="setting"><b>Primer acceso</b><span>Recorre la bienvenida de una familia nueva con datos de ejemplo.</span><button class="btn" id="preview-onboarding">Ver bienvenida</button></div><div class="setting"><b>Infraestructura</b><span>Supabase con RLS y auditoría · GitHub Pages.</span></div></div><button class="btn" id="logout" style="margin-top:12px">Cerrar sesión</button></section>';
 
@@ -2201,7 +2235,8 @@ function viewAjustes(){
    const lockNow=document.getElementById('lock-now');if(lockNow)lockNow.onclick=lockDeviceNow;
  }
  if(section==='familia'){
-   const copy=document.getElementById('copy-invite');if(copy&&active)copy.onclick=()=>copyInviteLink(active.code);
+   document.querySelectorAll('[data-copy-family-invite]').forEach(b=>b.onclick=()=>{const i=(state.data.invites||[]).find(i=>i.id===b.dataset.copyFamilyInvite);if(i&&invitationStatus(i)==='Activa')copyInviteLink(i.code)});
+   document.querySelectorAll('[data-cancel-family-invite]').forEach(b=>b.onclick=()=>manageFamilyInvitation('cancel',b.dataset.cancelFamilyInvite));
    const ni=document.getElementById('new-invite');if(ni)ni.onclick=generateInvite;
  }
  if(section==='seguridad'){const cp=document.getElementById('change-password');if(cp)cp.onclick=openPasswordChange}

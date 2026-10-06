@@ -203,3 +203,31 @@ Sin nuevas advertencias del asesor de seguridad. Siguen pendientes la
 y la [ubicación de pg_net](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public).
 Las 18 RPC existentes con autoridad elevada mantienen sus comprobaciones de
 miembro/propietario; los nuevos triggers usan los permisos del usuario.
+
+## Primer acceso de familias (20261006.16)
+
+Crear cuenta admite una invitación opcional. Tras confirmar el correo, una cuenta
+sin hogar puede crear el suyo o entrar con un código. La configuración pide nombre
+del hogar y del miembro; después permite crear una primera cuenta corriente en EUR,
+con saldo y fecha, o dejar las cuentas para más adelante. Los hogares iniciales
+usan Europe/Madrid. La bienvenida ofrece preparar y copiar una invitación o entrar
+sin invitar; las invitaciones siguen disponibles en Ajustes → Familia.
+
+La RPC `initialize_household` conserva SECURITY INVOKER y llama a las operaciones
+existentes de creación autorizada de hogar y cuenta. Toda la configuración se guarda
+en una transacción. Un bloqueo por usuario serializa reintentos; si ya pertenece a
+un hogar, devuelve su membresía sin crear otro ni cambiar sus datos. El saldo genera
+una referencia patrimonial, nunca un movimiento de ingreso. Los usuarios existentes
+siguen entrando directamente. No añade soporte de cambio entre varios hogares.
+
+Validación: 73 pruebas Node; `supabase/tests/family_onboarding.sql` usa tres usuarios
+sintéticos con rol autenticado y ROLLBACK. Comprueba creación con/sin cuenta, saldo,
+validaciones, reintentos, aislamiento de lectura/escritura e invitación. El flujo de
+correo de confirmación con direcciones externas y la entrega SMTP requieren una
+comprobación aparte antes de abrir el registro a muchas familias.
+
+La interacción se comprobó además con el DOM real de las pantallas y API simulada:
+alta sin código, cuenta opcional, invitación y recuperación después de un fallo de
+carga. La revisión visual en navegador queda pendiente: el entorno impidió iniciar
+Chrome por una restricción de sockets. Estas comprobaciones no sustituyen una
+prueba completa del correo y los dispositivos reales.

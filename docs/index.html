@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261006.16">
+<link rel="manifest" href="./manifest.webmanifest?v=20261006.17">
 <title>Finanzas Familiares</title>
 <style>
 :root{--bg:#07101d;--panel:#0d1727;--panel2:#101d31;--line:rgba(255,255,255,.085);--text:#eef4ff;--muted:#8ea2ba;--purple:#806cff;--green:#46d5ad;--red:#ff7d8a;--blue:#67bdff;--orange:#f1a06d;--sidebar:232px}
@@ -30,14 +30,15 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto">F</div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20261006.16"></script>
-<script src="./shopping.js?v=20261006.16"></script>
-<script src="./onboarding.js?v=20261006.16"></script>
-<script src="./entry-drafts.js?v=20261006.16"></script>
-<script src="./backups.js?v=20261006.16"></script>
-<script src="./this-month.js?v=20261006.16"></script>
-<script src="./monthly-reports.js?v=20261006.16"></script>
-<script src="./transaction-documents.js?v=20261006.16"></script>
+<script src="./smart-rules.js?v=20261006.17"></script>
+<script src="./shopping.js?v=20261006.17"></script>
+<script src="./onboarding.js?v=20261006.17"></script>
+<script src="./account-access.js?v=20261006.17"></script>
+<script src="./entry-drafts.js?v=20261006.17"></script>
+<script src="./backups.js?v=20261006.17"></script>
+<script src="./this-month.js?v=20261006.17"></script>
+<script src="./monthly-reports.js?v=20261006.17"></script>
+<script src="./transaction-documents.js?v=20261006.17"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -46,7 +47,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261006.16';
+const APP_BUILD='20261006.17';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -62,7 +63,7 @@ const saveSession=s=>localStorage.setItem(STORE,JSON.stringify(s));
 const clearSession=()=>localStorage.removeItem(STORE);
 function sessionCancelled(){const e=new Error('La sesión ha cambiado o la app está bloqueada.');e.name='AbortError';e.sessionCancelled=true;return e}
 function assertSessionEpoch(epoch){if(epoch!==sessionEpoch)throw sessionCancelled()}
-function privateAccess(){return !!(getSession()&&state.user&&(!lockApplies()||state.deviceUnlocked))}
+function privateAccess(){return !!(getSession()&&state.user&&!getSession()?.passwordRecovery&&(!lockApplies()||state.deviceUnlocked))}
 function assertPrivateAccess(){if(!privateAccess())throw sessionCancelled()}
 function clearPrivateView(){document.querySelectorAll('.modal-back,.toast').forEach(x=>x.remove());root.innerHTML=''}
 function resetPrivateState(user=null){
@@ -74,6 +75,7 @@ function resetPrivateState(user=null){
  try{navigator.clearAppBadge?.().catch(()=>{})}catch(e){}
 }
 function guardPrivateView(){
+ if(getSession()?.passwordRecovery){renderPasswordReset();return false}
  if(!getSession()||!state.user){resetPrivateState();renderLogin();return false}
  if(lockApplies()&&!state.deviceUnlocked){renderDeviceLock();return false}
  return true;
@@ -212,11 +214,11 @@ function consumeAuthRedirect(){
  const access=p.get('access_token'),refresh=p.get('refresh_token');
  if(access&&refresh){
    const expiresIn=Number(p.get('expires_in')||3600);
-   saveSession({access_token:access,refresh_token:refresh,token_type:p.get('token_type')||'bearer',expires_in:expiresIn,expires_at:Math.floor(Date.now()/1000)+expiresIn});
+   resetPrivateState();saveSession({passwordRecovery:p.get('type')==='recovery',access_token:access,refresh_token:refresh,token_type:p.get('token_type')||'bearer',expires_in:expiresIn,expires_at:Math.floor(Date.now()/1000)+expiresIn});
    history.replaceState(null,'',location.pathname+location.search);
    return {restored:true,error:null};
  }
- return {restored:false,error:error?decodeURIComponent(error.replace(/\+/g,' ')):null};
+ return {restored:false,error:error||null};
 }
 async function request(path,opt={}){
  const epoch=sessionEpoch,controller=new AbortController();pendingRequests.add(controller);
@@ -241,7 +243,7 @@ async function refreshSession(s){
    catch(e){assertSessionEpoch(epoch);const current=getSession();if(current&&current.refresh_token!==s.refresh_token)return current;throw e}
    assertSessionEpoch(epoch);const current=getSession();if(!current)throw sessionCancelled();
    if(current.refresh_token!==s.refresh_token)return current;
-   saveSession(d);return d;
+   if(s.passwordRecovery)d.passwordRecovery=true;saveSession(d);return d;
  })();
  refreshInFlight=flight;
  try{return await flight}finally{if(refreshInFlight===flight)refreshInFlight=null}
@@ -977,10 +979,12 @@ function renderLogin(msg,initialMode){
  document.querySelectorAll('.modal-back,.toast').forEach(x=>x.remove());
  const pending=getPendingJoin()||{},mode=initialMode||(pending.code?'signup':'login');
  root.innerHTML='<div class="login"><main class="login-card"><div class="logo">F</div><h1>Finanzas Familiares</h1><p>Acceso privado al hogar compartido.</p><div class="auth-tabs"><button id="tab-login">Entrar</button><button id="tab-signup">Crear cuenta</button></div>'+
- '<div id="login-pane"><label class="field">Email<input id="email" type="email" autocomplete="email" value="'+esc(localStorage.getItem(LAST_EMAIL)||'')+'"></label><label class="field">Contraseña<input id="password" type="password" autocomplete="current-password"></label><button class="primary" id="login">Entrar</button></div>'+
+ '<div id="login-pane"><label class="field">Email<input id="email" type="email" autocomplete="email" value="'+esc(localStorage.getItem(LAST_EMAIL)||'')+'"></label><label class="field">Contraseña<input id="password" type="password" autocomplete="current-password"></label><button class="primary" id="login">Entrar</button><button class="mini" id="forgot-password" style="margin-top:12px">He olvidado mi contraseña</button><button class="mini" id="resend-confirmation" style="margin-top:12px">Reenviar confirmación</button></div>'+
  '<div id="signup-pane" hidden><label class="field">Nombre<input id="signup-name" autocomplete="name" value="'+esc(pending.displayName||'')+'" placeholder="Tu nombre"></label><label class="field">Email<input id="signup-email" type="email" autocomplete="email"></label><label class="field">Contraseña<input id="signup-password" type="password" autocomplete="new-password"></label><label class="field">Código de invitación (opcional)<input id="signup-code" autocomplete="off" autocapitalize="characters" value="'+esc(pending.code||'')+'" placeholder="XXXXXXXX"></label><button class="primary" id="signup">Crear cuenta</button></div>'+
  '<div class="status" id="status">'+esc(msg||'La sesión se guardará en este dispositivo.')+'</div></main></div>';
  const setMode=m=>{const isLogin=m==='login';document.getElementById('login-pane').hidden=!isLogin;document.getElementById('signup-pane').hidden=isLogin;document.getElementById('tab-login').classList.toggle('active',isLogin);document.getElementById('tab-signup').classList.toggle('active',!isLogin)};
+ document.getElementById('forgot-password').onclick=()=>renderEmailRequest('recovery',document.getElementById('email').value);
+ document.getElementById('resend-confirmation').onclick=()=>renderEmailRequest('signup',document.getElementById('email').value);
  document.getElementById('tab-login').onclick=()=>setMode('login');document.getElementById('tab-signup').onclick=()=>setMode('signup');setMode(mode);
  document.getElementById('login').onclick=async()=>{
    const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,st=document.getElementById('status');
@@ -998,11 +1002,57 @@ function renderLogin(msg,initialMode){
      const a=await signup(email,password,name,code);
      if(a.session){await finishAuthenticated(a.user);return}
      st.innerHTML='<strong>Cuenta creada.</strong><br>Revisa el correo de '+esc(email)+' y pulsa el enlace de confirmación. Después volverás a esta app para crear tu hogar o aceptar tu invitación.';
-     st.className='success-note';
+     st.className='success-note';st.innerHTML+='<br><button class="btn" id="signup-resend">Reenviar confirmación</button>';document.getElementById('signup-resend').onclick=()=>renderEmailRequest('signup',email);
    }catch(e){st.textContent=e.message;st.className='status err'}finally{button.disabled=false}
  };
 }
+function renderEmailRequest(kind,email=''){
+ if(state.user||state.data)resetPrivateState();
+ const recovery=kind==='recovery';
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><h1>'+(recovery?'Recuperar contraseña':'Confirmar tu email')+'</h1><p>'+(recovery?'Te enviaremos un enlace para elegir una nueva contraseña.':'Solicita de nuevo el enlace de confirmación de tu cuenta.')+'</p><form id="email-request-form"><label class="field">Email<input id="request-email" type="email" autocomplete="email" value="'+esc(email)+'" required></label><button class="primary" id="request-send" type="submit">Solicitar enlace</button></form><button class="btn onboarding-secondary" id="request-back">Volver a entrar</button><div class="status" id="request-status" role="status" aria-live="polite"></div></main></div>';
+ document.getElementById('request-back').onclick=()=>renderLogin();
+ document.getElementById('email-request-form').onsubmit=async e=>{
+  e.preventDefault();const status=document.getElementById('request-status'),button=document.getElementById('request-send');if(button.disabled)return;
+  let address;try{address=FamilyAccess.email(document.getElementById('request-email').value)}catch(err){status.textContent=err.message;return}
+  const url=new URL(location.origin+location.pathname);if(!recovery&&getPendingJoin()?.code)url.searchParams.set('invite',getPendingJoin().code);
+  button.disabled=true;status.textContent='Solicitando enlace…';
+  try{await request('/auth/v1/'+(recovery?'recover':'resend')+'?redirect_to='+encodeURIComponent(url.toString()),{method:'POST',body:JSON.stringify(recovery?{email:address}:{email:address,type:'signup'})});status.className='success-note';status.textContent='Si la cuenta permite este envío, recibirás el enlace en tu correo. Revisa también Spam. Si no llega, espera unos minutos antes de reintentar.';button.textContent='Solicitud recibida'}
+  catch(err){if(err.sessionCancelled)return;button.disabled=false;status.className='status err';status.textContent=FamilyAccess.emailError(err)}
+ };
+}
+async function updateAccountPassword(password,currentPassword=null){
+ const epoch=sessionEpoch,session=getSession();if(!session||!state.user)throw sessionCancelled();
+ if(session.passwordRecovery){
+  const restored=await restore();assertSessionEpoch(epoch);if(!restored||restored.user.id!==state.user.id)throw sessionCancelled();
+  return request('/auth/v1/user',{method:'PUT',headers:{Authorization:'Bearer '+restored.session.access_token},body:JSON.stringify({password})});
+ }
+ assertPrivateAccess();if(!currentPassword)throw Error('Introduce tu contraseña actual.');
+ let fresh;try{fresh=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email:state.user.email,password:currentPassword})})}catch(err){if(err.sessionCancelled)throw err;throw Error('No se pudo verificar la contraseña actual. Revisa la contraseña y tu conexión.')}
+ const user=fresh.user||await currentUser(fresh.access_token);assertSessionEpoch(epoch);assertPrivateAccess();if(user.id!==state.user.id)throw sessionCancelled();
+ saveSession({...fresh,user});return authed('/auth/v1/user',{method:'PUT',body:JSON.stringify({password})});
+}
+function passwordFields(current=false){return (current?'<label class="field">Contraseña actual<input id="password-current" type="password" autocomplete="current-password" required></label>':'')+'<label class="field">Nueva contraseña<input id="password-new" type="password" autocomplete="new-password" minlength="8" required></label><label class="field">Repetir nueva contraseña<input id="password-repeat" type="password" autocomplete="new-password" minlength="8" required></label>'}
+function renderPasswordReset(msg=''){
+ if(!getSession()?.passwordRecovery)return renderLogin('Solicita un nuevo enlace para recuperar tu contraseña.');
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><h1>Elige una nueva contraseña</h1><p>Completa este paso antes de acceder a tu hogar.</p><form id="password-form">'+passwordFields()+'<button class="primary" id="password-save" type="submit">Guardar contraseña</button></form><button class="btn onboarding-secondary" id="password-cancel">Cancelar y volver a entrar</button><div class="status" id="password-status" role="status" aria-live="polite">'+esc(msg)+'</div></main></div>';
+ document.getElementById('password-cancel').onclick=()=>logoutDevice();bindPasswordForm(document.getElementById('password-form'),true);
+}
+function openPasswordChange(){
+ if(!guardPrivateView())return;
+ const back=document.createElement('div');back.className='modal-back';back.innerHTML='<div class="modal"><h2>Cambiar contraseña</h2><form id="password-form">'+passwordFields(true)+'<button class="save" id="password-save" type="submit">Guardar contraseña</button></form><button class="btn" id="password-cancel" style="margin-top:12px">Cancelar</button><div class="status" id="password-status" role="status" aria-live="polite"></div></div>';document.body.appendChild(back);
+ back.querySelector('#password-cancel').onclick=()=>back.remove();bindPasswordForm(back.querySelector('form'),false);back.querySelector('input').focus();
+}
+function bindPasswordForm(form,recovery){
+ form.onsubmit=async e=>{
+  e.preventDefault();const button=form.querySelector('#password-save'),status=form.parentElement.querySelector('#password-status');if(button.disabled)return;
+  let password;try{password=FamilyAccess.password(form.querySelector('#password-new').value,form.querySelector('#password-repeat').value)}catch(err){status.textContent=err.message;return}
+  const current=form.querySelector('#password-current')?.value;button.disabled=true;status.textContent='Guardando contraseña…';
+  try{await updateAccountPassword(password,current);form.querySelectorAll('input').forEach(x=>x.value='');logoutDevice('Contraseña actualizada. Entra con tu nueva contraseña.');}
+  catch(err){if(err.sessionCancelled)return;button.disabled=false;status.className='status err';status.textContent=(err.status===401||err.status===403)?'El enlace o la sesión ya no son válidos. Solicita otro enlace de recuperación.':'No se pudo confirmar el cambio. '+err.message+' Puedes reintentar o entrar con la nueva contraseña si el guardado llegó a completarse.'}
+ };
+}
 function renderSessionIssue(msg){
+ if(getSession()?.passwordRecovery)return renderPasswordReset(msg);
  if(!getSession())return renderLogin();
  if(lockApplies()&&!state.deviceUnlocked)return renderDeviceLock();
  const email=state.user?.email||localStorage.getItem(LAST_EMAIL)||'';
@@ -1028,16 +1078,17 @@ function renderJoin(msg,mode){
 }
 function renderHouseholdSetup(draft={},step=1){
  if(!guardPrivateView())return;
- const d={householdName:'',displayName:state.user?.user_metadata?.display_name||'',accountName:'',balance:'',balanceDate:todayISO(),skipAccount:false,...draft};
- root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><span class="onboarding-step">Paso '+step+' de 2</span><h1>'+(step===1?'Vamos a crear vuestro hogar':'Tu primera cuenta')+'</h1><p>'+(step===1?'Cada hogar tiene sus propios datos. Empezamos con lo esencial.':'Puedes indicar el saldo que tienes ahora. No se registrará como un ingreso.')+'</p><form id="setup-form">'+(step===1?'<label class="field">Nombre del hogar<input id="setup-household" maxlength="120" autocomplete="off" placeholder="Ej.: Nuestra familia" value="'+esc(d.householdName)+'" required></label><label class="field">Tu nombre<input id="setup-name" maxlength="120" autocomplete="name" value="'+esc(d.displayName)+'" required></label>':'<label class="checkline"><input id="setup-skip" type="checkbox" '+(d.skipAccount?'checked':'')+'>Configurar las cuentas más adelante</label><fieldset id="setup-account-fields" '+(d.skipAccount?'disabled':'')+'><label class="field">Nombre de la cuenta<input id="setup-account" maxlength="120" placeholder="Ej.: Cuenta del banco" value="'+esc(d.accountName)+'" required></label><label class="field">Saldo inicial (€)<input id="setup-balance" inputmode="decimal" placeholder="Ej.: 1250,50" value="'+esc(d.balance)+'" required></label><label class="field">Fecha de ese saldo<input id="setup-date" type="date" min="1900-01-01" max="'+todayISO()+'" value="'+esc(d.balanceDate)+'" required></label></fieldset><p class="onboarding-note">De momento, los hogares se configuran en euros y con horario de España. Podrás añadir otras cuentas desde Patrimonio.</p>')+'<button class="primary" id="setup-save" type="submit">'+(step===1?'Continuar':'Crear hogar')+'</button></form><button class="btn onboarding-secondary" id="setup-back">Volver</button><div class="status" id="setup-status" role="status" aria-live="polite"></div></main></div>';
+ const d={householdName:'',displayName:state.user?.user_metadata?.display_name||'',accountName:'',balance:'',balanceDate:todayISO(),skipAccount:false,...draft};state.onboardingPreview=!!d.preview;
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><span class="onboarding-step">'+(d.preview?'Vista de ejemplo · ':'')+'Paso '+step+' de 2</span><h1>'+(step===1?'Vamos a crear vuestro hogar':'Tu primera cuenta')+'</h1><p>'+(step===1?'Cada hogar tiene sus propios datos. Empezamos con lo esencial.':'Puedes indicar el saldo que tienes ahora. No se registrará como un ingreso.')+'</p><form id="setup-form">'+(step===1?'<label class="field">Nombre del hogar<input id="setup-household" maxlength="120" autocomplete="off" placeholder="Ej.: Nuestra familia" value="'+esc(d.householdName)+'" required></label><label class="field">Tu nombre<input id="setup-name" maxlength="120" autocomplete="name" value="'+esc(d.displayName)+'" required></label>':'<label class="checkline"><input id="setup-skip" type="checkbox" '+(d.skipAccount?'checked':'')+'>Configurar las cuentas más adelante</label><fieldset id="setup-account-fields" '+(d.skipAccount?'disabled':'')+'><label class="field">Nombre de la cuenta<input id="setup-account" maxlength="120" placeholder="Ej.: Cuenta del banco" value="'+esc(d.accountName)+'" required></label><label class="field">Saldo inicial (€)<input id="setup-balance" inputmode="decimal" placeholder="Ej.: 1250,50" value="'+esc(d.balance)+'" required></label><label class="field">Fecha de ese saldo<input id="setup-date" type="date" min="1900-01-01" max="'+todayISO()+'" value="'+esc(d.balanceDate)+'" required></label></fieldset><p class="onboarding-note">De momento, los hogares se configuran en euros y con horario de España. Podrás añadir otras cuentas desde Patrimonio.</p>')+'<button class="primary" id="setup-save" type="submit">'+(step===1?'Continuar':'Crear hogar')+'</button></form><button class="btn onboarding-secondary" id="setup-back">Volver</button><div class="status" id="setup-status" role="status" aria-live="polite"></div></main></div>';
  const get=id=>document.getElementById('setup-'+id),form=get('form');let busy=false;
  const capture=()=>step===1?{...d,householdName:get('household').value.trim(),displayName:get('name').value.trim()}:{...d,accountName:get('account').value.trim(),balance:get('balance').value,balanceDate:get('date').value,skipAccount:get('skip').checked};
- get('back').onclick=()=>{if(busy)return;step===1?renderJoin():renderHouseholdSetup(capture(),1)};
+ get('back').onclick=()=>{if(busy)return;step===1?(d.preview?(state.onboardingPreview=false,viewAjustes()):renderJoin()):renderHouseholdSetup(capture(),1)};
  if(step===2)get('skip').onchange=()=>{get('account-fields').disabled=get('skip').checked};
  form.onsubmit=async e=>{
   e.preventDefault();if(busy)return;const next=capture(),status=get('status');
   if(step===1){if(!next.householdName||!next.displayName)return;renderHouseholdSetup(next,2);return}
   let payload;try{payload=FamilyOnboarding.payload(next,todayISO())}catch(err){status.textContent=err.message;status.className='status err';return}
+  if(next.preview){renderHouseholdWelcome({preview:true,name:next.householdName});return}
   busy=true;get('save').disabled=true;get('back').disabled=true;form.querySelectorAll('input').forEach(x=>x.disabled=true);get('save').textContent='Creando…';status.textContent='Guardando el hogar y su configuración…';
   try{
    await rpc('initialize_household',payload);clearPendingJoin();const ok=await loadAll();if(!ok)throw new Error('No se pudo cargar el hogar. Puedes reintentar.');renderHouseholdWelcome();
@@ -1045,12 +1096,15 @@ function renderHouseholdSetup(draft={},step=1){
  };
  get(step===1?'household':'account').focus();
 }
-function renderHouseholdWelcome(){
+function renderHouseholdWelcome(options={}){
  if(!guardPrivateView())return;
- root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><h1>'+esc(state.household.name)+' ya está preparado</h1><p>Puedes empezar a registrar movimientos y organizar la compra. Si compartes el hogar, invita a tu pareja o a otro familiar.</p><button class="primary" id="welcome-invite">Preparar invitación</button><div id="welcome-link" class="onboarding-note" role="status" aria-live="polite"></div><button class="btn onboarding-secondary" id="welcome-done">Entrar en la app</button><p class="onboarding-note">También puedes invitar más adelante desde Ajustes → Familia.</p></main></div>';
- document.getElementById('welcome-done').onclick=()=>{location.hash='inicio';renderApp()};
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><h1>'+esc(options.preview?options.name:state.household.name)+' ya está preparado</h1><p>Puedes empezar a registrar movimientos y organizar la compra. Si compartes el hogar, invita a tu pareja o a otro familiar.</p><button class="primary" id="welcome-invite">Preparar invitación</button><div id="welcome-link" class="onboarding-note" role="status" aria-live="polite"></div><button class="btn onboarding-secondary" id="welcome-done">Entrar en la app</button><p class="onboarding-note">También puedes invitar más adelante desde Ajustes → Familia.</p></main></div>';
+ if(options.preview)document.getElementById('welcome-done').textContent='Volver a Ajustes';
+ if(options.preview)document.getElementById('welcome-link').textContent='Vista de ejemplo: no se ha creado ningún hogar ni cuenta.';
+ document.getElementById('welcome-done').onclick=()=>{if(options.preview){state.onboardingPreview=false;viewAjustes();return}location.hash='inicio';renderApp()};
  document.getElementById('welcome-invite').onclick=async()=>{
   const button=document.getElementById('welcome-invite'),status=document.getElementById('welcome-link');button.disabled=true;
+  if(options.preview){status.textContent='En el alta real, aquí se prepara un enlace para compartir el hogar. Esta vista no genera invitaciones.';button.textContent='Ejemplo de invitación';return}
   try{
    const rows=await rest('household_invites','household_id=eq.'+state.household.id+'&revoked_at=is.null&expires_at=gt.'+encodeURIComponent(new Date().toISOString())+'&select=code,uses,max_uses&order=created_at.desc&limit=10');
    const code=rows.find(x=>x.uses<x.max_uses)?.code||await createHouseholdInvite();
@@ -1132,7 +1186,7 @@ async function loadAll(silent=false){
  return true;
 }
 async function checkForSharedChanges(){
- if(!privateAccess()||state.syncBusy||state.backupBusy||document.querySelector('.modal-back')||!state.household||document.hidden)return;
+ if(!privateAccess()||state.onboardingPreview||state.syncBusy||state.backupBusy||document.querySelector('.modal-back')||!state.household||document.hidden)return;
  const epoch=sessionEpoch;
  state.syncBusy=true;
  try{
@@ -2083,12 +2137,12 @@ function viewAjustes(){
 
  const notificationPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Avisos familiares</span><h2>Notificaciones</h2></div><span class="state-chip '+(pushOn?'on':'off')+'">'+(pushOn?'ACTIVAS':'OPCIONAL')+'</span></div><p style="color:#879bb3;font-size:11px;line-height:1.5;margin:0">Recordatorios de tareas, recurrentes, objetivos, cierre mensual y revisiones de patrimonio. Cada usuario decide qué quiere recibir en su propio dispositivo.</p><div class="notification-toggle-grid">'+notificationToggle('tasks_enabled','Tareas','Vencimientos y pendientes',np.tasks_enabled!==false)+notificationToggle('recurring_enabled','Recurrentes','Pagos e ingresos próximos',np.recurring_enabled!==false)+notificationToggle('goals_enabled','Objetivos','Fechas de metas de ahorro e inversión',np.goals_enabled!==false)+notificationToggle('month_close_enabled','Cierre mensual','Aviso al propietario si el mes sigue abierto',np.month_close_enabled!==false)+notificationToggle('reconciliation_enabled','Patrimonio','Elementos sin conciliar durante 30 días',np.reconciliation_enabled!==false)+'</div><div class="invite-actions">'+(pushOn?'<button class="btn" id="test-notification">Probar notificación</button><button class="btn" id="disable-notifications">Desactivar en este dispositivo</button>':'<button class="btn" id="enable-notifications" '+(!supportsPush||permission==='denied'?'disabled':'')+'>Activar notificaciones del iPhone</button>')+'</div><div class="push-status">'+(!supportsPush?'Este navegador no ofrece Web Push.':permission==='denied'?'El permiso está bloqueado. Puedes rehabilitarlo desde Ajustes del iPhone → Notificaciones → Finanzas.':(/iPhone|iPad|iPod/i.test(navigator.userAgent)&&!standalone?'Para recibir avisos con la app cerrada, abre Finanzas desde el icono añadido a la pantalla de inicio.':pushOn?'El iPhone puede recibir avisos aunque Finanzas esté cerrada.':'La activación requiere un toque tuyo y iOS te pedirá permiso una sola vez.'))+'</div></section>';
 
- const securityPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Privacidad del dispositivo</span><h2>Seguridad</h2></div><span class="state-chip '+(bioOn?'on':'off')+'">'+(bioOn?'PROTEGIDA':'OPCIONAL')+'</span></div><div class="security-card"><div class="security-head"><div><b>'+(bioOn?'Bloqueo con '+esc(label)+' activado':'Bloquea Finanzas con '+esc(label))+'</b><p>'+(bioOn?'Tras 30 segundos fuera de la app, volverá a pedir '+esc(label)+'. La sesión de Supabase permanece guardada.':'La protección es local a este dispositivo. No se guarda tu rostro ni ningún dato biométrico; iOS realiza la verificación.')+'</p></div></div><div class="invite-actions">'+(bioOn?'<button class="btn" id="lock-now">Bloquear ahora</button><button class="btn" id="disable-device-lock">Desactivar</button>':'<button class="btn" id="enable-device-lock">Activar '+esc(label)+'</button>')+'</div></div></section>';
+ const securityPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Privacidad del dispositivo</span><h2>Seguridad</h2></div><span class="state-chip '+(bioOn?'on':'off')+'">'+(bioOn?'PROTEGIDA':'OPCIONAL')+'</span></div><div class="security-card"><div class="security-head"><div><b>'+(bioOn?'Bloqueo con '+esc(label)+' activado':'Bloquea Finanzas con '+esc(label))+'</b><p>'+(bioOn?'Tras 30 segundos fuera de la app, volverá a pedir '+esc(label)+'. La sesión de Supabase permanece guardada.':'La protección es local a este dispositivo. No se guarda tu rostro ni ningún dato biométrico; iOS realiza la verificación.')+'</p></div></div><div class="invite-actions">'+(bioOn?'<button class="btn" id="lock-now">Bloquear ahora</button><button class="btn" id="disable-device-lock">Desactivar</button>':'<button class="btn" id="enable-device-lock">Activar '+esc(label)+'</button>')+'</div></div><div class="invite-actions"><button class="btn" id="change-password">Cambiar contraseña</button></div></section>';
 
  const inviteBlock=state.member?.role==='OWNER'?'<div style="margin-top:14px"><div class="panel-head"><div><span class="sub">Compartir hogar</span><h2>Invitaciones</h2></div></div>'+(active?'<p style="color:#8fa2b9;font-size:12px">Hay un código pendiente de uso y caduca el '+new Date(active.expires_at).toLocaleDateString('es-ES')+'.</p><div class="join-code">'+esc(active.code)+'</div><div class="invite-actions"><button class="btn" id="copy-invite">Copiar enlace</button><button class="btn" id="new-invite">Generar otro código</button></div>':'<p style="color:#8fa2b9;font-size:12px">No hay una invitación activa.</p><button class="btn" id="new-invite">Generar código</button>')+'</div>':'';
  const familyPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Familia</span><h2>Miembros del hogar</h2></div><span class="state-chip on">'+state.data.members.length+' MIEMBROS</span></div>'+state.data.members.map(m=>'<div class="item"><div><strong>'+esc(m.display_name||'Miembro')+'</strong><br><span>'+esc(m.role)+'</span></div><span>'+new Date(m.joined_at).toLocaleDateString('es-ES')+'</span></div>').join('')+inviteBlock+'</section>';
 
- const appPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Aplicación</span><h2>Estado y sesión</h2></div><span class="state-chip on">v'+APP_BUILD+'</span></div><div class="settings-list"><div class="setting"><b>Sesión persistente</b><span>La app conserva y renueva la sesión. Un fallo de red ya no fuerza a introducir la contraseña otra vez.</span></div><div class="setting"><b>Privacidad local</b><span>'+esc(label)+' puede bloquear la interfaz sin cerrar la sesión.</span></div><div class="setting"><b>Patrimonio editable</b><span>Saldos y valoraciones se guardan con fecha para conservar histórico.</span></div><div class="setting"><b>Actualizaciones</b><span>Versión '+APP_BUILD+' · la app comprueba nuevas versiones automáticamente.</span><div class="invite-actions"><button class="btn" id="check-update">Buscar actualización</button><button class="btn" id="force-refresh">Recargar app</button></div></div><div class="setting"><b>Infraestructura</b><span>Supabase con RLS y auditoría · GitHub Pages.</span></div></div><button class="btn" id="logout" style="margin-top:12px">Cerrar sesión</button></section>';
+ const appPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Aplicación</span><h2>Estado y sesión</h2></div><span class="state-chip on">v'+APP_BUILD+'</span></div><div class="settings-list"><div class="setting"><b>Sesión persistente</b><span>La app conserva y renueva la sesión. Un fallo de red ya no fuerza a introducir la contraseña otra vez.</span></div><div class="setting"><b>Privacidad local</b><span>'+esc(label)+' puede bloquear la interfaz sin cerrar la sesión.</span></div><div class="setting"><b>Patrimonio editable</b><span>Saldos y valoraciones se guardan con fecha para conservar histórico.</span></div><div class="setting"><b>Actualizaciones</b><span>Versión '+APP_BUILD+' · la app comprueba nuevas versiones automáticamente.</span><div class="invite-actions"><button class="btn" id="check-update">Buscar actualización</button><button class="btn" id="force-refresh">Recargar app</button></div></div><div class="setting"><b>Primer acceso</b><span>Recorre la bienvenida de una familia nueva con datos de ejemplo.</span><button class="btn" id="preview-onboarding">Ver bienvenida</button></div><div class="setting"><b>Infraestructura</b><span>Supabase con RLS y auditoría · GitHub Pages.</span></div></div><button class="btn" id="logout" style="margin-top:12px">Cerrar sesión</button></section>';
 
  if(!section){
    const menu='<div class="settings-summary"><strong style="color:#dfe8f6">Configuración del hogar</strong><br>Hemos agrupado las opciones para que Ajustes sea más rápido de recorrer. Entra solo en la sección que quieras modificar.</div><section class="settings-menu">'+
@@ -2150,14 +2204,16 @@ function viewAjustes(){
    const copy=document.getElementById('copy-invite');if(copy&&active)copy.onclick=()=>copyInviteLink(active.code);
    const ni=document.getElementById('new-invite');if(ni)ni.onclick=generateInvite;
  }
+ if(section==='seguridad'){const cp=document.getElementById('change-password');if(cp)cp.onclick=openPasswordChange}
  if(section==='aplicacion'){
+   const preview=document.getElementById('preview-onboarding');if(preview)preview.onclick=()=>renderHouseholdSetup({preview:true,householdName:'Hogar de ejemplo',displayName:'Tu nombre',accountName:'Cuenta de ejemplo',balance:'1250'},1);
    const cu=document.getElementById('check-update');if(cu)cu.onclick=()=>checkAppUpdate(true);
    const fr=document.getElementById('force-refresh');if(fr)fr.onclick=forceAppRefresh;
    const lo=document.getElementById('logout');if(lo)lo.onclick=()=>logoutDevice();
  }
 }
 function renderApp(){if(!guardPrivateView()||!state.data||!state.household)return;startAutoSync();installBackgroundLock();const v=currentView();if(v==='compra')viewCompra();else if(v==='movimientos')viewMovimientos();else if(v==='tareas')viewTareas();else if(v==='objetivos')viewObjetivos();else if(v==='analisis')viewAnalisis();else if(v==='patrimonio')viewPatrimonio();else if(v==='ajustes')viewAjustes();else viewInicio()}
-window.addEventListener('hashchange',()=>{if(state.data)renderApp()});
+window.addEventListener('hashchange',()=>{if(getSession()?.passwordRecovery)renderPasswordReset();else if(state.data)renderApp()});
 (async()=>{
  registerNotificationWorker();
  installNotificationWorkerListener();
@@ -2169,6 +2225,7 @@ window.addEventListener('hashchange',()=>{if(state.data)renderApp()});
    const a=await restore();
    if(!a)return renderLogin(redirect.error?('No se pudo confirmar el acceso: '+redirect.error):undefined);
    state.user=a.user;
+   if(getSession()?.passwordRecovery){renderPasswordReset();return}
    if(lockApplies(a.user)&&!state.deviceUnlocked){renderDeviceLock();return}
    await finishAuthenticated(a.user);
  }catch(e){if(getSession())renderSessionIssue(e.message);else renderLogin('No se pudo cargar la app: '+e.message)}

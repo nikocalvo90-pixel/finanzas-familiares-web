@@ -155,3 +155,24 @@ test('wrong current password never issues a password update',async()=>{
 test('a late reauthentication cannot restore a logged out session',async()=>{
  const s=setup(),pending=deferred();s.ctx.fetch=()=>pending.promise;const result=s.run("updateAccountPassword('example-new','current')");s.run('logoutDevice()');pending.resolve(response({access_token:'late',refresh_token:'late-refresh',user:{id:'user'}}));await assert.rejects(result,e=>e.sessionCancelled===true);assert.equal(s.run('getSession()'),null);
 });
+test('family invitations show all live codes and hide closed codes',()=>{
+ const s=setup();s.run("state.member={role:'OWNER'};state.data.invites=Array.from({length:12},(_,i)=>({id:'i'+i,code:'LIVE'+i,uses:0,max_uses:1,expires_at:'2099-01-01'}));state.data.invites.push({id:'closed',code:'SECRET-CLOSED',revoked_at:'2026-01-01',created_at:'2026-01-01',uses:0,max_uses:1})");
+ const panel=s.run('familyInvitationsPanel()');assert.match(panel,/LIVE11/);assert.doesNotMatch(panel,/SECRET-CLOSED/);assert.match(panel,/Cancelada/);
+ s.run("state.member.role='MEMBER'");assert.doesNotMatch(s.run('familyInvitationsPanel()'),/LIVE|data-cancel-family-invite|new-invite/);
+ assert.equal(s.run("invitationStatus({uses:0,max_uses:1,expires_at:'2000-01-01'})"),'Caducada');
+ assert.equal(s.run("invitationStatus({uses:1,max_uses:1,expires_at:'2099-01-01'})"),'Utilizada');
+});
+test('invitation cancellation scopes its write and requires a confirmed result',async()=>{
+ const s=setup();s.run("state.member={role:'OWNER'};state.data.invites=[{id:'invite',code:'CODE',uses:0,max_uses:1,expires_at:'2099-01-01'}]");let request;
+ s.ctx.fetch=async(url,opt)=>{request={url,opt};return response([{id:'invite',revoked_at:'2026-01-01'}])};
+ await s.run("revokeFamilyInvitation('invite')");assert.match(request.url,/id=eq.invite&household_id=eq.household&revoked_at=is.null/);assert.equal(request.opt.method,'PATCH');assert.deepEqual(Object.keys(JSON.parse(request.opt.body)),['revoked_at']);assert.equal(s.run("state.data.invites[0].revoked_at"),'2026-01-01');
+ s.run("state.data.invites[0]={id:'invite',uses:0,max_uses:1,expires_at:'2099-01-01'}");s.ctx.fetch=async()=>response([]);
+ await assert.rejects(s.run("revokeFamilyInvitation('invite')"),/confirmar la cancelación/);assert.equal(s.run('state.data.invites[0].revoked_at'),undefined);
+ s.run("state.member.role='MEMBER'");let writes=0;s.ctx.fetch=async()=>{writes++;return response([])};
+ await assert.rejects(s.run("revokeFamilyInvitation('invite')"),/propietario/);assert.equal(writes,0);
+});
+test('late invitation cancellation cannot mutate a later session',async()=>{
+ const s=setup(),pending=deferred();s.run("state.member={role:'OWNER'};state.data.invites=[{id:'invite',uses:0,max_uses:1,expires_at:'2099-01-01'}]");s.ctx.fetch=()=>pending.promise;
+ const result=s.run("revokeFamilyInvitation('invite')");s.run("logoutDevice();state.data={invites:[{id:'invite',code:'NEW'}]}");pending.resolve(response([{id:'invite',revoked_at:'2026-01-01'}]));
+ await assert.rejects(result,e=>e.sessionCancelled===true);assert.equal(s.run('state.data.invites[0].code'),'NEW');
+});

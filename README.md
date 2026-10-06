@@ -260,3 +260,21 @@ servicio de correo para direcciones externas, sus redirecciones y activar confir
 de email cuando la entrega esté preparada. La documentación oficial describe las
 [restricciones del SMTP predeterminado](https://supabase.com/docs/guides/auth/auth-smtp).
 La revisión visual en dispositivos reales sigue pendiente.
+
+## Invitaciones visibles y cancelables (20261006.18)
+
+Ajustes → Familia muestra Propietario/Miembro en español y señala la cuenta propia.
+Explica qué se comparte y qué operaciones administra el propietario. Todas las
+invitaciones vigentes se muestran con caducidad exacta, usos, copia del enlace y
+cancelación confirmada. Crear otro enlace conserva los anteriores. El historial
+muestra las últimas diez invitaciones cerradas sin sus códigos.
+
+La cancelación actualiza únicamente `revoked_at`, filtrando por ID y hogar, y exige
+una respuesta confirmada. Mantiene las políticas RLS existentes de propietario,
+sin migraciones ni ampliación de permisos. Una respuesta tardía no modifica otra
+sesión. Se bloquean pulsaciones repetidas mientras se crea o cancela una invitación.
+
+Validación: 83 pruebas Node. `supabase/tests/family_invitations.sql` comprueba con
+usuarios sintéticos y ROLLBACK: propietario propio, propietario externo, miembro,
+invisibilidad de códigos, rechazo del código cancelado y conservación del miembro
+ya incorporado. No se han cancelado invitaciones reales ni enviado mensajes.

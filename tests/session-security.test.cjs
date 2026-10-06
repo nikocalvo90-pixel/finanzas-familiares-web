@@ -133,3 +133,25 @@ test('a rejected obsolete refresh does not invalidate the current session',async
  pending.resolve(response({message:'Refresh token revoked'},400));
  assert.equal((await result).access_token,'current-token');assert.equal(s.run('getSession().access_token'),'current-token');
 });
+test('recovery sessions cannot fetch financial data or navigate into the household',async()=>{
+ const s=setup();s.run('saveSession({...getSession(),passwordRecovery:true})');
+ assert.equal(s.run('privateAccess()'),false);
+ await assert.rejects(s.run("authed('/rest/v1/transactions')"),e=>e.sessionCancelled===true);
+ await assert.rejects(s.run('loadAll(true)'),e=>e.sessionCancelled===true);
+ s.run('renderApp()');assert.match(s.root.innerHTML,/Elige una nueva contraseña/);assert.doesNotMatch(s.root.innerHTML,/private/);
+});
+test('token renewal keeps a recovery session restricted',async()=>{
+ const s=setup();s.run('saveSession({...getSession(),passwordRecovery:true})');s.ctx.fetch=async()=>response({access_token:'renewed',refresh_token:'new-refresh',user:{id:'user'}});
+ await s.run('refreshSession(getSession())');assert.equal(s.run('getSession().passwordRecovery'),true);assert.equal(s.run('privateAccess()'),false);
+});
+test('password change reauthenticates and uses the verified session for the write',async()=>{
+ const s=setup(),calls=[];s.ctx.fetch=async(url,opt)=>{calls.push({url,body:JSON.parse(opt.body||'{}'),authorization:opt.headers.Authorization});return url.includes('grant_type=password')?response({access_token:'verified',refresh_token:'verified-refresh',user:{id:'user'}}):response({id:'user'})};
+ await s.run("updateAccountPassword('example-new','example-current')");assert.equal(calls[0].body.password,'example-current');assert.equal(calls[1].authorization,'Bearer verified');assert.deepEqual(calls[1].body,{password:'example-new'});
+});
+test('wrong current password never issues a password update',async()=>{
+ const s=setup();let calls=0;s.ctx.fetch=async()=>{calls++;return response({message:'Invalid login credentials'},400)};
+ await assert.rejects(s.run("updateAccountPassword('example-new','wrong')"),/verificar/);assert.equal(calls,1);assert.equal(s.run('getSession().access_token'),'token');
+});
+test('a late reauthentication cannot restore a logged out session',async()=>{
+ const s=setup(),pending=deferred();s.ctx.fetch=()=>pending.promise;const result=s.run("updateAccountPassword('example-new','current')");s.run('logoutDevice()');pending.resolve(response({access_token:'late',refresh_token:'late-refresh',user:{id:'user'}}));await assert.rejects(result,e=>e.sessionCancelled===true);assert.equal(s.run('getSession()'),null);
+});

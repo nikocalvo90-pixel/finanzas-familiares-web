@@ -231,3 +231,32 @@ alta sin código, cuenta opcional, invitación y recuperación después de un fa
 carga. La revisión visual en navegador queda pendiente: el entorno impidió iniciar
 Chrome por una restricción de sockets. Estas comprobaciones no sustituyen una
 prueba completa del correo y los dispositivos reales.
+
+## Acceso y bienvenida de ejemplo (20261006.17)
+
+Entrar ofrece recuperación de contraseña y reenvío de confirmación. Las solicitudes
+usan mensajes neutrales y no revelan si una dirección tiene cuenta. Un enlace con
+`type=recovery` guarda una sesión restringida: el router y las peticiones privadas
+no permiten consultar finanzas antes del cambio de contraseña, incluso tras renovar
+el token. Guardar termina la sesión local y pide entrar con la contraseña nueva.
+Desde Ajustes → Seguridad se puede cambiar la contraseña, verificando primero la
+actual mediante una sesión nueva del mismo usuario. Los campos no se persisten.
+
+Ajustes → Aplicación → Ver bienvenida recorre las pantallas con datos de ejemplo.
+El recorrido no llama a las RPC de creación, no genera invitaciones ni modifica
+el hogar. El sondeo de fondo espera hasta que se vuelva a Ajustes.
+
+Validación: 80 pruebas Node, incluidas sesiones de recuperación, bloqueo de datos,
+renovación, contraseña actual incorrecta y respuesta de reautenticación tardía.
+Interacción DOM con API simulada verifica vista de ejemplo sin escrituras, solicitud
+de recuperación, reenvío conservando invitación y confirmación de nueva contraseña.
+No se han enviado correos de prueba ni modificado contraseñas de usuarios reales.
+
+La consulta pública de Auth realizada el 6/10 confirma `mailer_autoconfirm=true`
+y registro habilitado. Actualmente un alta válida puede iniciar sesión directamente,
+sin verificar el email. El conector disponible no permite consultar/configurar SMTP
+ni cambiar esa opción. Antes de abrir el acceso general se requiere verificar el
+servicio de correo para direcciones externas, sus redirecciones y activar confirmación
+de email cuando la entrega esté preparada. La documentación oficial describe las
+[restricciones del SMTP predeterminado](https://supabase.com/docs/guides/auth/auth-smtp).
+La revisión visual en dispositivos reales sigue pendiente.

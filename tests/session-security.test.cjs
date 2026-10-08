@@ -176,3 +176,34 @@ test('late invitation cancellation cannot mutate a later session',async()=>{
  const result=s.run("revokeFamilyInvitation('invite')");s.run("logoutDevice();state.data={invites:[{id:'invite',code:'NEW'}]}");pending.resolve(response([{id:'invite',revoked_at:'2026-01-01'}]));
  await assert.rejects(result,e=>e.sessionCancelled===true);assert.equal(s.run('state.data.invites[0].code'),'NEW');
 });
+
+function homeSetup(){
+ const s=setup();s.ctx.ThisMonth=require('../docs/this-month.js');
+ s.run("shell=html=>document.getElementById('root').innerHTML=html;bindCommon=()=>{};todayISO=()=> '2026-10-08';state.data={metrics:{income:0,expenses:0,invested:0,operating_savings:0},networth:{net_worth:0},tasks:[],shopping:[],goals:[],notifications:[],recurring:[],transactions:[],accounts:[],categories:[],members:[]}");
+ return s;
+}
+test('home shows complete pending counts while prioritizing urgent tasks and escaping family text',()=>{
+ const s=homeSetup();
+ s.run(`state.household.name='<img src=x>';state.data.tasks=[
+ {title:'Normal later',status:'PENDIENTE',due_date:'2026-10-20',priority:'NORMAL'},
+ {title:'Important',status:'PENDIENTE',priority:'IMPORTANTE'},
+ {title:'Due today',status:'PENDIENTE',due_date:'2026-10-08',priority:'NORMAL'},
+ {title:'<script>Overdue</script>',status:'PENDIENTE',due_date:'2026-10-01',priority:'NORMAL'},
+ {title:'Finished',status:'HECHA'}];state.data.shopping=[{name:'A'},{name:'B',purchased:false},{name:'C',purchased:true},{name:'D',archived:true}];viewInicio()`);
+ const h=s.root.innerHTML;
+ assert.match(h,/2 productos pendientes/);assert.match(h,/Ver las 4 tareas/);
+ assert.ok(h.indexOf('&lt;script&gt;Overdue')<h.indexOf('Due today'));
+ assert.ok(h.indexOf('Due today')<h.indexOf('<b>Important'));
+ assert.doesNotMatch(h,/Normal later|Finished|<script>Overdue|<img src=x>/);
+ assert.match(h,/&lt;img src=x&gt;/);
+});
+test('home handles an empty household and retains negative savings and processing failures',()=>{
+ const s=homeSetup();s.run('viewInicio()');
+ assert.match(s.root.innerHTML,/La lista está al día/);assert.match(s.root.innerHTML,/No hay tareas pendientes/);
+ assert.doesNotMatch(s.root.innerHTML,/Próximos pagos/);
+ s.run("state.data.metrics.operating_savings=-25;state.recurringRunError=true;viewInicio()");
+ assert.match(s.root.innerHTML,/home-total red/);
+ assert.match(s.root.innerHTML,/Algún recurrente automático no se ha podido procesar/);
+ assert.match(s.root.innerHTML,/<details class="home-financial-detail">/);
+ assert.match(s.root.innerHTML,/<details class="panel home-disclosure">/);
+});

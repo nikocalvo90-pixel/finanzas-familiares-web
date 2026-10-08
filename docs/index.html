@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#07101d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Finanzas">
+<meta name="apple-mobile-web-app-title" content="Casuo">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261006.18">
-<title>Finanzas Familiares</title>
+<link rel="manifest" href="./manifest.webmanifest?v=20261008.19">
+<title>Casuo</title>
 <style>
 :root{--bg:#07101d;--panel:#0d1727;--panel2:#101d31;--line:rgba(255,255,255,.085);--text:#eef4ff;--muted:#8ea2ba;--purple:#806cff;--green:#46d5ad;--red:#ff7d8a;--blue:#67bdff;--orange:#f1a06d;--sidebar:232px}
 *{box-sizing:border-box}html{background:var(--bg);overflow-x:hidden}body{margin:0;min-height:100vh;overflow-x:hidden;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 88% -8%,rgba(79,67,186,.35),transparent 29%),var(--bg);color:var(--text)}
@@ -29,16 +29,16 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 </style>
 </head>
 <body>
-<div id="root"><div class="loading"><div><div class="logo" style="margin:auto">F</div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20261006.18"></script>
-<script src="./shopping.js?v=20261006.18"></script>
-<script src="./onboarding.js?v=20261006.18"></script>
-<script src="./account-access.js?v=20261006.18"></script>
-<script src="./entry-drafts.js?v=20261006.18"></script>
-<script src="./backups.js?v=20261006.18"></script>
-<script src="./this-month.js?v=20261006.18"></script>
-<script src="./monthly-reports.js?v=20261006.18"></script>
-<script src="./transaction-documents.js?v=20261006.18"></script>
+<div id="root"><div class="loading"><div><div class="logo" style="margin:auto">C</div><p>Recuperando sesión…</p></div></div></div>
+<script src="./smart-rules.js?v=20261008.19"></script>
+<script src="./shopping.js?v=20261008.19"></script>
+<script src="./onboarding.js?v=20261008.19"></script>
+<script src="./account-access.js?v=20261008.19"></script>
+<script src="./entry-drafts.js?v=20261008.19"></script>
+<script src="./backups.js?v=20261008.19"></script>
+<script src="./this-month.js?v=20261008.19"></script>
+<script src="./monthly-reports.js?v=20261008.19"></script>
+<script src="./transaction-documents.js?v=20261008.19"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -47,7 +47,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261006.18';
+const APP_BUILD='20261008.19';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -150,7 +150,7 @@ async function enableDeviceLock(){
  const challenge=crypto.getRandomValues(new Uint8Array(32)),uid=crypto.getRandomValues(new Uint8Array(16));
  const cred=await navigator.credentials.create({publicKey:{
    challenge,
-   rp:{name:'Finanzas Familiares'},
+   rp:{name:'Casuo'},
    user:{id:uid,name:state.user.email||state.user.id,displayName:state.member?.display_name||state.user.email||'Usuario'},
    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
    timeout:60000,
@@ -978,7 +978,7 @@ function renderLogin(msg,initialMode){
  if(state.user||state.data||state.syncTimer)resetPrivateState();
  document.querySelectorAll('.modal-back,.toast').forEach(x=>x.remove());
  const pending=getPendingJoin()||{},mode=initialMode||(pending.code?'signup':'login');
- root.innerHTML='<div class="login"><main class="login-card"><div class="logo">F</div><h1>Finanzas Familiares</h1><p>Acceso privado al hogar compartido.</p><div class="auth-tabs"><button id="tab-login">Entrar</button><button id="tab-signup">Crear cuenta</button></div>'+
+ root.innerHTML='<div class="login"><main class="login-card"><div class="logo">C</div><h1>Casuo</h1><p>Tu casa, en orden.</p><div class="auth-tabs"><button id="tab-login">Entrar</button><button id="tab-signup">Crear cuenta</button></div>'+
  '<div id="login-pane"><label class="field">Email<input id="email" type="email" autocomplete="email" value="'+esc(localStorage.getItem(LAST_EMAIL)||'')+'"></label><label class="field">Contraseña<input id="password" type="password" autocomplete="current-password"></label><button class="primary" id="login">Entrar</button><button class="mini" id="forgot-password" style="margin-top:12px">He olvidado mi contraseña</button><button class="mini" id="resend-confirmation" style="margin-top:12px">Reenviar confirmación</button></div>'+
  '<div id="signup-pane" hidden><label class="field">Nombre<input id="signup-name" autocomplete="name" value="'+esc(pending.displayName||'')+'" placeholder="Tu nombre"></label><label class="field">Email<input id="signup-email" type="email" autocomplete="email"></label><label class="field">Contraseña<input id="signup-password" type="password" autocomplete="new-password"></label><label class="field">Código de invitación (opcional)<input id="signup-code" autocomplete="off" autocapitalize="characters" value="'+esc(pending.code||'')+'" placeholder="XXXXXXXX"></label><button class="primary" id="signup">Crear cuenta</button></div>'+
  '<div class="status" id="status">'+esc(msg||'La sesión se guardará en este dispositivo.')+'</div></main></div>';
@@ -1009,7 +1009,7 @@ function renderLogin(msg,initialMode){
 function renderEmailRequest(kind,email=''){
  if(state.user||state.data)resetPrivateState();
  const recovery=kind==='recovery';
- root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><h1>'+(recovery?'Recuperar contraseña':'Confirmar tu email')+'</h1><p>'+(recovery?'Te enviaremos un enlace para elegir una nueva contraseña.':'Solicita de nuevo el enlace de confirmación de tu cuenta.')+'</p><form id="email-request-form"><label class="field">Email<input id="request-email" type="email" autocomplete="email" value="'+esc(email)+'" required></label><button class="primary" id="request-send" type="submit">Solicitar enlace</button></form><button class="btn onboarding-secondary" id="request-back">Volver a entrar</button><div class="status" id="request-status" role="status" aria-live="polite"></div></main></div>';
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">C</div><h1>'+(recovery?'Recuperar contraseña':'Confirmar tu email')+'</h1><p>'+(recovery?'Te enviaremos un enlace para elegir una nueva contraseña.':'Solicita de nuevo el enlace de confirmación de tu cuenta.')+'</p><form id="email-request-form"><label class="field">Email<input id="request-email" type="email" autocomplete="email" value="'+esc(email)+'" required></label><button class="primary" id="request-send" type="submit">Solicitar enlace</button></form><button class="btn onboarding-secondary" id="request-back">Volver a entrar</button><div class="status" id="request-status" role="status" aria-live="polite"></div></main></div>';
  document.getElementById('request-back').onclick=()=>renderLogin();
  document.getElementById('email-request-form').onsubmit=async e=>{
   e.preventDefault();const status=document.getElementById('request-status'),button=document.getElementById('request-send');if(button.disabled)return;
@@ -1034,7 +1034,7 @@ async function updateAccountPassword(password,currentPassword=null){
 function passwordFields(current=false){return (current?'<label class="field">Contraseña actual<input id="password-current" type="password" autocomplete="current-password" required></label>':'')+'<label class="field">Nueva contraseña<input id="password-new" type="password" autocomplete="new-password" minlength="8" required></label><label class="field">Repetir nueva contraseña<input id="password-repeat" type="password" autocomplete="new-password" minlength="8" required></label>'}
 function renderPasswordReset(msg=''){
  if(!getSession()?.passwordRecovery)return renderLogin('Solicita un nuevo enlace para recuperar tu contraseña.');
- root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><h1>Elige una nueva contraseña</h1><p>Completa este paso antes de acceder a tu hogar.</p><form id="password-form">'+passwordFields()+'<button class="primary" id="password-save" type="submit">Guardar contraseña</button></form><button class="btn onboarding-secondary" id="password-cancel">Cancelar y volver a entrar</button><div class="status" id="password-status" role="status" aria-live="polite">'+esc(msg)+'</div></main></div>';
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">C</div><h1>Elige una nueva contraseña</h1><p>Completa este paso antes de acceder a tu hogar.</p><form id="password-form">'+passwordFields()+'<button class="primary" id="password-save" type="submit">Guardar contraseña</button></form><button class="btn onboarding-secondary" id="password-cancel">Cancelar y volver a entrar</button><div class="status" id="password-status" role="status" aria-live="polite">'+esc(msg)+'</div></main></div>';
  document.getElementById('password-cancel').onclick=()=>logoutDevice();bindPasswordForm(document.getElementById('password-form'),true);
 }
 function openPasswordChange(){
@@ -1056,7 +1056,7 @@ function renderSessionIssue(msg){
  if(!getSession())return renderLogin();
  if(lockApplies()&&!state.deviceUnlocked)return renderDeviceLock();
  const email=state.user?.email||localStorage.getItem(LAST_EMAIL)||'';
- root.innerHTML='<div class="login"><main class="login-card"><div class="logo">F</div><h1>Sesión guardada</h1><p>'+esc(email)+' sigue identificado en este dispositivo. No hace falta volver a escribir la contraseña.</p><button class="primary" id="session-retry">Reintentar</button><button class="btn" id="session-logout" style="width:100%;margin-top:9px">Cerrar sesión</button><div class="status err">'+esc(msg||'No se han podido cargar los datos temporalmente.')+'</div></main></div>';
+ root.innerHTML='<div class="login"><main class="login-card"><div class="logo">C</div><h1>Sesión guardada</h1><p>'+esc(email)+' sigue identificado en este dispositivo. No hace falta volver a escribir la contraseña.</p><button class="primary" id="session-retry">Reintentar</button><button class="btn" id="session-logout" style="width:100%;margin-top:9px">Cerrar sesión</button><div class="status err">'+esc(msg||'No se han podido cargar los datos temporalmente.')+'</div></main></div>';
  document.getElementById('session-retry').onclick=async()=>{try{const a=await restore();if(!a)return renderLogin('La sesión ha caducado.','login');state.user=a.user;await finishAuthenticated(a.user)}catch(e){renderSessionIssue(e.message)}};
  document.getElementById('session-logout').onclick=()=>logoutDevice();
 }
@@ -1064,7 +1064,7 @@ function renderJoin(msg,mode){
  if(!guardPrivateView())return;
  const pending=getPendingJoin()||{},name=pending.displayName||state.user?.user_metadata?.display_name||'';
  const joining=mode==='join'||!!pending.code;
- root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><h1>'+(joining?'Unirte a un hogar':'Tu hogar, a tu manera')+'</h1><p>'+(joining?'Introduce el código que te ha enviado un miembro de tu familia.':'Crea un espacio privado para vuestra economía y organización, o acepta una invitación.')+'</p>'+(joining?'<form id="join-form"><label class="field">Tu nombre<input id="join-name" maxlength="120" autocomplete="name" value="'+esc(name)+'" required></label><label class="field">Código de invitación<input id="join-code" autocapitalize="characters" autocomplete="off" value="'+esc(pending.code||'')+'" required></label><button class="primary" id="join" type="submit">Unirme al hogar</button></form><button class="btn onboarding-secondary" id="choose-create">Crear mi propio hogar</button>':'<button class="primary" id="choose-create">Crear mi hogar</button><button class="btn onboarding-secondary" id="choose-join">Tengo una invitación</button>')+'<div class="status '+(msg?'err':'')+'" id="join-status" role="status">'+esc(msg||'')+'</div><button class="mini" id="join-logout">Cerrar sesión</button></main></div>';
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">C</div><h1>'+(joining?'Unirte a un hogar':'Tu hogar, a tu manera')+'</h1><p>'+(joining?'Introduce el código que te ha enviado un miembro de tu familia.':'Crea un espacio privado para vuestra economía y organización, o acepta una invitación.')+'</p>'+(joining?'<form id="join-form"><label class="field">Tu nombre<input id="join-name" maxlength="120" autocomplete="name" value="'+esc(name)+'" required></label><label class="field">Código de invitación<input id="join-code" autocapitalize="characters" autocomplete="off" value="'+esc(pending.code||'')+'" required></label><button class="primary" id="join" type="submit">Unirme al hogar</button></form><button class="btn onboarding-secondary" id="choose-create">Crear mi propio hogar</button>':'<button class="primary" id="choose-create">Crear mi hogar</button><button class="btn onboarding-secondary" id="choose-join">Tengo una invitación</button>')+'<div class="status '+(msg?'err':'')+'" id="join-status" role="status">'+esc(msg||'')+'</div><button class="mini" id="join-logout">Cerrar sesión</button></main></div>';
  document.getElementById('choose-create').onclick=()=>renderHouseholdSetup({displayName:name});
  const chooseJoin=document.getElementById('choose-join');if(chooseJoin)chooseJoin.onclick=()=>renderJoin(null,'join');
  const form=document.getElementById('join-form');if(form)form.onsubmit=async e=>{
@@ -1079,7 +1079,7 @@ function renderJoin(msg,mode){
 function renderHouseholdSetup(draft={},step=1){
  if(!guardPrivateView())return;
  const d={householdName:'',displayName:state.user?.user_metadata?.display_name||'',accountName:'',balance:'',balanceDate:todayISO(),skipAccount:false,...draft};state.onboardingPreview=!!d.preview;
- root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><span class="onboarding-step">'+(d.preview?'Vista de ejemplo · ':'')+'Paso '+step+' de 2</span><h1>'+(step===1?'Vamos a crear vuestro hogar':'Tu primera cuenta')+'</h1><p>'+(step===1?'Cada hogar tiene sus propios datos. Empezamos con lo esencial.':'Puedes indicar el saldo que tienes ahora. No se registrará como un ingreso.')+'</p><form id="setup-form">'+(step===1?'<label class="field">Nombre del hogar<input id="setup-household" maxlength="120" autocomplete="off" placeholder="Ej.: Nuestra familia" value="'+esc(d.householdName)+'" required></label><label class="field">Tu nombre<input id="setup-name" maxlength="120" autocomplete="name" value="'+esc(d.displayName)+'" required></label>':'<label class="checkline"><input id="setup-skip" type="checkbox" '+(d.skipAccount?'checked':'')+'>Configurar las cuentas más adelante</label><fieldset id="setup-account-fields" '+(d.skipAccount?'disabled':'')+'><label class="field">Nombre de la cuenta<input id="setup-account" maxlength="120" placeholder="Ej.: Cuenta del banco" value="'+esc(d.accountName)+'" required></label><label class="field">Saldo inicial (€)<input id="setup-balance" inputmode="decimal" placeholder="Ej.: 1250,50" value="'+esc(d.balance)+'" required></label><label class="field">Fecha de ese saldo<input id="setup-date" type="date" min="1900-01-01" max="'+todayISO()+'" value="'+esc(d.balanceDate)+'" required></label></fieldset><p class="onboarding-note">De momento, los hogares se configuran en euros y con horario de España. Podrás añadir otras cuentas desde Patrimonio.</p>')+'<button class="primary" id="setup-save" type="submit">'+(step===1?'Continuar':'Crear hogar')+'</button></form><button class="btn onboarding-secondary" id="setup-back">Volver</button><div class="status" id="setup-status" role="status" aria-live="polite"></div></main></div>';
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">C</div><span class="onboarding-step">'+(d.preview?'Vista de ejemplo · ':'')+'Paso '+step+' de 2</span><h1>'+(step===1?'Vamos a crear vuestro hogar':'Tu primera cuenta')+'</h1><p>'+(step===1?'Cada hogar tiene sus propios datos. Empezamos con lo esencial.':'Puedes indicar el saldo que tienes ahora. No se registrará como un ingreso.')+'</p><form id="setup-form">'+(step===1?'<label class="field">Nombre del hogar<input id="setup-household" maxlength="120" autocomplete="off" placeholder="Ej.: Nuestra familia" value="'+esc(d.householdName)+'" required></label><label class="field">Tu nombre<input id="setup-name" maxlength="120" autocomplete="name" value="'+esc(d.displayName)+'" required></label>':'<label class="checkline"><input id="setup-skip" type="checkbox" '+(d.skipAccount?'checked':'')+'>Configurar las cuentas más adelante</label><fieldset id="setup-account-fields" '+(d.skipAccount?'disabled':'')+'><label class="field">Nombre de la cuenta<input id="setup-account" maxlength="120" placeholder="Ej.: Cuenta del banco" value="'+esc(d.accountName)+'" required></label><label class="field">Saldo inicial (€)<input id="setup-balance" inputmode="decimal" placeholder="Ej.: 1250,50" value="'+esc(d.balance)+'" required></label><label class="field">Fecha de ese saldo<input id="setup-date" type="date" min="1900-01-01" max="'+todayISO()+'" value="'+esc(d.balanceDate)+'" required></label></fieldset><p class="onboarding-note">De momento, los hogares se configuran en euros y con horario de España. Podrás añadir otras cuentas desde Patrimonio.</p>')+'<button class="primary" id="setup-save" type="submit">'+(step===1?'Continuar':'Crear hogar')+'</button></form><button class="btn onboarding-secondary" id="setup-back">Volver</button><div class="status" id="setup-status" role="status" aria-live="polite"></div></main></div>';
  const get=id=>document.getElementById('setup-'+id),form=get('form');let busy=false;
  const capture=()=>step===1?{...d,householdName:get('household').value.trim(),displayName:get('name').value.trim()}:{...d,accountName:get('account').value.trim(),balance:get('balance').value,balanceDate:get('date').value,skipAccount:get('skip').checked};
  get('back').onclick=()=>{if(busy)return;step===1?(d.preview?(state.onboardingPreview=false,viewAjustes()):renderJoin()):renderHouseholdSetup(capture(),1)};
@@ -1098,7 +1098,7 @@ function renderHouseholdSetup(draft={},step=1){
 }
 function renderHouseholdWelcome(options={}){
  if(!guardPrivateView())return;
- root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">F</div><h1>'+esc(options.preview?options.name:state.household.name)+' ya está preparado</h1><p>Puedes empezar a registrar movimientos y organizar la compra. Si compartes el hogar, invita a tu pareja o a otro familiar.</p><button class="primary" id="welcome-invite">Preparar invitación</button><div id="welcome-link" class="onboarding-note" role="status" aria-live="polite"></div><button class="btn onboarding-secondary" id="welcome-done">Entrar en la app</button><p class="onboarding-note">También puedes invitar más adelante desde Ajustes → Familia.</p></main></div>';
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo">C</div><h1>'+esc(options.preview?options.name:state.household.name)+' ya está preparado</h1><p>Puedes empezar a registrar movimientos y organizar la compra. Si compartes el hogar, invita a tu pareja o a otro familiar.</p><button class="primary" id="welcome-invite">Preparar invitación</button><div id="welcome-link" class="onboarding-note" role="status" aria-live="polite"></div><button class="btn onboarding-secondary" id="welcome-done">Entrar en la app</button><p class="onboarding-note">También puedes invitar más adelante desde Ajustes → Familia.</p></main></div>';
  if(options.preview)document.getElementById('welcome-done').textContent='Volver a Ajustes';
  if(options.preview)document.getElementById('welcome-link').textContent='Vista de ejemplo: no se ha creado ningún hogar ni cuenta.';
  document.getElementById('welcome-done').onclick=()=>{if(options.preview){state.onboardingPreview=false;viewAjustes();return}location.hash='inicio';renderApp()};
@@ -1132,7 +1132,7 @@ async function finishAuthenticated(user){
 }
 async function loadAll(silent=false){
  const epoch=sessionEpoch;assertPrivateAccess();
- if(!silent)root.innerHTML='<div class="loading"><div><div class="logo" style="margin:auto">F</div><p>Leyendo tus finanzas…</p></div></div>';
+ if(!silent)root.innerHTML='<div class="loading"><div><div class="logo" style="margin:auto">C</div><p>Leyendo tus finanzas…</p></div></div>';
  const members=await rest('household_members','user_id=eq.'+encodeURIComponent(state.user.id)+'&select=household_id,role,display_name&limit=1');
  assertSessionEpoch(epoch);assertPrivateAccess();
  if(!members?.length){state.member=null;state.household=null;state.data=null;return false}
@@ -1259,8 +1259,8 @@ function buildXlsx(sheets){
  files['xl/_rels/workbook.xml.rels']='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+rels.join('')+'</Relationships>';
  files['xl/styles.xml']='<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00 &quot;€&quot;;[Red](#,##0.00 &quot;€&quot;);-"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Aptos"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Aptos"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF14233A"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="1" borderId="0" xfId="0" applyFill="1" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
  const now=new Date().toISOString();
- files['docProps/core.xml']='<?xml version="1.0" encoding="UTF-8"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Finanzas Familiares</dc:title><dc:creator>Finanzas Familiares</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">'+now+'</dcterms:created></cp:coreProperties>';
- files['docProps/app.xml']='<?xml version="1.0" encoding="UTF-8"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Finanzas Familiares</Application></Properties>';
+ files['docProps/core.xml']='<?xml version="1.0" encoding="UTF-8"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Casuo</dc:title><dc:creator>Casuo</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">'+now+'</dcterms:created></cp:coreProperties>';
+ files['docProps/app.xml']='<?xml version="1.0" encoding="UTF-8"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Casuo</Application></Properties>';
  return new Blob([zipStore(files)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
 const H=vals=>vals.map(v=>({v,s:1})),C=v=>({v:Number(v||0),s:2});
@@ -1336,7 +1336,7 @@ async function exportWorkbook(){
    const sheets=await buildWorkbookSheets(),blob=buildXlsx(sheets),name='Finanzas_Familia_'+todayISO()+'.xlsx',file=new File([blob],name,{type:blob.type});
    const fallback=()=>{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2500)};
    if(navigator.canShare&&navigator.canShare({files:[file]})){
-     try{await navigator.share({files:[file],title:'Finanzas Familiares'})}
+     try{await navigator.share({files:[file],title:'Casuo'})}
      catch(e){if(e&&e.name==='AbortError')return;fallback()}
    }else fallback();
    toast('Excel acumulativo preparado');
@@ -1417,7 +1417,7 @@ async function enablePushNotifications(){
  const j=sub.toJSON(),keys=j.keys||{};
  await upsertPushSubscription({household_id:state.household.id,user_id:state.user.id,endpoint:j.endpoint,p256dh:keys.p256dh,auth_key:keys.auth,user_agent:navigator.userAgent,last_seen_at:new Date().toISOString(),disabled_at:null});
  await upsertNotificationPreference({household_id:state.household.id,user_id:state.user.id,push_enabled:true});
- try{await reg.showNotification('Finanzas Familiares',{body:'Avisos activados en este iPhone.',tag:'finanzas-setup'})}catch(e){}
+ try{await reg.showNotification('Casuo',{body:'Avisos activados en este iPhone.',tag:'finanzas-setup'})}catch(e){}
  await loadAll(true);renderApp();toast('Notificaciones activadas');
 }
 async function disablePushNotifications(silent=false){
@@ -1434,7 +1434,7 @@ async function disablePushNotifications(silent=false){
 async function testLocalNotification(){
  if(notificationPermission()!=='granted')throw new Error('Activa primero las notificaciones.');
  await registerNotificationWorker();const reg=await navigator.serviceWorker.ready;
- await reg.showNotification('Finanzas Familiares',{body:'La prueba ha funcionado. Recibirás avisos familiares aunque la app esté cerrada.',tag:'finanzas-test'});
+ await reg.showNotification('Casuo',{body:'La prueba ha funcionado. Recibirás avisos familiares aunque la app esté cerrada.',tag:'finanzas-test'});
 }
 function notificationMeta(kind){return ({TASK_DUE:['✓','Tarea'],RECURRING_DUE:['↻','Recurrente'],GOAL_DUE:['◎','Objetivo'],MONTH_CLOSE:['◫','Cierre'],RECONCILIATION:['≋','Patrimonio']})[kind]||['•','Aviso']}
 function notificationRow(n){
@@ -1467,8 +1467,8 @@ function currentView(){const x=(location.hash||'#inicio').slice(1);return['inici
 function shell(content){
  if(!guardPrivateView()||!state.data||!state.household)return;
  const initials=(state.member?.display_name||state.user.email||'F').slice(0,1).toUpperCase();
- root.innerHTML='<div class="app"><aside class="sidebar"><div class="brand"><div class="logo">F</div><div class="brand-copy"><b>Finanzas</b><small>'+esc(state.household.name)+'</small></div></div><nav class="nav">'+navButton('inicio','Inicio','⌂')+navButton('movimientos','Movimientos','⇄')+navButton('compra','Compra','▤')+navButton('tareas','Tareas','✓')+navButton('objetivos','Objetivos','◎')+navButton('analisis','Análisis','◔')+navButton('patrimonio','Patrimonio','▥')+navButton('ajustes','Ajustes','⚙')+'</nav><div class="side-foot"><div class="user"><div class="avatar">'+initials+'</div><div class="user-copy"><b>'+esc(state.member?.display_name||'Usuario')+'</b><small>'+esc(state.user.email||'')+'</small></div></div></div></aside>'+
- '<main class="main"><div class="mobile-top"><div class="brand"><div class="logo">F</div><div class="brand-copy"><b>Finanzas</b><small>'+esc(state.household.name)+'</small></div></div><button class="notice-bell notice-open" aria-label="Avisos">⌁'+(unreadNotifications()?'<span class="notice-count">'+Math.min(99,unreadNotifications())+'</span>':'')+'</button></div>'+content+'</main>'+
+ root.innerHTML='<div class="app"><aside class="sidebar"><div class="brand"><div class="logo">C</div><div class="brand-copy"><b>Casuo</b><small>'+esc(state.household.name)+'</small></div></div><nav class="nav">'+navButton('inicio','Inicio','⌂')+navButton('movimientos','Movimientos','⇄')+navButton('compra','Compra','▤')+navButton('tareas','Tareas','✓')+navButton('objetivos','Objetivos','◎')+navButton('analisis','Análisis','◔')+navButton('patrimonio','Patrimonio','▥')+navButton('ajustes','Ajustes','⚙')+'</nav><div class="side-foot"><div class="user"><div class="avatar">'+initials+'</div><div class="user-copy"><b>'+esc(state.member?.display_name||'Usuario')+'</b><small>'+esc(state.user.email||'')+'</small></div></div></div></aside>'+
+ '<main class="main"><div class="mobile-top"><div class="brand"><div class="logo">C</div><div class="brand-copy"><b>Casuo</b><small>'+esc(state.household.name)+'</small></div></div><button class="notice-bell notice-open" aria-label="Avisos">⌁'+(unreadNotifications()?'<span class="notice-count">'+Math.min(99,unreadNotifications())+'</span>':'')+'</button></div>'+content+'</main>'+
  '<nav class="bottom-nav">'+[['inicio','⌂','Inicio'],['movimientos','⇄','Movim.'],['compra','▤','Compra'],['tareas','✓','Tareas'],['analisis','◔','Análisis'],['patrimonio','▥','Patrim.'],['ajustes','⚙','Ajustes']].map(([id,ic,l])=>'<button data-view="'+id+'" class="'+(currentView()===id?'active':'')+'"><b>'+ic+'</b><span>'+l+'</span></button>').join('')+'</nav><button class="fab" title="'+(currentView()==='compra'?'Añadir producto':currentView()==='tareas'?'Nueva tarea':currentView()==='objetivos'?'Nuevo objetivo':'Registrar movimiento')+'">+</button></div>';
  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(b.dataset.view!=='ajustes')state.settingsSection=null;location.hash=b.dataset.view});
 }

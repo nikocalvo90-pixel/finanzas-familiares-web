@@ -251,7 +251,7 @@ test('finance links retain their routes and activate one grouped navigation item
  const mobile=s.root.innerHTML.match(/<nav class="bottom-nav"[^>]*>(.*?)<\/nav>/s)[1];
  assert.equal((mobile.match(/data-view=/g)||[]).length,5);
  assert.match(mobile,/data-view="mas" class="active"/);
- assert.match(s.root.innerHTML,/Opciones de tu cuenta/);assert.match(s.root.innerHTML,/Editar hogar/);
+ assert.match(s.root.innerHTML,/Opciones de tu cuenta/);assert.match(s.root.innerHTML,/Mi hogar/);
  assert.match(s.root.innerHTML,/&lt;Nico&gt;/);
  s.run("state.member.role='MEMBER';shell('CONTENT')");assert.doesNotMatch(s.root.innerHTML,/Editar hogar/);assert.match(s.root.innerHTML,/Mi hogar/);
 });
@@ -347,4 +347,31 @@ test('successful signup clears the password and offers confirmation instead of a
  assert.equal(s.run("document.getElementById('signup-pane').hidden"),true);
  assert.match(s.run("document.getElementById('status').innerHTML"),/Revisa el correo|signup-resend/);
  assert.equal(s.run('getPendingJoin().code'),'ABCDEFGH');
+});
+
+
+test('profile edits only the current member and requires a confirmed server response',async()=>{
+ const s=setup();s.run("state.member={role:'MEMBER',display_name:'Old'};state.data.members=[{user_id:'user',role:'MEMBER',display_name:'Old'},{user_id:'other',role:'OWNER',display_name:'Owner'}];state.data.transactions=[{person_label:'Old',concept:'Original'}]");
+ let calls=0,body,url;s.ctx.fetch=async(u,o)=>{calls++;url=u;body=JSON.parse(o.body);return response([{household_id:'household',user_id:'user',display_name:'New'}])};
+ await s.run("updateMyProfile('  New  ')");assert.equal(calls,1);assert.ok(url.endsWith('/rpc/update_my_household_profile'));
+ assert.deepEqual(body,{p_household:'household',p_display_name:'New'});
+ assert.equal(s.run('state.member.display_name'),'New');assert.equal(s.run('state.member.role'),'MEMBER');
+ assert.equal(s.run('state.data.members[1].display_name'),'Owner');assert.equal(s.run('state.data.transactions[0].person_label'),'Old');
+ await assert.rejects(s.run("updateMyProfile(' ')"),/1 y 120/);assert.equal(calls,1);
+ s.ctx.fetch=async()=>response([{household_id:'household',user_id:'other',display_name:'Unconfirmed'}]);
+ await assert.rejects(s.run("updateMyProfile('Unconfirmed')"),/confirmar/);assert.equal(s.run('state.member.display_name'),'New');
+});
+test('late profile saves cannot overwrite another session',async()=>{
+ const s=setup(),pending=deferred();s.run("state.member={role:'OWNER',display_name:'Old'};state.data.members=[]");s.ctx.fetch=()=>pending.promise;
+ const result=s.run("updateMyProfile('Late')");s.run("resetPrivateState();saveSession({access_token:'new',user:{id:'other'}});state.user={id:'other'};state.household={id:'new'};state.member={display_name:'Other'}");
+ pending.resolve(response([{household_id:'household',user_id:'user',display_name:'Late'}]));
+ await assert.rejects(result,e=>e.sessionCancelled===true);assert.equal(s.run('state.member.display_name'),'Other');
+});
+test('profile and household panels escape names and keep invitations owner-only',()=>{
+ const s=setup();s.run("state.member={role:'MEMBER',display_name:'<Guest>'};state.data.members=[{user_id:'user',role:'MEMBER',display_name:'<Guest>'},{user_id:'other',role:'OWNER',display_name:'Owner'}];state.data.invites=[{id:'i',code:'SECRET'}]");
+ const profile=s.run('profilePanel()'),members=s.run('householdMembersPanel()');
+ assert.match(profile,/&lt;Guest&gt;/);assert.match(profile,/maxlength="120"/);assert.match(profile,/test@example.com/);
+ assert.match(members,/&lt;Guest&gt;/);assert.match(members,/Editar perfil/);assert.match(members,/Propietario/);
+ assert.doesNotMatch(s.run('familyInvitationsPanel()'),/SECRET|Crear invitación/);
+ assert.match(s.run('accountMenu()'),/Mi perfil/);
 });

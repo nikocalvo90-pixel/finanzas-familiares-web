@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261008.26">
+<link rel="manifest" href="./manifest.webmanifest?v=20261008.27">
 <link rel="icon" href="./icons/casuo-house-c.ico">
 <link rel="icon" type="image/svg+xml" href="./icons/casuo-house-c.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/casuo-house-c-32.png">
@@ -44,19 +44,20 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 .logo,.welcome-demo-logo{background:#07101d;overflow:hidden;box-shadow:none}.logo img,.welcome-demo-logo img{display:block;width:100%;height:100%;object-fit:contain}
 
 .home-page .first-steps{border-color:#4e897744;background:linear-gradient(120deg,#142f2d66,#111e32);margin-bottom:22px}.first-steps .eyebrow{color:#88cab8;display:block;margin-bottom:7px}.first-steps-intro{color:var(--muted);font-size:12px;line-height:1.7;margin:0 0 14px}.first-steps ol{list-style:none;margin:0;padding:0}.first-step{display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line)}.first-step-mark{font-size:18px;color:#93a8c0;width:24px;flex:none}.first-step.done .first-step-mark{color:#7de1c2}.first-step>div{flex:1;min-width:0}.first-step b{font-size:13px}.first-step p{color:var(--muted);font-size:11px;line-height:1.5;margin:5px 0 0}.first-step-state{color:#93b6a9;font-size:11px}.first-steps-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding-top:14px;border-top:1px solid var(--line)}.first-steps-footer>span{font-size:11px;color:var(--muted)}.first-steps-link{width:100%;display:flex;align-items:center;justify-content:space-between;padding:20px;margin-bottom:20px;border:1px solid #4e897744;border-radius:16px;background:#122b2b;color:#d8f0e9;text-align:left}.first-steps-link b,.first-steps-link small{display:block}.first-steps-link b{font-size:14px}.first-steps-link small{font-size:12px;color:#9bbdb3;margin-top:5px}@media(max-width:560px){.first-step{flex-wrap:wrap}.first-step>div{flex-basis:calc(100% - 36px)}.first-step>button,.first-step-state{margin-left:36px}.first-steps-footer{align-items:flex-start;flex-direction:column}.first-steps .home-card-head{align-items:flex-start}.first-steps .home-card-head .mini{white-space:nowrap;font-size:10px}}
+.profile-panel form{max-width:540px;margin-top:20px}.profile-heading{display:flex;gap:14px;align-items:center}.profile-heading h2{margin:0 0 5px}.profile-heading p{margin:0;color:var(--muted);font-size:12px}.profile-email{overflow-wrap:anywhere;margin:16px 0;color:var(--text)}.household-member{display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}.household-member:last-child{border-bottom:0}.household-member-copy{flex:1;min-width:0}.household-member-copy strong,.household-member-copy small{display:block;overflow-wrap:anywhere}.household-member-copy small{margin-top:5px;color:var(--muted);font-size:11px}.household-member .mini{flex:none}@media(max-width:480px){.household-member{flex-wrap:wrap}.household-member-copy{min-width:140px}}
 </style>
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20261008.26"></script>
-<script src="./shopping.js?v=20261008.26"></script>
-<script src="./onboarding.js?v=20261008.26"></script>
-<script src="./account-access.js?v=20261008.26"></script>
-<script src="./entry-drafts.js?v=20261008.26"></script>
-<script src="./backups.js?v=20261008.26"></script>
-<script src="./this-month.js?v=20261008.26"></script>
-<script src="./monthly-reports.js?v=20261008.26"></script>
-<script src="./transaction-documents.js?v=20261008.26"></script>
+<script src="./smart-rules.js?v=20261008.27"></script>
+<script src="./shopping.js?v=20261008.27"></script>
+<script src="./onboarding.js?v=20261008.27"></script>
+<script src="./account-access.js?v=20261008.27"></script>
+<script src="./entry-drafts.js?v=20261008.27"></script>
+<script src="./backups.js?v=20261008.27"></script>
+<script src="./this-month.js?v=20261008.27"></script>
+<script src="./monthly-reports.js?v=20261008.27"></script>
+<script src="./transaction-documents.js?v=20261008.27"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -65,7 +66,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261008.26';
+const APP_BUILD='20261008.27';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -1511,7 +1512,7 @@ function navigationGroup(){const v=currentView();return ['finanzas','movimientos
 function goSettings(section){state.settingsSection=section||null;if(currentView()==='ajustes')renderApp();else location.hash='ajustes'}
 function accountMenu(){
  const name=state.member?.display_name||'Usuario',initial=(name||state.user.email||'C').slice(0,1).toUpperCase();
- return '<details class="account-menu"><summary aria-label="Opciones de tu cuenta"><span class="avatar" aria-hidden="true">'+esc(initial)+'</span><span class="user-copy"><b>'+esc(name)+'</b><small>'+esc(state.user.email||'')+'</small></span><span class="account-chevron" aria-hidden="true">⌃</span></summary><div class="account-popover"><div class="account-context"><b>'+esc(name)+'</b><small>'+esc(state.user.email||'')+'</small></div><button data-account-action="password">Cambiar contraseña</button><button data-account-action="family">'+(state.member?.role==='OWNER'?'Editar hogar':'Mi hogar')+'</button><button data-account-action="security">Seguridad del dispositivo</button><button class="account-signout" data-account-action="logout">Cerrar sesión</button></div></details>';
+ return '<details class="account-menu"><summary aria-label="Opciones de tu cuenta"><span class="avatar" aria-hidden="true">'+esc(initial)+'</span><span class="user-copy"><b>'+esc(name)+'</b><small>'+esc(state.user.email||'')+'</small></span><span class="account-chevron" aria-hidden="true">⌃</span></summary><div class="account-popover"><div class="account-context"><b>'+esc(name)+'</b><small>'+esc(state.user.email||'')+'</small></div><button data-account-action="profile">Mi perfil</button><button data-account-action="password">Cambiar contraseña</button><button data-account-action="family">Mi hogar</button><button data-account-action="security">Seguridad del dispositivo</button><button class="account-signout" data-account-action="logout">Cerrar sesión</button></div></details>';
 }
 function shell(content){
  if(!guardPrivateView()||!state.data||!state.household)return;
@@ -1522,14 +1523,33 @@ function shell(content){
  '<main class="main"><div class="mobile-top"><div class="brand"><div class="logo"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><div class="brand-copy"><b>Casuo</b><small>'+esc(state.household.name)+'</small></div></div><div class="mobile-account-tools"><button class="notice-bell notice-open" aria-label="Avisos">⌁'+(unreadNotifications()?'<span class="notice-count">'+Math.min(99,unreadNotifications())+'</span>':'')+'</button>'+accountMenu()+'</div></div>'+financeNav+content+'</main>'+
  '<nav class="bottom-nav" aria-label="Principal móvil">'+mainNav.map(([id,ic,l])=>'<button data-view="'+id+'" class="'+(navigationGroup()===id?'active':'')+'" '+(navigationGroup()===id?'aria-current="page"':'')+'><b aria-hidden="true">'+ic+'</b><span>'+l+'</span></button>').join('')+'</nav>'+(navigationGroup()==='mas'?'':'<button class="fab" title="'+(currentView()==='compra'?'Añadir producto':currentView()==='tareas'?'Nueva tarea':currentView()==='objetivos'?'Nuevo objetivo':'Registrar movimiento')+'">+</button>')+'</div>';
  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(b.dataset.view!=='ajustes')state.settingsSection=null;location.hash=b.dataset.view});
- document.querySelectorAll('[data-account-action]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.account-menu').forEach(d=>d.open=false);if(b.dataset.accountAction==='logout')logoutDevice();else if(b.dataset.accountAction==='password')openPasswordChange();else goSettings(b.dataset.accountAction==='family'?'familia':'seguridad')});
+ document.querySelectorAll('[data-account-action]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.account-menu').forEach(d=>d.open=false);if(b.dataset.accountAction==='logout')logoutDevice();else if(b.dataset.accountAction==='password')openPasswordChange();else goSettings(b.dataset.accountAction==='profile'?'perfil':b.dataset.accountAction==='family'?'familia':'seguridad')});
  document.querySelectorAll('.account-menu').forEach(d=>d.onkeydown=e=>{if(e.key==='Escape'){d.open=false;d.querySelector('summary').focus()}});
 }
 function viewMas(){
  const guide='<button class="first-steps-link" id="open-first-steps"><span><b>Primeros pasos</b><small>Configura lo esencial a tu ritmo</small></span><span aria-hidden="true">→</span></button>';
- const cards=[['familia','⌂','Hogar','Nombre, miembros e invitaciones'],['recurrentes','↻','Recurrentes','Pagos e ingresos periódicos'],['notificaciones','⌁','Notificaciones','Avisos y recordatorios'],['seguridad','⌾','Seguridad','Contraseña y protección del dispositivo'],['copias','⇩','Copias de seguridad','Descargar, comprobar y restaurar'],['reglas','✦','Reglas inteligentes','Categorías y aprendizaje'],['aplicacion','⚙','Aplicación','Versión y actualizaciones']];
+ const cards=[['perfil','◯','Mi perfil','Tu nombre y cuenta de acceso'],['familia','⌂','Hogar','Nombre, miembros e invitaciones'],['recurrentes','↻','Recurrentes','Pagos e ingresos periódicos'],['notificaciones','⌁','Notificaciones','Avisos y recordatorios'],['seguridad','⌾','Seguridad','Contraseña y protección del dispositivo'],['copias','⇩','Copias de seguridad','Descargar, comprobar y restaurar'],['reglas','✦','Reglas inteligentes','Categorías y aprendizaje'],['aplicacion','⚙','Aplicación','Versión y actualizaciones']];
  shell('<header class="page-head"><div><span class="eyebrow">Tu espacio</span><h1>Más</h1><p>Opciones del hogar y de la aplicación.</p></div></header>'+guide+'<section class="settings-menu">'+cards.map(([id,icon,title,desc])=>settingsMenuCard(id,icon,title,desc,'Abrir',false)).join('')+'</section>');
  bindCommon();document.getElementById('open-first-steps').onclick=()=>{state.firstStepsOpen=true;if(currentView()==='inicio')viewInicio();else location.hash='inicio'};document.querySelectorAll('[data-settings-section]').forEach(b=>b.onclick=()=>goSettings(b.dataset.settingsSection));
+}
+async function updateMyProfile(name){
+ assertPrivateAccess();
+ const clean=String(name||'').trim();if(!clean||clean.length>120)throw Error('Escribe un nombre de entre 1 y 120 caracteres.');
+ const epoch=sessionEpoch,household=state.household?.id,user=state.user.id;
+ if(!household||!state.member)throw Error('Entra en tu hogar para editar el perfil.');
+ const result=await rpc('update_my_household_profile',{p_household:household,p_display_name:clean});
+ assertSessionEpoch(epoch);assertPrivateAccess();if(state.household?.id!==household||state.user.id!==user)throw sessionCancelled();
+ if(!Array.isArray(result)||result.length!==1||result[0].household_id!==household||result[0].user_id!==user||result[0].display_name!==clean)throw Error('No se pudo confirmar el cambio de nombre. Actualiza los datos antes de reintentar.');
+ state.member.display_name=clean;
+ state.data.members=(state.data.members||[]).map(m=>m.user_id===user?{...m,display_name:clean}:m);
+ return clean;
+}
+function profilePanel(){
+ return '<section class="panel profile-panel"><div class="profile-heading"><span class="avatar" aria-hidden="true">'+esc((state.member?.display_name||'C').slice(0,1).toUpperCase())+'</span><div><h2>Tu nombre en Casuo</h2><p>'+esc(state.household.name)+' · '+esc(familyRoleLabel(state.member?.role))+'</p></div></div><form id="profile-form"><label class="field">Nombre<input id="profile-name" autocomplete="name" maxlength="120" required value="'+esc(state.member?.display_name||'')+'"></label><p class="bank-help">Así te verán los miembros de este hogar. Los movimientos anteriores conservan el nombre con el que se guardaron.</p><button class="save" id="profile-save" type="submit">Guardar nombre</button><div class="status" id="profile-status" role="status" aria-live="polite"></div></form></section><section class="panel"><h2>Cuenta de acceso</h2><div class="profile-email">'+esc(state.user.email||'Email no disponible')+'</div><p class="bank-help">Este es el correo con el que entras en Casuo.</p><button class="btn" id="profile-password">Cambiar contraseña</button></section>';
+}
+function householdMembersPanel(){
+ const members=state.data.members||[];
+ return '<section class="panel"><div class="panel-head"><div><span class="sub">Vuestro espacio compartido</span><h2>Miembros del hogar</h2></div><span class="state-chip on">'+members.length+' '+(members.length===1?'PERSONA':'PERSONAS')+'</span></div><div class="household-members">'+members.map(m=>'<div class="household-member"><span class="avatar" aria-hidden="true">'+esc((m.display_name||'M').slice(0,1).toUpperCase())+'</span><div class="household-member-copy"><strong>'+esc(m.display_name||'Miembro')+(m.user_id===state.user.id?' <span class="muted">· Tú</span>':'')+'</strong><small>'+esc(familyRoleLabel(m.role))+'</small></div>'+(m.user_id===state.user.id?'<button class="mini" id="edit-my-profile">Editar perfil</button>':'')+'</div>').join('')+'</div><p class="bank-help">Todos compartís las finanzas, la compra y las tareas. El propietario administra las invitaciones y las opciones del hogar.</p></section>';
 }
 async function renameHousehold(name){
  assertPrivateAccess();if(state.member?.role!=='OWNER')throw Error('Solo el propietario puede editar el hogar.');
@@ -2260,7 +2280,7 @@ function viewAjustes(){
 
  const inviteBlock=familyInvitationsPanel();
  const householdPanel='<section class="panel household-settings"><h2>Tu hogar</h2>'+(state.member?.role==='OWNER'?'<form id="household-form"><label class="field">Nombre del hogar<input id="household-name" maxlength="120" required value="'+esc(state.household.name)+'"></label><p class="bank-help">Este nombre lo verán todos los miembros del hogar.</p><button class="save" id="household-save" type="submit">Guardar nombre</button><div class="status" id="household-status" role="status" aria-live="polite"></div></form>':'<p>'+esc(state.household.name)+'</p><p class="bank-help">El propietario puede cambiar el nombre del hogar.</p>')+'</section>';
- const familyPanel=householdPanel+'<section class="panel"><div class="panel-head"><div><span class="sub">Familia</span><h2>Miembros del hogar</h2></div><span class="state-chip on">'+state.data.members.length+' MIEMBROS</span></div>'+state.data.members.map(m=>'<div class="item"><div><strong>'+esc(m.display_name||'Miembro')+'</strong><br><span>'+esc(familyRoleLabel(m.role))+(m.user_id===state.user.id?' · Tú':'')+'</span></div><span>'+new Date(m.joined_at).toLocaleDateString('es-ES')+'</span></div>').join('')+'<div class="notice">Todos los miembros comparten los gastos, el patrimonio, las tareas y la compra. El propietario también administra las invitaciones, el cierre de meses y la restauración de copias.</div>'+inviteBlock+'</section>';
+ const familyPanel=householdPanel+householdMembersPanel()+(state.member?.role==='OWNER'?'<section class="panel">'+inviteBlock+'</section>':inviteBlock);
 
  const appPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Aplicación</span><h2>Estado y sesión</h2></div><span class="state-chip on">v'+APP_BUILD+'</span></div><div class="settings-list"><div class="setting"><b>Sesión persistente</b><span>La app conserva y renueva la sesión. Un fallo de red ya no fuerza a introducir la contraseña otra vez.</span></div><div class="setting"><b>Privacidad local</b><span>'+esc(label)+' puede bloquear la interfaz sin cerrar la sesión.</span></div><div class="setting"><b>Patrimonio editable</b><span>Saldos y valoraciones se guardan con fecha para conservar histórico.</span></div><div class="setting"><b>Actualizaciones</b><span>Versión '+APP_BUILD+' · la app comprueba nuevas versiones automáticamente.</span><div class="invite-actions"><button class="btn" id="check-update">Buscar actualización</button><button class="btn" id="force-refresh">Recargar app</button></div></div><div class="setting"><b>Primer acceso</b><span>Recorre la bienvenida de una familia nueva con datos de ejemplo.</span><button class="btn" id="preview-onboarding">Ver bienvenida</button><button class="btn" id="preview-welcome">Ver presentación de Casuo</button></div><div class="setting"><b>Infraestructura</b><span>Supabase con RLS y auditoría · GitHub Pages.</span></div></div><button class="btn" id="logout" style="margin-top:12px">Cerrar sesión</button></section>';
 
@@ -2271,7 +2291,8 @@ function viewAjustes(){
      settingsMenuCard('notificaciones','⌁','Notificaciones','Avisos, recordatorios y Web Push',pushOn?'Activas':'Configurar',pushOn)+
      settingsMenuCard('copias','⇩','Copias de seguridad','Descargar y comprobar una copia del hogar','ZIP',true)+
      settingsMenuCard('seguridad','⌾','Seguridad',esc(label)+', privacidad y bloqueo',bioOn?'Protegida':'Opcional',bioOn)+
-     settingsMenuCard('familia','⌂','Familia','Miembros e invitaciones del hogar',state.data.members.length+' miembros',true)+
+     settingsMenuCard('perfil','◯','Mi perfil','Tu nombre y cuenta de acceso','Personal',true)+
+     settingsMenuCard('familia','⌂','Mi hogar','Miembros e invitaciones del hogar',state.data.members.length+' miembros',true)+
      settingsMenuCard('aplicacion','⚙','Aplicación','Sesión, versión y actualizaciones','v'+APP_BUILD,true)+
      '</section>';
    shell(head('Hogar y aplicación','Ajustes','Configuración organizada por áreas para encontrar cada opción rápidamente.')+menu);
@@ -2281,12 +2302,13 @@ function viewAjustes(){
  }
 
  const sections={
+   perfil:{ey:'Tu cuenta',title:'Mi perfil',desc:'Tus datos personales dentro de este hogar.',html:profilePanel()},
    copias:{ey:'Respaldo',title:'Copias de seguridad',desc:'Conserva una copia independiente de tus datos.',html:backupPanel()},
    reglas:{ey:'Aprendizaje',title:'Reglas inteligentes',desc:'Revisa y ajusta las categorías que recuerda el hogar.',html:categoryRulesPanel()},
    recurrentes:{ey:'Automatización',title:'Recurrentes',desc:'Configura movimientos periódicos y su automatización.',html:recurringPanel},
    notificaciones:{ey:'Avisos',title:'Notificaciones',desc:'Decide qué recordatorios recibe este dispositivo.',html:notificationPanel},
    seguridad:{ey:'Privacidad',title:'Seguridad',desc:'Protege el acceso a la información familiar.',html:securityPanel},
-   familia:{ey:'Hogar',title:'Familia',desc:'Gestiona miembros e invitaciones del hogar.',html:familyPanel},
+   familia:{ey:'Hogar',title:'Mi hogar',desc:'Gestiona miembros e invitaciones del hogar.',html:familyPanel},
    aplicacion:{ey:'Sistema',title:'Aplicación',desc:'Sesión, actualizaciones y estado técnico.',html:appPanel}
  };
  const cfg=sections[section]||sections.aplicacion;
@@ -2294,7 +2316,12 @@ function viewAjustes(){
  bindCommon();
  const goBack=()=>{state.settingsSection=null;location.hash='mas'};const hb=document.getElementById('settings-back');if(hb)hb.onclick=goBack;const mb=document.getElementById('settings-back-mobile');if(mb)mb.onclick=goBack;
 
+ if(section==='perfil'){
+  document.getElementById('profile-password').onclick=openPasswordChange;
+  document.getElementById('profile-form').onsubmit=async e=>{e.preventDefault();const button=document.getElementById('profile-save'),status=document.getElementById('profile-status');if(button.disabled)return;button.disabled=true;status.textContent='Guardando…';try{await updateMyProfile(document.getElementById('profile-name').value);viewAjustes();toast('Tu nombre se ha actualizado.')}catch(err){if(err.sessionCancelled)return;button.disabled=false;status.textContent=err.message;status.className='status err'}};
+ }
  if(section==='familia'){
+  const profile=document.getElementById('edit-my-profile');if(profile)profile.onclick=()=>goSettings('perfil');
   const form=document.getElementById('household-form');if(form)form.onsubmit=async e=>{e.preventDefault();const button=document.getElementById('household-save'),status=document.getElementById('household-status');if(button.disabled)return;button.disabled=true;status.textContent='Guardando…';try{await renameHousehold(document.getElementById('household-name').value);viewAjustes();toast('Nombre del hogar actualizado.')}catch(err){if(err.sessionCancelled)return;button.disabled=false;status.textContent=err.message;status.className='status err'}};
  }
  if(section==='copias'){bindBackups();bindRestoreBackup()}

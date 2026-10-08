@@ -10,7 +10,7 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {
 function setup(){
  const storage=new Map(),elements=new Map(),events={},intervals=new Set(),removed=[];
  const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',classList:{toggle(){}},textContent:''});return elements.get(id)};
- const ctx=vm.createContext({Intl,URL,URLSearchParams,Uint8Array,AbortController,AbortSignal,crypto:webcrypto,atob,
+ const ctx=vm.createContext({Intl,URL,URLSearchParams,Uint8Array,AbortController,AbortSignal,crypto:webcrypto,atob,FamilyOnboarding:require('../docs/onboarding.js'),
    localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
    document:{getElementById:element,querySelector:()=>null,querySelectorAll:()=>[{remove:()=>removed.push(true)}],addEventListener:(name,cb)=>events[name]=cb,hidden:false},
    window:{addEventListener:(name,cb)=>events[name]=cb},navigator:{userAgent:'Test'},
@@ -301,4 +301,22 @@ test('welcome preview keeps the authenticated household and returns to the app',
  assert.equal(s.run('state.data.secret'),'private');assert.doesNotMatch(s.root.innerHTML,/test@example.com|private/);
  s.run("document.getElementById('welcome-start').onclick()");assert.equal(s.root.innerHTML,'APP');
  assert.equal(s.run('getSession().access_token'),'token');
+});
+
+test('first steps respect household data, member permissions and scoped dismissal',()=>{
+ const s=homeSetup();s.run("state.member={role:'OWNER'};viewInicio()");
+ assert.match(s.root.innerHTML,/first-steps-title/);assert.match(s.root.innerHTML,/data-first-step="account"/);
+ assert.doesNotMatch(s.root.innerHTML,/data-first-step="movement"/);
+ assert.match(s.root.innerHTML,/data-first-step="family"/);
+ s.run("document.getElementById('first-steps-hide').onclick()");assert.doesNotMatch(s.root.innerHTML,/first-steps-title/);
+ s.run("state.household={id:'other',name:'Other'};state.member.role='MEMBER';viewInicio()");
+ assert.match(s.root.innerHTML,/first-steps-title/);assert.doesNotMatch(s.root.innerHTML,/data-first-step="family"/);
+ s.run("state.data.accounts=[{id:'bank',name:'Banco'}];viewInicio()");assert.match(s.root.innerHTML,/data-first-step="movement"/);
+ s.run("state.data.transactions=[{id:'tx'}]");assert.equal(s.run('firstStepsPanel()'),'');
+ s.run('state.firstStepsOpen=true');assert.match(s.run('firstStepsPanel()'),/2 de 2 pasos financieros listos/);
+});
+test('first steps can be hidden even when local storage is unavailable',()=>{
+ const s=homeSetup();s.ctx.localStorage.setItem=()=>{throw Error('storage unavailable')};
+ s.run("viewInicio();document.getElementById('first-steps-hide').onclick()");
+ assert.doesNotMatch(s.root.innerHTML,/first-steps-title/);
 });

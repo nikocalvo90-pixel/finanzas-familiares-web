@@ -14,3 +14,9 @@ test('ambiguous and malformed amounts, blank names and invalid/future dates are 
  assert.throws(()=>payload({...form,householdName:'  '},'2026-10-06'));
  assert.throws(()=>payload({...form,displayName:'a'.repeat(121)},'2026-10-06'));
 });
+test('first steps use actual records and ignore archived accounts',()=>{
+ const {progress}=require('../docs/onboarding.js');
+ assert.deepEqual(progress(),{account:false,movement:false,shared:false});
+ assert.deepEqual(progress({accounts:[{is_archived:true}],transactions:[],members:[{}]}),{account:false,movement:false,shared:false});
+ assert.deepEqual(progress({accounts:[{is_archived:false}],transactions:[{}],members:[{},{}]}),{account:true,movement:true,shared:true});
+});

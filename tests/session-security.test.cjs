@@ -207,3 +207,36 @@ test('home handles an empty household and retains negative savings and processin
  assert.match(s.root.innerHTML,/<details class="home-financial-detail">/);
  assert.match(s.root.innerHTML,/<details class="panel home-disclosure">/);
 });
+
+function entrySetup(){
+ const s=setup();
+ s.run("state.member={display_name:'Nico'};state.entryExternal='manual:test';state.data={categories:[{id:'food',name:'Alimentación',kind:'GASTO'}],accounts:[{id:'bank',name:'Banco',current_balance:100}],investments:[{id:'fund',name:'Fondo'}]};captureEntryDraft=()=>{};for(const id of ['dest-wrap','inv-wrap','form-error'])document.getElementById(id).style={};document.getElementById('f-category').value='food';document.getElementById('raw').focus=()=>{};");
+ return s;
+}
+test('entry preview keeps transfer and investment requirements visible and can return to the sentence',()=>{
+ const s=entrySetup();
+ s.run("showPreview({raw:'51 Mercadona',amount:51,date:'2026-10-08',concept:'Mercadona',type:'GASTO',category_id:'food',reason:'Sugerencia'});");
+ assert.equal(s.run("document.getElementById('entry-compose').open"),false);
+ assert.equal(s.run("document.getElementById('entry-category-summary').textContent"),'Alimentación');
+ assert.equal(s.run("document.getElementById('dest-wrap').style.display"),'none');
+ s.run("document.getElementById('f-type').value='TRANSFERENCIA_INTERNA';document.getElementById('f-type').onchange()");
+ assert.equal(s.run("document.getElementById('dest-wrap').style.display"),'grid');
+ assert.equal(s.run("document.getElementById('inv-wrap').style.display"),'none');
+ s.run("document.getElementById('f-type').value='INVERSION';document.getElementById('f-type').onchange()");
+ assert.equal(s.run("document.getElementById('inv-wrap').style.display"),'grid');
+ assert.equal(s.run("document.getElementById('dest-wrap').style.display"),'none');
+ s.run("document.getElementById('cancel-preview').onclick()");
+ assert.equal(s.run("document.getElementById('entry-compose').open"),true);
+ assert.equal(s.run('state.draft'),null);
+});
+test('collapsed optional fields retain category and person in the saved transaction',async()=>{
+ const s=entrySetup();let payload;
+ s.ctx.FinanceRules=require('../docs/smart-rules.js');
+ s.ctx.EntryDrafts={saveOnce:async p=>{payload=p;return {existing:false}},clear:()=>{}};
+ s.run("lockEntryPending=()=>{};loadAll=async()=>{};renderApp=()=>{};toast=()=>{};document.getElementById('register-modal').remove=()=>{};state.draft={raw:'51 Mercadona',category_id:'food',type:'GASTO'};const vals={amount:'51,25',date:'2026-10-08',concept:'Mercadona',type:'GASTO',category:'food',account:'bank',dest:'',investment:'',person:'Bea'};for(const [key,value] of Object.entries(vals))document.getElementById('f-'+key).value=value;document.getElementById('f-remember').checked=false;");
+ await s.run('savePreview()');
+ assert.equal(payload.amount,51.25);assert.equal(payload.category_id,'food');
+ assert.equal(payload.person_label,'Bea');assert.equal(payload.account_id,'bank');
+ assert.equal(payload.type,'GASTO');assert.equal(payload.destination_account_id,null);
+ assert.equal(payload.investment_id,null);assert.equal(payload.external_id,'manual:test');
+});

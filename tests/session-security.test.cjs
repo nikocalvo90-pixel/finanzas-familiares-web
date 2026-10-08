@@ -274,3 +274,31 @@ test('a late household rename response cannot change another session',async()=>{
  pending.resolve(response([{id:'household',name:'Late'}]));
  await assert.rejects(result,e=>e.sessionCancelled===true);assert.equal(s.run('state.household.name'),'Other');
 });
+
+test('public welcome uses fictional data and sends Start and Enter to the correct auth mode',()=>{
+ const s=setup();s.run("clearSession();renderLogin()");
+ assert.match(s.root.innerHTML,/welcome-page/);assert.match(s.root.innerHTML,/Datos ficticios/);
+ assert.doesNotMatch(s.root.innerHTML,/test@example.com|private/);assert.equal(s.run('state.data'),null);
+ s.run("document.getElementById('welcome-start').onclick()");
+ assert.equal(s.run("document.getElementById('signup-pane').hidden"),false);
+ assert.equal(s.run("document.getElementById('login-pane').hidden"),true);
+ s.run("document.getElementById('auth-home').onclick();document.getElementById('welcome-enter').onclick()");
+ assert.equal(s.run("document.getElementById('login-pane').hidden"),false);
+ assert.equal(s.run("document.getElementById('signup-pane').hidden"),true);
+});
+test('invitations, installed apps and auth errors bypass the marketing welcome',()=>{
+ const s=setup();s.run("clearSession();setPendingJoin({code:'ABCDEFGH',displayName:'Guest'});renderLogin()");
+ assert.doesNotMatch(s.root.innerHTML,/welcome-page/);
+ assert.equal(s.run("document.getElementById('signup-pane').hidden"),false);assert.match(s.root.innerHTML,/ABCDEFGH/);
+ s.run('clearPendingJoin()');s.ctx.window.navigator={standalone:true};s.run('renderLogin()');
+ assert.doesNotMatch(s.root.innerHTML,/welcome-page/);assert.equal(s.run("document.getElementById('login-pane').hidden"),false);
+ s.ctx.window.navigator.standalone=false;s.run("renderLogin('<error>')");
+ assert.doesNotMatch(s.root.innerHTML,/welcome-page/);assert.match(s.root.innerHTML,/&lt;error&gt;/);
+});
+test('welcome preview keeps the authenticated household and returns to the app',()=>{
+ const s=setup();s.run("renderApp=()=>document.getElementById('root').innerHTML='APP';renderWelcome(true)");
+ assert.equal(s.run('state.household.id'),'household');assert.equal(s.run('state.user.id'),'user');
+ assert.equal(s.run('state.data.secret'),'private');assert.doesNotMatch(s.root.innerHTML,/test@example.com|private/);
+ s.run("document.getElementById('welcome-start').onclick()");assert.equal(s.root.innerHTML,'APP');
+ assert.equal(s.run('getSession().access_token'),'token');
+});

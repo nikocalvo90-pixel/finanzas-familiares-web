@@ -12,5 +12,6 @@
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date<'1900-01-01'||date>today||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==date)throw Error('Indica una fecha válida para el saldo, hasta hoy.');
   p.p_balance_date=date;return p;
  }
- return {payload};
+ function progress(data={}){return {account:(data.accounts||[]).some(a=>!a.is_archived),movement:(data.transactions||[]).length>0,shared:(data.members||[]).length>1}}
+ return {payload,progress};
 });

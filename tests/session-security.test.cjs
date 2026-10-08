@@ -240,3 +240,37 @@ test('collapsed optional fields retain category and person in the saved transact
  assert.equal(payload.type,'GASTO');assert.equal(payload.destination_account_id,null);
  assert.equal(payload.investment_id,null);assert.equal(payload.external_id,'manual:test');
 });
+
+test('finance links retain their routes and activate one grouped navigation item',()=>{
+ const s=setup();
+ for(const route of ['finanzas','movimientos','analisis','patrimonio','objetivos']){
+  s.ctx.location.hash='#'+route;assert.equal(s.run('currentView()'),route);assert.equal(s.run('navigationGroup()'),'finanzas');
+ }
+ s.ctx.location.hash='#ajustes';assert.equal(s.run('navigationGroup()'),'mas');
+ s.run("state.member={role:'OWNER',display_name:'<Nico>'};shell('CONTENT')");
+ const mobile=s.root.innerHTML.match(/<nav class="bottom-nav"[^>]*>(.*?)<\/nav>/s)[1];
+ assert.equal((mobile.match(/data-view=/g)||[]).length,5);
+ assert.match(mobile,/data-view="mas" class="active"/);
+ assert.match(s.root.innerHTML,/Opciones de tu cuenta/);assert.match(s.root.innerHTML,/Editar hogar/);
+ assert.match(s.root.innerHTML,/&lt;Nico&gt;/);
+ s.run("state.member.role='MEMBER';shell('CONTENT')");assert.doesNotMatch(s.root.innerHTML,/Editar hogar/);assert.match(s.root.innerHTML,/Mi hogar/);
+});
+test('household rename is owner-only, scoped, and confirmed before changing local state',async()=>{
+ const s=setup();let calls=0,body,url;
+ s.run("state.member={role:'MEMBER'}");s.ctx.fetch=async()=>{calls++;return response([])};
+ await assert.rejects(s.run("renameHousehold('Changed')"),/Solo el propietario/);assert.equal(calls,0);
+ s.run("state.member.role='OWNER'");
+ s.ctx.fetch=async(u,opt)=>{calls++;url=u;body=JSON.parse(opt.body);return response([{id:'household',name:'Changed'}])};
+ await s.run("renameHousehold('  Changed  ')");assert.deepEqual(body,{name:'Changed'});
+ assert.ok(url.includes('households?id=eq.household&select=id,name'));assert.equal(s.run('state.household.name'),'Changed');
+ s.ctx.fetch=async()=>response([]);
+ await assert.rejects(s.run("renameHousehold('Not confirmed')"),/confirmar/);assert.equal(s.run('state.household.name'),'Changed');
+ await assert.rejects(s.run("renameHousehold('')"),/1 y 120/);
+});
+test('a late household rename response cannot change another session',async()=>{
+ const s=setup(),pending=deferred();s.run("state.member={role:'OWNER'}");s.ctx.fetch=()=>pending.promise;
+ const result=s.run("renameHousehold('Late')");
+ s.run("resetPrivateState();saveSession({access_token:'new',user:{id:'other'}});state.user={id:'other'};state.household={id:'new',name:'Other'}");
+ pending.resolve(response([{id:'household',name:'Late'}]));
+ await assert.rejects(result,e=>e.sessionCancelled===true);assert.equal(s.run('state.household.name'),'Other');
+});

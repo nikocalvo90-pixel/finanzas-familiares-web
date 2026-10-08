@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261008.25">
+<link rel="manifest" href="./manifest.webmanifest?v=20261008.26">
 <link rel="icon" href="./icons/casuo-house-c.ico">
 <link rel="icon" type="image/svg+xml" href="./icons/casuo-house-c.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/casuo-house-c-32.png">
@@ -48,15 +48,15 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20261008.25"></script>
-<script src="./shopping.js?v=20261008.25"></script>
-<script src="./onboarding.js?v=20261008.25"></script>
-<script src="./account-access.js?v=20261008.25"></script>
-<script src="./entry-drafts.js?v=20261008.25"></script>
-<script src="./backups.js?v=20261008.25"></script>
-<script src="./this-month.js?v=20261008.25"></script>
-<script src="./monthly-reports.js?v=20261008.25"></script>
-<script src="./transaction-documents.js?v=20261008.25"></script>
+<script src="./smart-rules.js?v=20261008.26"></script>
+<script src="./shopping.js?v=20261008.26"></script>
+<script src="./onboarding.js?v=20261008.26"></script>
+<script src="./account-access.js?v=20261008.26"></script>
+<script src="./entry-drafts.js?v=20261008.26"></script>
+<script src="./backups.js?v=20261008.26"></script>
+<script src="./this-month.js?v=20261008.26"></script>
+<script src="./monthly-reports.js?v=20261008.26"></script>
+<script src="./transaction-documents.js?v=20261008.26"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -65,7 +65,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261008.25';
+const APP_BUILD='20261008.26';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -1017,29 +1017,33 @@ function renderLogin(msg,initialMode){
  document.querySelectorAll('.modal-back,.toast').forEach(x=>x.remove());
  const pending=getPendingJoin()||{},mode=initialMode||(pending.code?'signup':'login');
  root.innerHTML='<div class="login"><main class="login-card"><div class="logo"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><h1>Casuo</h1><p>Tu casa, en orden.</p><div class="auth-tabs"><button id="tab-login">Entrar</button><button id="tab-signup">Crear cuenta</button></div>'+
- '<div id="login-pane"><label class="field">Email<input id="email" type="email" autocomplete="email" value="'+esc(localStorage.getItem(LAST_EMAIL)||'')+'"></label><label class="field">Contraseña<input id="password" type="password" autocomplete="current-password"></label><button class="primary" id="login">Entrar</button><button class="mini" id="forgot-password" style="margin-top:12px">He olvidado mi contraseña</button><button class="mini" id="resend-confirmation" style="margin-top:12px">Reenviar confirmación</button></div>'+
- '<div id="signup-pane" hidden><label class="field">Nombre<input id="signup-name" autocomplete="name" value="'+esc(pending.displayName||'')+'" placeholder="Tu nombre"></label><label class="field">Email<input id="signup-email" type="email" autocomplete="email"></label><label class="field">Contraseña<input id="signup-password" type="password" autocomplete="new-password"></label><label class="field">Código de invitación (opcional)<input id="signup-code" autocomplete="off" autocapitalize="characters" value="'+esc(pending.code||'')+'" placeholder="XXXXXXXX"></label><button class="primary" id="signup">Crear cuenta</button></div>'+
- '<div class="status" id="status">'+esc(msg||'La sesión se guardará en este dispositivo.')+'</div>'+(!isStandaloneApp()?'<button class="auth-home" id="auth-home">‹ Conocer Casuo</button>':'')+'</main></div>';
+ '<form id="login-pane"><label class="field">Email<input id="email" type="email" autocomplete="email" required value="'+esc(localStorage.getItem(LAST_EMAIL)||'')+'"></label><label class="field">Contraseña<input id="password" type="password" autocomplete="current-password" required></label><button class="primary" id="login" type="submit">Entrar</button><button class="mini" id="forgot-password" type="button" style="margin-top:12px">He olvidado mi contraseña</button><button class="mini" id="resend-confirmation" type="button" style="margin-top:12px">Reenviar confirmación</button></form>'+
+ '<form id="signup-pane" hidden><label class="field">Nombre<input id="signup-name" autocomplete="name" maxlength="120" required value="'+esc(pending.displayName||'')+'" placeholder="Tu nombre"></label><label class="field">Email<input id="signup-email" type="email" autocomplete="email" required></label><label class="field">Contraseña<input id="signup-password" type="password" autocomplete="new-password" minlength="8" required aria-describedby="signup-password-help"></label><p class="muted small" id="signup-password-help">Usa al menos 8 caracteres.</p><label class="field">Código de invitación (opcional)<input id="signup-code" autocomplete="off" autocapitalize="characters" value="'+esc(pending.code||'')+'" placeholder="XXXXXXXX"></label><button class="primary" id="signup" type="submit">Crear cuenta</button></form>'+
+ '<div class="status" id="status" role="status" aria-live="polite">'+esc(msg||'La sesión se guardará en este dispositivo.')+'</div>'+(!isStandaloneApp()?'<button class="auth-home" id="auth-home">‹ Conocer Casuo</button>':'')+'</main></div>';
  const home=document.getElementById('auth-home');if(home)home.onclick=()=>renderWelcome();
  const setMode=m=>{const isLogin=m==='login';document.getElementById('login-pane').hidden=!isLogin;document.getElementById('signup-pane').hidden=isLogin;document.getElementById('tab-login').classList.toggle('active',isLogin);document.getElementById('tab-signup').classList.toggle('active',!isLogin)};
  document.getElementById('forgot-password').onclick=()=>renderEmailRequest('recovery',document.getElementById('email').value);
  document.getElementById('resend-confirmation').onclick=()=>renderEmailRequest('signup',document.getElementById('email').value);
  document.getElementById('tab-login').onclick=()=>setMode('login');document.getElementById('tab-signup').onclick=()=>setMode('signup');setMode(mode);
- document.getElementById('login').onclick=async()=>{
+ document.getElementById('login-pane').onsubmit=async event=>{
+   event.preventDefault();const button=document.getElementById('login');if(button.disabled)return;
    const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,st=document.getElementById('status');
    if(!email||!password){st.textContent='Introduce email y contraseña.';st.className='status err';return}
-   st.textContent='Entrando…';st.className='status';
+   try{FamilyAccess.email(email)}catch(e){st.textContent=e.message;st.className='status err';return}
+   button.disabled=true;st.textContent='Entrando…';st.className='status';
    try{const a=await login(email,password);await finishAuthenticated(a.user)}
-   catch(e){if(e.sessionCancelled)return;if(getSession())return renderSessionIssue(e.message);st.textContent=e.message;st.className='status err'}
+   catch(e){if(e.sessionCancelled)return;if(getSession())return renderSessionIssue(e.message);st.textContent=e.message;st.className='status err'}finally{button.disabled=false}
  };
- document.getElementById('signup').onclick=async()=>{
+ document.getElementById('signup-pane').onsubmit=async event=>{
+   event.preventDefault();const button=document.getElementById('signup');if(button.disabled)return;
    const name=document.getElementById('signup-name').value.trim(),email=document.getElementById('signup-email').value.trim(),password=document.getElementById('signup-password').value,code=document.getElementById('signup-code').value.trim().toUpperCase(),st=document.getElementById('status');
    if(!name||!email||!password){st.textContent='Completa tu nombre, email y contraseña.';st.className='status err';return}
-   if(password.length<8){st.textContent='Usa una contraseña de al menos 8 caracteres.';st.className='status err';return}
-   setPendingJoin({code,displayName:name});st.textContent='Creando cuenta…';st.className='status';const button=document.getElementById('signup');button.disabled=true;
+   try{FamilyAccess.email(email);FamilyAccess.password(password,password);if(name.length>120)throw Error('Tu nombre debe tener como máximo 120 caracteres.')}catch(e){st.textContent=e.message;st.className='status err';return}
+   setPendingJoin({code,displayName:name});st.textContent='Creando cuenta…';st.className='status';button.disabled=true;
    try{
      const a=await signup(email,password,name,code);
      if(a.session){await finishAuthenticated(a.user);return}
+     document.getElementById('signup-password').value='';document.getElementById('signup-pane').hidden=true;
      st.innerHTML='<strong>Cuenta creada.</strong><br>Revisa el correo de '+esc(email)+' y pulsa el enlace de confirmación. Después volverás a esta app para crear tu hogar o aceptar tu invitación.';
      st.className='success-note';st.innerHTML+='<br><button class="btn" id="signup-resend">Reenviar confirmación</button>';document.getElementById('signup-resend').onclick=()=>renderEmailRequest('signup',email);
    }catch(e){st.textContent=e.message;st.className='status err'}finally{button.disabled=false}

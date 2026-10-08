@@ -10,7 +10,7 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {
 function setup(){
  const storage=new Map(),elements=new Map(),events={},intervals=new Set(),removed=[];
  const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',classList:{toggle(){}},textContent:''});return elements.get(id)};
- const ctx=vm.createContext({Intl,URL,URLSearchParams,Uint8Array,AbortController,AbortSignal,crypto:webcrypto,atob,FamilyOnboarding:require('../docs/onboarding.js'),
+ const ctx=vm.createContext({Intl,URL,URLSearchParams,Uint8Array,AbortController,AbortSignal,crypto:webcrypto,atob,FamilyAccess:require('../docs/account-access.js'),FamilyOnboarding:require('../docs/onboarding.js'),
    localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
    document:{getElementById:element,querySelector:()=>null,querySelectorAll:()=>[{remove:()=>removed.push(true)}],addEventListener:(name,cb)=>events[name]=cb,hidden:false},
    window:{addEventListener:(name,cb)=>events[name]=cb},navigator:{userAgent:'Test'},
@@ -319,4 +319,32 @@ test('first steps can be hidden even when local storage is unavailable',()=>{
  const s=homeSetup();s.ctx.localStorage.setItem=()=>{throw Error('storage unavailable')};
  s.run("viewInicio();document.getElementById('first-steps-hide').onclick()");
  assert.doesNotMatch(s.root.innerHTML,/first-steps-title/);
+});
+
+
+test('auth forms validate locally before making a request',async()=>{
+ const s=setup();let calls=0;s.ctx.fetch=async()=>{calls++;return response({})};
+ s.run("clearSession();renderLogin(null,'signup');document.getElementById('signup-name').value='Guest';document.getElementById('signup-email').value='invalid';document.getElementById('signup-password').value='abcdefgh';document.getElementById('signup-code').value=''");
+ await s.run("document.getElementById('signup-pane').onsubmit({preventDefault(){}})");
+ assert.equal(calls,0);assert.match(s.run("document.getElementById('status').textContent"),/email válido/);
+ assert.match(s.root.innerHTML,/<form id="signup-pane"/);assert.match(s.root.innerHTML,/minlength="8"/);
+ s.run("document.getElementById('email').value='invalid';document.getElementById('password').value='abcdefgh'");
+ await s.run("document.getElementById('login-pane').onsubmit({preventDefault(){}})");assert.equal(calls,0);
+});
+test('login prevents duplicate requests and enables retry after a failure',async()=>{
+ const s=setup(),pending=deferred();let calls=0;
+ s.run("clearSession();renderLogin(null,'login');document.getElementById('email').value='test@example.com';document.getElementById('password').value='abcdefgh'");
+ s.ctx.fetch=()=>{calls++;return pending.promise};
+ const first=s.run("document.getElementById('login-pane').onsubmit({preventDefault(){}})");
+ await s.run("document.getElementById('login-pane').onsubmit({preventDefault(){}})");assert.equal(calls,1);
+ pending.resolve(response({msg:'Invalid login credentials'},400));await first;
+ assert.equal(s.run("document.getElementById('login').disabled"),false);
+});
+test('successful signup clears the password and offers confirmation instead of another submission',async()=>{
+ const s=setup();s.run("clearSession();renderLogin(null,'signup');document.getElementById('signup-name').value='Guest';document.getElementById('signup-email').value='test@example.com';document.getElementById('signup-password').value='abcdefgh';document.getElementById('signup-code').value='ABCDEFGH';signup=async()=>({session:null})");
+ await s.run("document.getElementById('signup-pane').onsubmit({preventDefault(){}})");
+ assert.equal(s.run("document.getElementById('signup-password').value"),'');
+ assert.equal(s.run("document.getElementById('signup-pane').hidden"),true);
+ assert.match(s.run("document.getElementById('status').innerHTML"),/Revisa el correo|signup-resend/);
+ assert.equal(s.run('getPendingJoin().code'),'ABCDEFGH');
 });

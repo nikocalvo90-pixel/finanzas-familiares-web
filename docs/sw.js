@@ -10,6 +10,7 @@ self.addEventListener('push',(event)=>{
   const title=data.title||'Casuo';
   const options={
     body:data.body||'Tienes un nuevo aviso.',
+    icon:new URL('./icons/casuo-house-c-192.png',self.registration.scope).href,
     tag:data.tag||data.eventId||'finanzas-familiares',
     renotify:false,
     data:{url:data.url||'#inicio',eventId:data.eventId||null}

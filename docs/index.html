@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261008.27">
+<link rel="manifest" href="./manifest.webmanifest?v=20261008.28">
 <link rel="icon" href="./icons/casuo-house-c.ico">
 <link rel="icon" type="image/svg+xml" href="./icons/casuo-house-c.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/casuo-house-c-32.png">
@@ -49,15 +49,15 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20261008.27"></script>
-<script src="./shopping.js?v=20261008.27"></script>
-<script src="./onboarding.js?v=20261008.27"></script>
-<script src="./account-access.js?v=20261008.27"></script>
-<script src="./entry-drafts.js?v=20261008.27"></script>
-<script src="./backups.js?v=20261008.27"></script>
-<script src="./this-month.js?v=20261008.27"></script>
-<script src="./monthly-reports.js?v=20261008.27"></script>
-<script src="./transaction-documents.js?v=20261008.27"></script>
+<script src="./smart-rules.js?v=20261008.28"></script>
+<script src="./shopping.js?v=20261008.28"></script>
+<script src="./onboarding.js?v=20261008.28"></script>
+<script src="./account-access.js?v=20261008.28"></script>
+<script src="./entry-drafts.js?v=20261008.28"></script>
+<script src="./backups.js?v=20261008.28"></script>
+<script src="./this-month.js?v=20261008.28"></script>
+<script src="./monthly-reports.js?v=20261008.28"></script>
+<script src="./transaction-documents.js?v=20261008.28"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -66,7 +66,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261008.27';
+const APP_BUILD='20261008.28';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -1230,10 +1230,15 @@ async function loadAll(silent=false){
  return true;
 }
 async function checkForSharedChanges(){
- if(!privateAccess()||state.onboardingPreview||state.syncBusy||state.backupBusy||document.querySelector('.modal-back')||!state.household||document.hidden)return;
+ if(!privateAccess()||state.onboardingPreview||state.syncBusy||state.backupBusy||!state.household||document.hidden)return;
  const epoch=sessionEpoch;
  state.syncBusy=true;
  try{
+   const membership=await rest('household_members','household_id=eq.'+state.household.id+'&user_id=eq.'+state.user.id+'&select=role,display_name&limit=1');
+   assertSessionEpoch(epoch);assertPrivateAccess();
+   if(!membership?.length){logoutDevice('Ya no perteneces a este hogar. Entra para crear otro o aceptar una invitación.');return}
+   if(document.querySelector('.modal-back'))return;
+   if(membership[0].role!==state.member?.role||membership[0].display_name!==state.member?.display_name){await loadAll(true);assertSessionEpoch(epoch);renderApp();return}
    const sig=JSON.stringify(await rpc('transaction_sync_state',{p_household:state.household.id})||{});
    assertSessionEpoch(epoch);assertPrivateAccess();
    const shoppingSig=JSON.stringify(await restAll('shopping_items','household_id=eq.'+state.household.id+'&select=id,updated_at&order=id.asc'));
@@ -1550,6 +1555,40 @@ function profilePanel(){
 function householdMembersPanel(){
  const members=state.data.members||[];
  return '<section class="panel"><div class="panel-head"><div><span class="sub">Vuestro espacio compartido</span><h2>Miembros del hogar</h2></div><span class="state-chip on">'+members.length+' '+(members.length===1?'PERSONA':'PERSONAS')+'</span></div><div class="household-members">'+members.map(m=>'<div class="household-member"><span class="avatar" aria-hidden="true">'+esc((m.display_name||'M').slice(0,1).toUpperCase())+'</span><div class="household-member-copy"><strong>'+esc(m.display_name||'Miembro')+(m.user_id===state.user.id?' <span class="muted">· Tú</span>':'')+'</strong><small>'+esc(familyRoleLabel(m.role))+'</small></div>'+(m.user_id===state.user.id?'<button class="mini" id="edit-my-profile">Editar perfil</button>':'')+'</div>').join('')+'</div><p class="bank-help">Todos compartís las finanzas, la compra y las tareas. El propietario administra las invitaciones y las opciones del hogar.</p></section>';
+}
+function householdActionsPanel(){
+ const owner=state.member?.role==='OWNER',candidates=(state.data.members||[]).filter(m=>m.user_id!==state.user.id&&m.role==='MEMBER');
+ return '<section class="panel"><h2>Tu relación con el hogar</h2>'+(owner?'<p class="bank-help">Como propietario, puedes ceder la administración a otro miembro. Seguirás teniendo acceso como miembro.</p><button class="btn" id="transfer-household" '+(!candidates.length?'disabled':'')+'>Transferir propiedad</button>'+(!candidates.length?'<p class="bank-help">Primero invita a otra persona y espera a que entre en el hogar.</p>':'')+'<p class="bank-help">Para salir del hogar, transfiere primero su propiedad.</p>':'<p class="bank-help">Al salir perderás el acceso a este hogar y sus avisos. La información compartida se conservará para los demás. Tu cuenta de Casuo seguirá disponible.</p><button class="btn danger" id="leave-household">Salir del hogar</button>')+'</section>';
+}
+async function transferHouseholdOwnership(target){
+ assertPrivateAccess();if(state.member?.role!=='OWNER')throw Error('Solo el propietario puede transferir el hogar.');
+ const user=state.user.id,household=state.household.id,epoch=sessionEpoch;
+ if(!(state.data.members||[]).some(m=>m.user_id===target&&m.user_id!==user&&m.role==='MEMBER'))throw Error('Elige otro miembro de este hogar.');
+ const r=await rpc('transfer_household_ownership',{p_household:household,p_new_owner:target});
+ assertSessionEpoch(epoch);assertPrivateAccess();if(state.household?.id!==household)throw sessionCancelled();
+ if(r?.household_id!==household||r?.new_owner_id!==target||r?.previous_owner_id!==user)throw Error('No se pudo confirmar la transferencia. Actualiza los datos antes de reintentar.');
+ state.member.role='MEMBER';state.data.invites=[];
+ state.data.members=state.data.members.map(m=>m.user_id===user?{...m,role:'MEMBER'}:m.user_id===target?{...m,role:'OWNER'}:m);
+ return r;
+}
+async function leaveHousehold(){
+ assertPrivateAccess();if(state.member?.role==='OWNER')throw Error('Transfiere primero la propiedad del hogar.');
+ const user=state.user.id,household=state.household.id,epoch=sessionEpoch;
+ const r=await rpc('leave_household',{p_household:household});
+ assertSessionEpoch(epoch);assertPrivateAccess();if(state.household?.id!==household)throw sessionCancelled();
+ if(r?.household_id!==household||r?.user_id!==user||r?.left!==true)throw Error('No se pudo confirmar la salida. Actualiza los datos antes de reintentar.');
+ clearPendingJoin();logoutDevice('Has salido del hogar. Tu cuenta sigue disponible: entra para crear otro hogar o aceptar una invitación.');
+}
+function openHouseholdAction(kind){
+ if(!guardPrivateView())return;
+ const transfer=kind==='transfer',members=(state.data.members||[]).filter(m=>m.user_id!==state.user.id&&m.role==='MEMBER');
+ if(transfer&&(state.member?.role!=='OWNER'||!members.length))return;
+ if(!transfer&&state.member?.role==='OWNER')return;
+ const back=document.createElement('div');back.className='modal-back';
+ back.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-labelledby="household-action-title"><h2 id="household-action-title">'+(transfer?'Transferir propiedad':'Salir del hogar')+'</h2><p class="bank-help">'+(transfer?'La persona elegida administrará las invitaciones, el cierre de meses y la restauración de copias. Tú seguirás como miembro.':'Perderás el acceso a '+esc(state.household.name)+' y sus avisos. Los datos compartidos se conservarán. Cerraremos la sesión en este dispositivo; tu cuenta seguirá disponible.')+'</p><form id="household-action-form">'+(transfer?'<label class="field">Nuevo propietario<select id="new-household-owner" required><option value="">Elige una persona</option>'+members.map(m=>'<option value="'+esc(m.user_id)+'">'+esc(m.display_name||'Miembro')+'</option>').join('')+'</select></label>':'')+'<label class="rule-remember"><input id="household-action-confirm" type="checkbox" required>Entiendo el cambio y quiero continuar.</label><div class="modal-actions"><button type="button" class="btn" id="household-action-cancel">Cancelar</button><button class="save" type="submit" id="household-action-save">'+(transfer?'Confirmar transferencia':'Confirmar salida')+'</button></div><div class="status" id="household-action-status" role="status" aria-live="polite"></div></form></div>';
+ document.body.appendChild(back);back.querySelector('#household-action-cancel').onclick=()=>back.remove();
+ back.querySelector('form').onsubmit=async e=>{e.preventDefault();const button=back.querySelector('#household-action-save'),status=back.querySelector('#household-action-status');if(button.disabled||!back.querySelector('#household-action-confirm').checked)return;button.disabled=true;status.textContent=transfer?'Transfiriendo…':'Saliendo…';try{if(transfer){await transferHouseholdOwnership(back.querySelector('#new-household-owner').value);back.remove();renderApp();toast('Propiedad transferida. Sigues en el hogar como miembro.')}else await leaveHousehold()}catch(err){if(err.sessionCancelled)return;button.disabled=false;status.textContent=err.message+' Si hubo un fallo de conexión, actualiza los datos antes de repetir el cambio.';status.className='status err'}};
+ back.querySelector(transfer?'select':'#household-action-confirm').focus();
 }
 async function renameHousehold(name){
  assertPrivateAccess();if(state.member?.role!=='OWNER')throw Error('Solo el propietario puede editar el hogar.');
@@ -2280,7 +2319,7 @@ function viewAjustes(){
 
  const inviteBlock=familyInvitationsPanel();
  const householdPanel='<section class="panel household-settings"><h2>Tu hogar</h2>'+(state.member?.role==='OWNER'?'<form id="household-form"><label class="field">Nombre del hogar<input id="household-name" maxlength="120" required value="'+esc(state.household.name)+'"></label><p class="bank-help">Este nombre lo verán todos los miembros del hogar.</p><button class="save" id="household-save" type="submit">Guardar nombre</button><div class="status" id="household-status" role="status" aria-live="polite"></div></form>':'<p>'+esc(state.household.name)+'</p><p class="bank-help">El propietario puede cambiar el nombre del hogar.</p>')+'</section>';
- const familyPanel=householdPanel+householdMembersPanel()+(state.member?.role==='OWNER'?'<section class="panel">'+inviteBlock+'</section>':inviteBlock);
+ const familyPanel=householdPanel+householdMembersPanel()+(state.member?.role==='OWNER'?'<section class="panel">'+inviteBlock+'</section>':inviteBlock)+householdActionsPanel();
 
  const appPanel='<section class="panel"><div class="panel-head"><div><span class="sub">Aplicación</span><h2>Estado y sesión</h2></div><span class="state-chip on">v'+APP_BUILD+'</span></div><div class="settings-list"><div class="setting"><b>Sesión persistente</b><span>La app conserva y renueva la sesión. Un fallo de red ya no fuerza a introducir la contraseña otra vez.</span></div><div class="setting"><b>Privacidad local</b><span>'+esc(label)+' puede bloquear la interfaz sin cerrar la sesión.</span></div><div class="setting"><b>Patrimonio editable</b><span>Saldos y valoraciones se guardan con fecha para conservar histórico.</span></div><div class="setting"><b>Actualizaciones</b><span>Versión '+APP_BUILD+' · la app comprueba nuevas versiones automáticamente.</span><div class="invite-actions"><button class="btn" id="check-update">Buscar actualización</button><button class="btn" id="force-refresh">Recargar app</button></div></div><div class="setting"><b>Primer acceso</b><span>Recorre la bienvenida de una familia nueva con datos de ejemplo.</span><button class="btn" id="preview-onboarding">Ver bienvenida</button><button class="btn" id="preview-welcome">Ver presentación de Casuo</button></div><div class="setting"><b>Infraestructura</b><span>Supabase con RLS y auditoría · GitHub Pages.</span></div></div><button class="btn" id="logout" style="margin-top:12px">Cerrar sesión</button></section>';
 
@@ -2321,6 +2360,8 @@ function viewAjustes(){
   document.getElementById('profile-form').onsubmit=async e=>{e.preventDefault();const button=document.getElementById('profile-save'),status=document.getElementById('profile-status');if(button.disabled)return;button.disabled=true;status.textContent='Guardando…';try{await updateMyProfile(document.getElementById('profile-name').value);viewAjustes();toast('Tu nombre se ha actualizado.')}catch(err){if(err.sessionCancelled)return;button.disabled=false;status.textContent=err.message;status.className='status err'}};
  }
  if(section==='familia'){
+  const transfer=document.getElementById('transfer-household');if(transfer)transfer.onclick=()=>openHouseholdAction('transfer');
+  const leave=document.getElementById('leave-household');if(leave)leave.onclick=()=>openHouseholdAction('leave');
   const profile=document.getElementById('edit-my-profile');if(profile)profile.onclick=()=>goSettings('perfil');
   const form=document.getElementById('household-form');if(form)form.onsubmit=async e=>{e.preventDefault();const button=document.getElementById('household-save'),status=document.getElementById('household-status');if(button.disabled)return;button.disabled=true;status.textContent='Guardando…';try{await renameHousehold(document.getElementById('household-name').value);viewAjustes();toast('Nombre del hogar actualizado.')}catch(err){if(err.sessionCancelled)return;button.disabled=false;status.textContent=err.message;status.className='status err'}};
  }

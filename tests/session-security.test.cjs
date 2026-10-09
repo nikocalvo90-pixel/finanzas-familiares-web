@@ -375,3 +375,35 @@ test('profile and household panels escape names and keep invitations owner-only'
  assert.doesNotMatch(s.run('familyInvitationsPanel()'),/SECRET|Crear invitación/);
  assert.match(s.run('accountMenu()'),/Mi perfil/);
 });
+
+test('ownership transfer validates the recipient and applies only a confirmed response',async()=>{
+ const s=setup();s.run("state.member={role:'OWNER'};state.data.members=[{user_id:'user',role:'OWNER'},{user_id:'target',role:'MEMBER'}];state.data.invites=[{code:'secret'}]");let calls=0,body;
+ s.ctx.fetch=async(u,o)=>{calls++;body=JSON.parse(o.body);return response({household_id:'household',previous_owner_id:'user',new_owner_id:'target'})};
+ await assert.rejects(s.run("transferHouseholdOwnership('foreign')"),/otro miembro/);assert.equal(calls,0);
+ await s.run("transferHouseholdOwnership('target')");assert.deepEqual(body,{p_household:'household',p_new_owner:'target'});
+ assert.equal(s.run('state.member.role'),'MEMBER');assert.equal(s.run('state.data.members[1].role'),'OWNER');assert.equal(s.run('state.data.invites.length'),0);
+ await assert.rejects(s.run("transferHouseholdOwnership('target')"),/Solo el propietario/);assert.equal(calls,1);
+});
+test('leaving protects owners and clears private data only after confirmation',async()=>{
+ const s=setup();s.run("state.member={role:'OWNER'}");let calls=0;s.ctx.fetch=async()=>{calls++;return response({household_id:'household',user_id:'user',left:false})};
+ await assert.rejects(s.run('leaveHousehold()'),/Transfiere primero/);assert.equal(calls,0);
+ s.run("state.member.role='MEMBER'");await assert.rejects(s.run('leaveHousehold()'),/confirmar/);assert.equal(s.run('state.data.secret'),'private');
+ s.ctx.fetch=async()=>response({household_id:'household',user_id:'user',left:true});await s.run('leaveHousehold()');
+ assert.equal(s.run('state.data'),null);assert.equal(s.run('getSession()'),null);assert.match(s.root.innerHTML,/Has salido del hogar/);
+});
+test('late membership action responses cannot affect a later session',async()=>{
+ const s=setup(),pending=deferred();s.run("state.member={role:'MEMBER'}");s.ctx.fetch=()=>pending.promise;
+ const result=s.run('leaveHousehold()');s.run("resetPrivateState();saveSession({access_token:'new',user:{id:'other'}});state.user={id:'other'};state.household={id:'new'};state.member={role:'OWNER'};state.data={secret:'new'}");
+ pending.resolve(response({household_id:'household',user_id:'user',left:true}));await assert.rejects(result,e=>e.sessionCancelled===true);
+ assert.equal(s.run('state.data.secret'),'new');assert.equal(s.run('getSession().access_token'),'new');
+});
+test('membership removal clears private UI even while a modal is open',async()=>{
+ const s=setup();s.ctx.document.querySelector=()=>({});s.ctx.fetch=async()=>response([]);
+ await s.run('checkForSharedChanges()');assert.equal(s.run('state.data'),null);assert.equal(s.run('getSession()'),null);
+ assert.match(s.root.innerHTML,/Ya no perteneces/);
+});
+test('membership actions explain consequences and keep the owner departure blocked',()=>{
+ const s=setup();s.run("state.member={role:'OWNER'};state.data.members=[{user_id:'user',role:'OWNER'}]");
+ assert.match(s.run('householdActionsPanel()'),/id="transfer-household" disabled/);assert.doesNotMatch(s.run('householdActionsPanel()'),/id="leave-household"/);
+ s.run("state.member.role='MEMBER'");assert.match(s.run('householdActionsPanel()'),/id="leave-household"/);assert.match(s.run('householdActionsPanel()'),/se conservará/);
+});

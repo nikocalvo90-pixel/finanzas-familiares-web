@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261008.28">
+<link rel="manifest" href="./manifest.webmanifest?v=20261011.29">
 <link rel="icon" href="./icons/casuo-house-c.ico">
 <link rel="icon" type="image/svg+xml" href="./icons/casuo-house-c.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/casuo-house-c-32.png">
@@ -49,15 +49,15 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20261008.28"></script>
-<script src="./shopping.js?v=20261008.28"></script>
-<script src="./onboarding.js?v=20261008.28"></script>
-<script src="./account-access.js?v=20261008.28"></script>
-<script src="./entry-drafts.js?v=20261008.28"></script>
-<script src="./backups.js?v=20261008.28"></script>
-<script src="./this-month.js?v=20261008.28"></script>
-<script src="./monthly-reports.js?v=20261008.28"></script>
-<script src="./transaction-documents.js?v=20261008.28"></script>
+<script src="./smart-rules.js?v=20261011.29"></script>
+<script src="./shopping.js?v=20261011.29"></script>
+<script src="./onboarding.js?v=20261011.29"></script>
+<script src="./account-access.js?v=20261011.29"></script>
+<script src="./entry-drafts.js?v=20261011.29"></script>
+<script src="./backups.js?v=20261011.29"></script>
+<script src="./this-month.js?v=20261011.29"></script>
+<script src="./monthly-reports.js?v=20261011.29"></script>
+<script src="./transaction-documents.js?v=20261011.29"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -66,7 +66,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261008.28';
+const APP_BUILD='20261011.29';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -1108,7 +1108,7 @@ function renderJoin(msg,mode){
  if(!guardPrivateView())return;
  const pending=getPendingJoin()||{},name=pending.displayName||state.user?.user_metadata?.display_name||'';
  const joining=mode==='join'||!!pending.code;
- root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><h1>'+(joining?'Unirte a un hogar':'Tu hogar, a tu manera')+'</h1><p>'+(joining?'Introduce el código que te ha enviado un miembro de tu familia.':'Crea un espacio privado para vuestra economía y organización, o acepta una invitación.')+'</p>'+(joining?'<form id="join-form"><label class="field">Tu nombre<input id="join-name" maxlength="120" autocomplete="name" value="'+esc(name)+'" required></label><label class="field">Código de invitación<input id="join-code" autocapitalize="characters" autocomplete="off" value="'+esc(pending.code||'')+'" required></label><button class="primary" id="join" type="submit">Unirme al hogar</button></form><button class="btn onboarding-secondary" id="choose-create">Crear mi propio hogar</button>':'<button class="primary" id="choose-create">Crear mi hogar</button><button class="btn onboarding-secondary" id="choose-join">Tengo una invitación</button>')+'<div class="status '+(msg?'err':'')+'" id="join-status" role="status">'+esc(msg||'')+'</div><button class="mini" id="join-logout">Cerrar sesión</button></main></div>';
+ root.innerHTML='<div class="login"><main class="login-card onboarding-card"><div class="logo"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><h1>'+(joining?'Unirte a un hogar':'Tu hogar, a tu manera')+'</h1><p>'+(joining?'Introduce el código que te ha enviado un miembro de tu familia.':'Crea un espacio privado para vuestra economía y organización, o acepta una invitación.')+'</p>'+(joining?'<form id="join-form"><label class="field">Tu nombre<input id="join-name" maxlength="120" autocomplete="name" value="'+esc(name)+'" required></label><label class="field">Código de invitación<input id="join-code" autocapitalize="characters" autocomplete="off" value="'+esc(pending.code||'')+'" required></label><button class="primary" id="join" type="submit">Unirme al hogar</button></form><button class="btn onboarding-secondary" id="choose-create">Crear mi propio hogar</button>':'<button class="primary" id="choose-create">Crear mi hogar</button><button class="btn onboarding-secondary" id="choose-join">Tengo una invitación</button>')+'<div class="status '+(msg?'err':'')+'" id="join-status" role="status">'+esc(msg||'')+'</div><button class="mini" id="join-logout">Cerrar sesión</button><button class="mini" id="join-delete-account" style="margin-top:12px">Eliminar mi cuenta</button></main></div>';
  document.getElementById('choose-create').onclick=()=>renderHouseholdSetup({displayName:name});
  const chooseJoin=document.getElementById('choose-join');if(chooseJoin)chooseJoin.onclick=()=>renderJoin(null,'join');
  const form=document.getElementById('join-form');if(form)form.onsubmit=async e=>{
@@ -1119,6 +1119,7 @@ function renderJoin(msg,mode){
   catch(err){if(err.sessionCancelled)return;button.disabled=false;st.textContent=err.message;st.className='status err'}
  };
  document.getElementById('join-logout').onclick=()=>logoutDevice();
+ document.getElementById('join-delete-account').onclick=openAccountDeletion;
 }
 function renderHouseholdSetup(draft={},step=1){
  if(!guardPrivateView())return;
@@ -1550,7 +1551,43 @@ async function updateMyProfile(name){
  return clean;
 }
 function profilePanel(){
- return '<section class="panel profile-panel"><div class="profile-heading"><span class="avatar" aria-hidden="true">'+esc((state.member?.display_name||'C').slice(0,1).toUpperCase())+'</span><div><h2>Tu nombre en Casuo</h2><p>'+esc(state.household.name)+' · '+esc(familyRoleLabel(state.member?.role))+'</p></div></div><form id="profile-form"><label class="field">Nombre<input id="profile-name" autocomplete="name" maxlength="120" required value="'+esc(state.member?.display_name||'')+'"></label><p class="bank-help">Así te verán los miembros de este hogar. Los movimientos anteriores conservan el nombre con el que se guardaron.</p><button class="save" id="profile-save" type="submit">Guardar nombre</button><div class="status" id="profile-status" role="status" aria-live="polite"></div></form></section><section class="panel"><h2>Cuenta de acceso</h2><div class="profile-email">'+esc(state.user.email||'Email no disponible')+'</div><p class="bank-help">Este es el correo con el que entras en Casuo.</p><button class="btn" id="profile-password">Cambiar contraseña</button></section>';
+ return '<section class="panel profile-panel"><div class="profile-heading"><span class="avatar" aria-hidden="true">'+esc((state.member?.display_name||'C').slice(0,1).toUpperCase())+'</span><div><h2>Tu nombre en Casuo</h2><p>'+esc(state.household.name)+' · '+esc(familyRoleLabel(state.member?.role))+'</p></div></div><form id="profile-form"><label class="field">Nombre<input id="profile-name" autocomplete="name" maxlength="120" required value="'+esc(state.member?.display_name||'')+'"></label><p class="bank-help">Así te verán los miembros de este hogar. Los movimientos anteriores conservan el nombre con el que se guardaron.</p><button class="save" id="profile-save" type="submit">Guardar nombre</button><div class="status" id="profile-status" role="status" aria-live="polite"></div></form></section><section class="panel"><h2>Cuenta de acceso</h2><div class="profile-email">'+esc(state.user.email||'Email no disponible')+'</div><p class="bank-help">Este es el correo con el que entras en Casuo.</p><button class="btn" id="profile-password">Cambiar contraseña</button></section>'+accountDeletionPanel();
+}
+function accountDeletionPanel(){
+ const owner=state.member?.role==='OWNER';
+ return '<section class="panel"><h2>Eliminar mi cuenta</h2><p class="bank-help">La baja es irreversible: elimina tu perfil, credenciales y avisos, y cierra tus sesiones. Los gastos, documentos y demás información compartida seguirán disponibles para el hogar, incluidos los nombres guardados en su historial.</p>'+(owner?'<p class="bank-help">Antes debes transferir la propiedad del hogar a otra persona.</p><button class="btn" id="profile-delete-household">Ir a Mi hogar</button>':'<button class="btn danger" id="profile-delete-account">Eliminar mi cuenta</button>')+'</section>';
+}
+async function deleteMyAccount(password,confirmation){
+ assertPrivateAccess();if(state.onboardingPreview)throw Error('Sal de la vista de ejemplo antes de gestionar tu cuenta.');
+ if(state.member?.role==='OWNER')throw Error('Transfiere primero la propiedad del hogar.');
+ if(!password||confirmation!=='ELIMINAR')throw Error('Introduce tu contraseña actual y escribe ELIMINAR.');
+ const epoch=sessionEpoch,user=state.user.id,email=state.user.email;
+ const result=await authed('/functions/v1/delete-account',{method:'POST',body:JSON.stringify({password,confirmation})});
+ assertSessionEpoch(epoch);assertPrivateAccess();
+ if(result?.deleted!==true||result?.user_id!==user)throw Error('No se pudo confirmar la baja. Vuelve a entrar para comprobar el estado de tu cuenta.');
+ // Only erase this user's local preferences/drafts; other accounts are untouched.
+ const prefix='ff_entry_draft_v1:'+user+':',keys=[];
+ for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix))keys.push(key)}
+ keys.forEach(key=>localStorage.removeItem(key));
+ if(getDeviceLock()?.userId===user)localStorage.removeItem(DEVICE_LOCK);
+ if(localStorage.getItem(LAST_EMAIL)===email)localStorage.removeItem(LAST_EMAIL);
+ clearPendingJoin();logoutDevice('Tu cuenta de Casuo se ha eliminado. Los datos compartidos siguen disponibles para los demás miembros.');
+}
+function openAccountDeletion(){
+ if(!guardPrivateView()||state.onboardingPreview)return;
+ if(state.member?.role==='OWNER'){goSettings('familia');return}
+ const back=document.createElement('div');back.className='modal-back';let busy=false;
+ back.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-account-title"><h2 id="delete-account-title">Eliminar tu cuenta</h2><p class="bank-help">Se eliminarán tu perfil, credenciales y avisos, y se cerrarán todas tus sesiones. Los datos y documentos compartidos, incluidos los nombres guardados en el historial, se conservarán para los demás miembros.</p><p class="bank-help"><strong>Este cambio es irreversible.</strong> Para continuar, verifica tu contraseña y escribe ELIMINAR.</p><form id="delete-account-form"><label class="field">Contraseña actual<input id="delete-account-password" type="password" autocomplete="current-password" required></label><label class="field">Escribe ELIMINAR<input id="delete-account-confirmation" autocomplete="off" autocapitalize="characters" spellcheck="false" required pattern="ELIMINAR"></label><div class="modal-actions"><button type="button" class="btn" id="delete-account-cancel">Cancelar</button><button type="submit" class="btn danger" id="delete-account-save">Eliminar definitivamente</button></div><div class="status" id="delete-account-status" role="status" aria-live="polite"></div></form></div>';
+ const close=()=>{if(busy)return;back.querySelectorAll('input').forEach(x=>x.value='');back.remove();(document.getElementById('profile-delete-account')||document.getElementById('join-delete-account'))?.focus()};
+ document.body.appendChild(back);back.querySelector('#delete-account-cancel').onclick=close;
+ back.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();close()}if(e.key==='Tab'){const items=[...back.querySelectorAll('input,button')].filter(x=>!x.disabled),first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}};
+ back.querySelector('form').onsubmit=async e=>{
+  e.preventDefault();if(busy)return;const password=back.querySelector('#delete-account-password'),confirmation=back.querySelector('#delete-account-confirmation'),status=back.querySelector('#delete-account-status');
+  if(!password.value||confirmation.value!=='ELIMINAR'){status.textContent='Introduce tu contraseña actual y escribe ELIMINAR.';return}
+  busy=true;back.querySelectorAll('button').forEach(x=>x.disabled=true);status.textContent='Verificando tu identidad y eliminando la cuenta…';
+  try{await deleteMyAccount(password.value,confirmation.value)}catch(err){if(err.sessionCancelled)return;busy=false;password.value='';back.querySelectorAll('button').forEach(x=>x.disabled=false);status.textContent=err.message;status.className='status err';password.focus()}
+ };
+ back.querySelector('input').focus();
 }
 function householdMembersPanel(){
  const members=state.data.members||[];
@@ -2357,6 +2394,8 @@ function viewAjustes(){
 
  if(section==='perfil'){
   document.getElementById('profile-password').onclick=openPasswordChange;
+  const remove=document.getElementById('profile-delete-account');if(remove)remove.onclick=openAccountDeletion;
+  const household=document.getElementById('profile-delete-household');if(household)household.onclick=()=>goSettings('familia');
   document.getElementById('profile-form').onsubmit=async e=>{e.preventDefault();const button=document.getElementById('profile-save'),status=document.getElementById('profile-status');if(button.disabled)return;button.disabled=true;status.textContent='Guardando…';try{await updateMyProfile(document.getElementById('profile-name').value);viewAjustes();toast('Tu nombre se ha actualizado.')}catch(err){if(err.sessionCancelled)return;button.disabled=false;status.textContent=err.message;status.className='status err'}};
  }
  if(section==='familia'){

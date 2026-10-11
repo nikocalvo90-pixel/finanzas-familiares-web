@@ -11,7 +11,7 @@ function setup(){
  const storage=new Map(),elements=new Map(),events={},intervals=new Set(),removed=[];
  const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',classList:{toggle(){}},textContent:''});return elements.get(id)};
  const ctx=vm.createContext({Intl,URL,URLSearchParams,Uint8Array,AbortController,AbortSignal,crypto:webcrypto,atob,FamilyAccess:require('../docs/account-access.js'),FamilyOnboarding:require('../docs/onboarding.js'),
-   localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
+   localStorage:{get length(){return storage.size},key:i=>[...storage.keys()][i]||null,getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
    document:{getElementById:element,querySelector:()=>null,querySelectorAll:()=>[{remove:()=>removed.push(true)}],addEventListener:(name,cb)=>events[name]=cb,hidden:false},
    window:{addEventListener:(name,cb)=>events[name]=cb},navigator:{userAgent:'Test'},
    location:{href:'https://example.com/app/',hash:'#inicio'},setTimeout,clearTimeout,
@@ -406,4 +406,26 @@ test('membership actions explain consequences and keep the owner departure block
  const s=setup();s.run("state.member={role:'OWNER'};state.data.members=[{user_id:'user',role:'OWNER'}]");
  assert.match(s.run('householdActionsPanel()'),/id="transfer-household" disabled/);assert.doesNotMatch(s.run('householdActionsPanel()'),/id="leave-household"/);
  s.run("state.member.role='MEMBER'");assert.match(s.run('householdActionsPanel()'),/id="leave-household"/);assert.match(s.run('householdActionsPanel()'),/se conservará/);
+});
+
+test('account deletion requires confirmation and blocks owners and previews',async()=>{
+ const s=setup();let calls=0;s.ctx.fetch=async()=>{calls++;return response({})};
+ s.run("state.member={role:'OWNER'}");await assert.rejects(s.run("deleteMyAccount('password','ELIMINAR')"),/Transfiere/);
+ s.run("state.member.role='MEMBER'");await assert.rejects(s.run("deleteMyAccount('password','eliminar')"),/ELIMINAR/);
+ s.run('state.onboardingPreview=true');await assert.rejects(s.run("deleteMyAccount('password','ELIMINAR')"),/ejemplo/);assert.equal(calls,0);
+});
+test('account deletion only clears this device after an exact confirmed response',async()=>{
+ const s=setup();s.run("state.member={role:'MEMBER'}");s.ctx.fetch=async()=>response({deleted:true,user_id:'wrong-user'});
+ await assert.rejects(s.run("deleteMyAccount('password','ELIMINAR')"),/confirmar/);assert.equal(s.run('state.data.secret'),'private');
+ s.run("setDeviceLock({enabled:true,userId:'user',credentialId:'YQ'});localStorage.setItem(LAST_EMAIL,state.user.email);localStorage.setItem('ff_entry_draft_v1:user:household','own');localStorage.setItem('ff_entry_draft_v1:user:other-household','own');localStorage.setItem('ff_entry_draft_v1:another:household','other')");let body;
+ s.ctx.fetch=async(url,opt)=>{if(url.includes('delete-account'))body=JSON.parse(opt.body);return response({deleted:true,user_id:'user'})};
+ await s.run("deleteMyAccount('password','ELIMINAR')");assert.deepEqual(body,{password:'password',confirmation:'ELIMINAR'});assert.equal(s.run('getSession()'),null);assert.equal(s.run('getDeviceLock()'),null);assert.equal(s.run("localStorage.getItem('ff_entry_draft_v1:user:household')"),null);assert.equal(s.run("localStorage.getItem('ff_entry_draft_v1:user:other-household')"),null);assert.equal(s.run("localStorage.getItem('ff_entry_draft_v1:another:household')"),'other');assert.equal(s.run('state.data'),null);assert.match(s.root.innerHTML,/cuenta de Casuo se ha eliminado/);
+});
+test('late account deletion responses cannot erase a different signed-in user',async()=>{
+ const s=setup(),pending=deferred();s.ctx.fetch=()=>pending.promise;const result=s.run("deleteMyAccount('password','ELIMINAR')");
+ s.run("resetPrivateState();saveSession({access_token:'new',user:{id:'other'}});state.user={id:'other'};state.data={secret:'new'}");pending.resolve(response({deleted:true,user_id:'user'}));await assert.rejects(result,e=>e.sessionCancelled);assert.equal(s.run('state.data.secret'),'new');assert.equal(s.run('getSession().access_token'),'new');
+});
+test('account deletion panel explains irreversible deletion and preservation of history',()=>{
+ const s=setup();s.run("state.member={role:'OWNER'}");assert.doesNotMatch(s.run('accountDeletionPanel()'),/id="profile-delete-account"/);assert.match(s.run('accountDeletionPanel()'),/Ir a Mi hogar/);
+ s.run("state.member.role='MEMBER'");assert.match(s.run('accountDeletionPanel()'),/id="profile-delete-account"/);assert.match(s.run('accountDeletionPanel()'),/irreversible/);assert.match(s.run('accountDeletionPanel()'),/nombres guardados/);
 });

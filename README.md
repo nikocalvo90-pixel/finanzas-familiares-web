@@ -278,3 +278,26 @@ Validación: 83 pruebas Node. `supabase/tests/family_invitations.sql` comprueba 
 usuarios sintéticos y ROLLBACK: propietario propio, propietario externo, miembro,
 invisibilidad de códigos, rechazo del código cancelado y conservación del miembro
 ya incorporado. No se han cancelado invitaciones reales ni enviado mensajes.
+
+## Recuperación de guardados (20261011.30)
+
+Los formularios de movimientos, productos y tareas conservan sus campos en el
+navegador, por usuario y hogar. Un guardado sin confirmar conserva su identificador
+sin caducar y se recupera al abrir el formulario. El aviso de conexión muestra los
+pendientes y permite revisarlos. No hay envíos automáticos al volver internet.
+Esta función protege los cambios preparados con la app abierta; no convierte el
+sitio ni la autenticación en un cliente completo que pueda arrancar sin internet.
+
+Los movimientos reutilizan su `external_id`. Productos y tareas reutilizan un
+UUID del cliente y comprueban si existe antes de insertar. Los cambios de lista
+conservan el estado solicitado (comprado/completado), sin invertirlo en el reintento.
+Las ediciones usan `updated_at` como condición de escritura y comprueban primero
+si los campos ya están guardados. Si otra persona cambió el registro, la app pide
+revisar la versión actual y nunca la sobrescribe en silencio. No se envía un cambio
+si no se pudo conservar su borrador local. Una respuesta tardía tras cerrar sesión,
+bloquear el dispositivo o cambiar de usuario no puede restaurar datos privados ni
+modificar los borradores de la nueva sesión.
+
+Pruebas: `node --test tests/*.test.cjs`, incluidas respuestas perdidas, cortes antes
+del envío, recarga/reintento, almacenamiento lleno, edición concurrente y cancelación
+de sesión. No se han modificado movimientos ni listas de usuarios reales.

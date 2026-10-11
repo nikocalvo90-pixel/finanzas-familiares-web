@@ -9,8 +9,8 @@ const response=(data,status=200)=>({ok:status<400,status,text:async()=>JSON.stri
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}};
 function setup(){
  const storage=new Map(),elements=new Map(),events={},intervals=new Set(),removed=[];
- const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',classList:{toggle(){}},textContent:''});return elements.get(id)};
- const ctx=vm.createContext({Intl,URL,URLSearchParams,Uint8Array,AbortController,AbortSignal,crypto:webcrypto,atob,FamilyAccess:require('../docs/account-access.js'),FamilyOnboarding:require('../docs/onboarding.js'),
+ const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',dataset:{},querySelectorAll:()=>[],classList:{toggle(){}},textContent:''});return elements.get(id)};
+ const ctx=vm.createContext({Intl,URL,URLSearchParams,Uint8Array,AbortController,AbortSignal,crypto:webcrypto,atob,EntryDrafts:require('../docs/entry-drafts.js'),SaveRecovery:require('../docs/save-recovery.js'),FamilyAccess:require('../docs/account-access.js'),FamilyOnboarding:require('../docs/onboarding.js'),
    localStorage:{get length(){return storage.size},key:i=>[...storage.keys()][i]||null,getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
    document:{getElementById:element,querySelector:()=>null,querySelectorAll:()=>[{remove:()=>removed.push(true)}],addEventListener:(name,cb)=>events[name]=cb,hidden:false},
    window:{addEventListener:(name,cb)=>events[name]=cb},navigator:{userAgent:'Test'},
@@ -232,7 +232,7 @@ test('entry preview keeps transfer and investment requirements visible and can r
 test('collapsed optional fields retain category and person in the saved transaction',async()=>{
  const s=entrySetup();let payload;
  s.ctx.FinanceRules=require('../docs/smart-rules.js');
- s.ctx.EntryDrafts={saveOnce:async p=>{payload=p;return {existing:false}},clear:()=>{}};
+ s.ctx.EntryDrafts={read:()=>null,saveOnce:async p=>{payload=p;return {existing:false}},clear:()=>{}};
  s.run("lockEntryPending=()=>{};loadAll=async()=>{};renderApp=()=>{};toast=()=>{};document.getElementById('register-modal').remove=()=>{};state.draft={raw:'51 Mercadona',category_id:'food',type:'GASTO'};const vals={amount:'51,25',date:'2026-10-08',concept:'Mercadona',type:'GASTO',category:'food',account:'bank',dest:'',investment:'',person:'Bea'};for(const [key,value] of Object.entries(vals))document.getElementById('f-'+key).value=value;document.getElementById('f-remember').checked=false;");
  await s.run('savePreview()');
  assert.equal(payload.amount,51.25);assert.equal(payload.category_id,'food');
@@ -428,4 +428,51 @@ test('late account deletion responses cannot erase a different signed-in user',a
 test('account deletion panel explains irreversible deletion and preservation of history',()=>{
  const s=setup();s.run("state.member={role:'OWNER'}");assert.doesNotMatch(s.run('accountDeletionPanel()'),/id="profile-delete-account"/);assert.match(s.run('accountDeletionPanel()'),/Ir a Mi hogar/);
  s.run("state.member.role='MEMBER'");assert.match(s.run('accountDeletionPanel()'),/id="profile-delete-account"/);assert.match(s.run('accountDeletionPanel()'),/irreversible/);assert.match(s.run('accountDeletionPanel()'),/nombres guardados/);
+});
+
+function recoveryFormSetup(){
+ const s=setup();s.run(`
+  const controls={};for(const id of ['shop-name','shop-quantity','shop-note','shop-section','shop-favorite','shop-status','shop-save'])controls[id]={id,value:'',type:id==='shop-favorite'?'checkbox':'text',checked:false,disabled:false,dataset:{},textContent:''};
+  controls['shop-name'].value='Leche';controls['shop-quantity'].value='2 litros';controls['shop-section'].value='Bebidas';controls['shop-favorite'].checked=true;
+  const back={removed:false,querySelector:q=>controls[q.slice(1)]||null,querySelectorAll:q=>q==='input,select'?Object.values(controls).filter(x=>x.id.startsWith('shop-')&&!['shop-status','shop-save'].includes(x.id)):[],addEventListener(){},remove(){this.removed=true}};
+  toast=()=>{};loadAll=async()=>{};renderApp=()=>{};
+  state.data.shopping=[];
+  bindRecoverableForm(back,'shopping',null,['shop-name','shop-quantity','shop-section','shop-note','shop-favorite'],'shop-status','shop-save',null,null);
+ `);return s;
+}
+test('offline product confirmation preserves the complete form and fixed identity without sending it',async()=>{
+ const s=recoveryFormSetup();s.ctx.navigator.onLine=false;let calls=0;s.ctx.fetch=async()=>{calls++;return response([])};
+ await s.run("saveRecoverableForm(back,'shopping_items',{household_id:'household',name:'Leche',quantity:'2 litros',section:'Bebidas',note:'',favorite:true},()=>{})");
+ assert.equal(calls,0);assert.equal(s.run('back.removed'),false);assert.equal(s.run("controls['shop-name'].value"),'Leche');assert.equal(s.run("controls['shop-status'].dataset.state"),'pending');assert.equal(s.run("controls['shop-save'].disabled"),false);assert.equal(s.run("controls['shop-save'].textContent"),'Comprobar y reintentar');
+ const stored=s.run("SaveRecovery.read(localStorage,'user','household','shopping')");assert.equal(stored.form['shop-quantity'],'2 litros');assert.equal(stored.pending.id,stored.createId);assert.equal(stored.pending.create,true);
+ s.run('back.saveContext.close()');assert.equal(s.run('back.removed'),true);assert.equal(s.run("SaveRecovery.read(localStorage,'user','household','shopping').pending.id"),stored.createId);
+});
+test('a recovered product checks its original UUID and commits once after reconnection',async()=>{
+ const s=recoveryFormSetup();s.ctx.navigator.onLine=false;
+ await s.run("saveRecoverableForm(back,'shopping_items',{household_id:'household',name:'Leche',quantity:'2 litros',section:'Bebidas',note:'',favorite:true},()=>{})");
+ const id=s.run('back.saveContext.createId');s.ctx.navigator.onLine=true;let posts=0,record=null;
+ s.ctx.fetch=async(url,opt)=>{if(opt.method==='POST'){posts++;record={...JSON.parse(opt.body),updated_at:'new'};return response([record])}return response(record?[record]:[])};
+ await s.run("saveRecoverableForm(back,'shopping_items',{},item=>{state.data.shopping=[item]})");
+ assert.equal(posts,1);assert.equal(record.id,id);assert.equal(s.run('back.removed'),true);assert.equal(s.run("SaveRecovery.read(localStorage,'user','household','shopping')"),null);
+});
+test('storage failure blocks sending a form whose retry identity cannot be retained',async()=>{
+ const s=recoveryFormSetup();s.ctx.localStorage.setItem=()=>{throw Error('full')};let calls=0;s.ctx.fetch=async()=>{calls++;return response([])};
+ await s.run("saveRecoverableForm(back,'shopping_items',{household_id:'household',name:'Leche'},()=>{})");assert.equal(calls,0);assert.equal(s.run('back.removed'),false);assert.equal(s.run('back.saveContext.pending'),null);assert.equal(s.run("controls['shop-name'].disabled"),false);assert.match(s.run("controls['shop-status'].textContent"),/No se ha enviado/);
+});
+test('late form responses neither clear nor apply a later user draft',async()=>{
+ const s=recoveryFormSetup(),pending=deferred();s.ctx.fetch=()=>pending.promise;
+ const result=s.run("saveRecoverableForm(back,'shopping_items',{household_id:'household',name:'Leche'},()=>{throw Error('old apply reached')})");
+ s.run("resetPrivateState();saveSession({access_token:'new',user:{id:'other'}});state.user={id:'other'};state.household={id:'new-home'};state.data={shopping:[]};SaveRecovery.write(localStorage,'other','new-home','shopping',{form:{name:'Other'}})");
+ pending.resolve(response([]));await result;assert.equal(s.run("SaveRecovery.read(localStorage,'other','new-home','shopping').form.name"),'Other');assert.equal(s.run('state.data.shopping.length'),0);
+});
+test('shopping retry retains the intended action and never reverses an already bought product',async()=>{
+ const s=setup();s.run("toast=()=>{};renderApp=()=>{};state.data.shopping=[{id:'product',household_id:'household',name:'Leche',purchased:false,updated_at:'old'}]");s.ctx.navigator.onLine=false;
+ await s.run("runRowChange('shopping_items',state.data.shopping[0],{purchased:true})");assert.equal(s.run('pendingRowActions()[0].payload.purchased'),true);assert.equal(s.run('state.data.shopping[0].purchased'),false);
+ s.ctx.navigator.onLine=true;let patches=0;s.ctx.fetch=async(u,o)=>{if(o.method==='PATCH')patches++;return response([{id:'product',household_id:'household',name:'Leche',purchased:true,updated_at:'new'}])};
+ await s.run("runRowChange('shopping_items',null,null,pendingRowActions()[0])");assert.equal(patches,0);assert.equal(s.run('pendingRowActions().length'),0);assert.equal(s.run('state.data.shopping[0].purchased'),true);
+});
+test('conditional updates protect another family member edit between check and save',async()=>{
+ const s=setup();let patchURL;s.ctx.fetch=async(url,opt)=>{if(opt.method==='PATCH'){patchURL=url;return response([])}return response([{id:'task',household_id:'household',title:'Old',updated_at:'2026-10-11T09:00:00+00:00'}])};
+ await assert.rejects(s.run("saveSharedRecord({resource:'family_tasks',household:'household',id:'task',create:false,expected:'2026-10-11T09:00:00+00:00',payload:{household_id:'household',title:'New'}},sessionEpoch,state.user.id,state.household.id)"),e=>e.conflict);
+ assert.match(patchURL,/updated_at=eq.2026-10-11T09%3A00%3A00%2B00%3A00/);
 });

@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261011.29">
+<link rel="manifest" href="./manifest.webmanifest?v=20261011.30">
 <link rel="icon" href="./icons/casuo-house-c.ico">
 <link rel="icon" type="image/svg+xml" href="./icons/casuo-house-c.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/casuo-house-c-32.png">
@@ -45,19 +45,21 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 
 .home-page .first-steps{border-color:#4e897744;background:linear-gradient(120deg,#142f2d66,#111e32);margin-bottom:22px}.first-steps .eyebrow{color:#88cab8;display:block;margin-bottom:7px}.first-steps-intro{color:var(--muted);font-size:12px;line-height:1.7;margin:0 0 14px}.first-steps ol{list-style:none;margin:0;padding:0}.first-step{display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line)}.first-step-mark{font-size:18px;color:#93a8c0;width:24px;flex:none}.first-step.done .first-step-mark{color:#7de1c2}.first-step>div{flex:1;min-width:0}.first-step b{font-size:13px}.first-step p{color:var(--muted);font-size:11px;line-height:1.5;margin:5px 0 0}.first-step-state{color:#93b6a9;font-size:11px}.first-steps-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding-top:14px;border-top:1px solid var(--line)}.first-steps-footer>span{font-size:11px;color:var(--muted)}.first-steps-link{width:100%;display:flex;align-items:center;justify-content:space-between;padding:20px;margin-bottom:20px;border:1px solid #4e897744;border-radius:16px;background:#122b2b;color:#d8f0e9;text-align:left}.first-steps-link b,.first-steps-link small{display:block}.first-steps-link b{font-size:14px}.first-steps-link small{font-size:12px;color:#9bbdb3;margin-top:5px}@media(max-width:560px){.first-step{flex-wrap:wrap}.first-step>div{flex-basis:calc(100% - 36px)}.first-step>button,.first-step-state{margin-left:36px}.first-steps-footer{align-items:flex-start;flex-direction:column}.first-steps .home-card-head{align-items:flex-start}.first-steps .home-card-head .mini{white-space:nowrap;font-size:10px}}
 .profile-panel form{max-width:540px;margin-top:20px}.profile-heading{display:flex;gap:14px;align-items:center}.profile-heading h2{margin:0 0 5px}.profile-heading p{margin:0;color:var(--muted);font-size:12px}.profile-email{overflow-wrap:anywhere;margin:16px 0;color:var(--text)}.household-member{display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}.household-member:last-child{border-bottom:0}.household-member-copy{flex:1;min-width:0}.household-member-copy strong,.household-member-copy small{display:block;overflow-wrap:anywhere}.household-member-copy small{margin-top:5px;color:var(--muted);font-size:11px}.household-member .mini{flex:none}@media(max-width:480px){.household-member{flex-wrap:wrap}.household-member-copy{min-width:140px}}
+.save-state{font-size:12px;line-height:1.5;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:12px 0;color:var(--muted)}.save-state[data-state="pending"],.connection-note{color:#f0cf8b;background:rgba(238,185,80,.06)}.save-state[data-state="saving"]{color:#b6adff}.save-state[data-state="saved"]{color:#8cddb0}.connection-note{border:1px solid rgba(238,185,80,.2);border-radius:12px;padding:12px 14px;margin:0 0 20px;font-size:13px;line-height:1.6}.connection-note button{margin:6px 10px 0 0}.connection-note strong{display:block}.draft-footer{margin-top:16px;display:flex;justify-content:space-between;gap:12px;align-items:center}.draft-footer .mini{font-size:12px}
 </style>
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><p>Recuperando sesión…</p></div></div></div>
-<script src="./smart-rules.js?v=20261011.29"></script>
-<script src="./shopping.js?v=20261011.29"></script>
-<script src="./onboarding.js?v=20261011.29"></script>
-<script src="./account-access.js?v=20261011.29"></script>
-<script src="./entry-drafts.js?v=20261011.29"></script>
-<script src="./backups.js?v=20261011.29"></script>
-<script src="./this-month.js?v=20261011.29"></script>
-<script src="./monthly-reports.js?v=20261011.29"></script>
-<script src="./transaction-documents.js?v=20261011.29"></script>
+<script src="./smart-rules.js?v=20261011.30"></script>
+<script src="./shopping.js?v=20261011.30"></script>
+<script src="./onboarding.js?v=20261011.30"></script>
+<script src="./account-access.js?v=20261011.30"></script>
+<script src="./entry-drafts.js?v=20261011.30"></script>
+<script src="./save-recovery.js?v=20261011.30"></script>
+<script src="./backups.js?v=20261011.30"></script>
+<script src="./this-month.js?v=20261011.30"></script>
+<script src="./monthly-reports.js?v=20261011.30"></script>
+<script src="./transaction-documents.js?v=20261011.30"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -66,7 +68,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261011.29';
+const APP_BUILD='20261011.30';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -605,13 +607,39 @@ function bankApplySnapshot(rows,snapshot){
 }
 function toast(msg){const x=document.createElement('div');x.className='toast';x.textContent=msg;document.body.appendChild(x);setTimeout(()=>x.remove(),2600)}
 function optionList(items,value,labelFn){return '<option value="">Seleccionar…</option>'+items.map(x=>'<option value="'+x.id+'" '+(x.id===value?'selected':'')+'>'+esc(labelFn(x))+'</option>').join('')}
+function offline(){return navigator.onLine===false}
+function offlineError(){const e=Error('Sin conexión');e.offline=true;return e}
+function assertSaveContext(epoch,user,household){assertSessionEpoch(epoch);assertPrivateAccess();if(state.user?.id!==user||state.household?.id!==household)throw sessionCancelled()}
+function updateConnectionState(){
+ const host=document.getElementById('connection-state');if(!host||!privateAccess()||!state.household)return;
+ const user=state.user.id,h=state.household.id,pending=[];
+ if(EntryDrafts.read(localStorage,user,h)?.pending)pending.push(['entry','gasto']);
+ for(const resource of new Set(SaveRecovery.actions(localStorage,user,h).map(x=>x.resource)))pending.push([resource==='shopping_items'?'shopping-list':'task-list',resource==='shopping_items'?'cambios de compra':'cambios de tareas']);
+ for(const [kind,label] of [['shopping','producto'],['task','tarea']])if(SaveRecovery.read(localStorage,user,h,kind)?.pending)pending.push([kind,label]);
+ if(!offline()&&!pending.length){host.innerHTML='';return}
+ host.innerHTML='<div class="connection-note"><strong>'+ (offline()?'Sin conexión':'Hay guardados pendientes de comprobar')+'</strong><span>'+(offline()?'Puedes preparar borradores en este dispositivo. Para compartirlos, vuelve a conectar y reintenta.':'Comprueba los cambios pendientes antes de volver a introducirlos. No se envían automáticamente.')+'</span>'+pending.map(([kind,label])=>'<button class="mini" data-resume-save="'+kind+'">Revisar '+label+' →</button>').join('')+'</div>';
+ host.querySelectorAll('[data-resume-save]').forEach(b=>b.onclick=()=>{if(b.dataset.resumeSave==='shopping-list')location.hash='compra';else if(b.dataset.resumeSave==='task-list')location.hash='tareas';else if(b.dataset.resumeSave==='entry')openRegister();else if(b.dataset.resumeSave==='task')openTaskEditor(null);else openShoppingEditor()});
+}
+window.addEventListener('offline',updateConnectionState);window.addEventListener('online',()=>{updateConnectionState();for(const id of ['draft-status','shop-status','task-save-state']){const el=document.getElementById(id);if(el?.dataset.state==='pending')el.textContent='La conexión ha vuelto. Pulsa Comprobar y reintentar; no se envía automáticamente.'}});
+function saveState(el,status,message){if(!el)return;el.dataset.state=status;el.className='save-state';el.textContent=message;updateConnectionState()}
+async function saveSharedRecord(operation,epoch,user,household){
+ const check=()=>assertSaveContext(epoch,user,household);check();
+ if(!['shopping_items','family_tasks'].includes(operation.resource))throw Error('Borrador no válido.');
+ if(operation.household!==household||operation.payload.household_id!==household)throw Error('El borrador pertenece a otro hogar.');
+ if(offline())throw offlineError();
+ return SaveRecovery.save(operation,{assert:check,find:async id=>(await rest(operation.resource,'household_id=eq.'+encodeURIComponent(household)+'&id=eq.'+encodeURIComponent(id)+'&select=*&limit=1'))?.[0],write:async op=>{
+  const filter=op.create?'':'?id=eq.'+encodeURIComponent(op.id)+'&household_id=eq.'+encodeURIComponent(household)+'&updated_at=eq.'+encodeURIComponent(op.expected);
+  const rows=await authed('/rest/v1/'+op.resource+filter,{method:op.create?'POST':'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(op.create?{...op.payload,id:op.id}:op.payload)});
+  if(!op.create&&!rows?.length)throw SaveRecovery.conflict('Otra persona ha cambiado este elemento. Actualiza los datos antes de guardar.');return rows;
+ }});
+}
 const entryFields=['amount','date','concept','type','category','account','dest','investment','person'];
 function captureEntryDraft(){
- const modal=document.getElementById('register-modal');if(!modal)return;
+ const modal=document.getElementById('register-modal');if(!modal||!privateAccess()||!state.household)return false;
  const form={};for(const name of entryFields){const el=modal.querySelector('#f-'+name);if(el)form[name]=el.value}
  const value={raw:modal.querySelector('#raw').value,draft:state.draft||null,form,remember:modal.querySelector('#f-remember')?.checked!==false,external:state.entryExternal,pending:state.entryPending||null};
- try{EntryDrafts.write(localStorage,state.user.id,state.household.id,value);modal.querySelector('#draft-status').textContent=state.entryPending?'Guardado pendiente de confirmar. Reintenta para comprobarlo sin duplicarlo.':'Borrador guardado en este dispositivo. No se ha enviado.'}
- catch{modal.querySelector('#draft-status').textContent='No se pudo guardar el borrador en este dispositivo. Mantén esta pantalla abierta.'}
+ try{EntryDrafts.write(localStorage,state.user.id,state.household.id,value);saveState(modal.querySelector('#draft-status'),state.entryPending?'pending':'draft',state.entryPending?'Pendiente de comprobar. Reintenta para confirmar el guardado sin duplicarlo.':'Borrador guardado en este dispositivo. Aún no se ha enviado.');return true}
+ catch{saveState(modal.querySelector('#draft-status'),'error','No se pudo conservar el borrador en este dispositivo. Mantén esta pantalla abierta.');return false}
 }
 function lockEntryPending(){
  if(!state.entryPending)return;
@@ -619,18 +647,19 @@ function lockEntryPending(){
  modal.querySelector('#save-tx').textContent='Comprobar y reintentar guardado';
 }
 function openRegister(){
+ if(!guardPrivateView()||state.onboardingPreview)return;
  if(document.getElementById('register-modal'))return;
  state.draft=null;state.entryPending=null;state.entryExternal='manual:'+crypto.randomUUID();
  const stored=EntryDrafts.read(localStorage,state.user.id,state.household.id);
  const back=document.createElement('div');back.className='modal-back entry-modal';back.id='register-modal';
- back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Nuevo movimiento</span><h2>Registrar movimiento</h2></div><button class="close" id="close-modal" aria-label="Cerrar registro">×</button></div><details class="entry-compose" id="entry-compose" open><summary>Escribir una frase</summary><p class="entry-help">Escribe el importe y el concepto. Después podrás revisarlo.</p><label class="entry-raw-label" for="raw">Movimiento</label><textarea class="quick-input" id="raw" placeholder="Ej.: 51 euros Mercadona"></textarea><div class="examples"><button class="example">51 Mercadona</button><button class="example">176 intereses Trade</button></div><div class="modal-actions"><button class="btn" id="entry-manual">Rellenar campos</button><button class="save" id="interpret">Revisar movimiento →</button></div></details><div id="preview"></div><footer class="entry-draft-footer"><p class="bank-help" id="draft-status">Solo se guarda en el hogar al confirmar.</p><button class="mini" id="discard-entry">Descartar borrador</button></footer></div>';
+ back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Nuevo movimiento</span><h2>Registrar movimiento</h2></div><button class="close" id="close-modal" aria-label="Cerrar registro">×</button></div><details class="entry-compose" id="entry-compose" open><summary>Escribir una frase</summary><p class="entry-help">Escribe el importe y el concepto. Después podrás revisarlo.</p><label class="entry-raw-label" for="raw">Movimiento</label><textarea class="quick-input" id="raw" placeholder="Ej.: 51 euros Mercadona"></textarea><div class="examples"><button class="example">51 Mercadona</button><button class="example">176 intereses Trade</button></div><div class="modal-actions"><button class="btn" id="entry-manual">Rellenar campos</button><button class="save" id="interpret">Revisar movimiento →</button></div></details><div id="preview"></div><footer class="entry-draft-footer"><p class="save-state" role="status" aria-live="polite" id="draft-status">Solo se guarda en el hogar al confirmar.</p><button class="mini" id="discard-entry">Descartar borrador</button></footer></div>';
  document.body.appendChild(back);
  const close=()=>{if(state.entrySaving)return;captureEntryDraft();back.remove()};document.getElementById('close-modal').onclick=close;back.onclick=e=>{if(e.target===back)close()};
  back.querySelectorAll('.example').forEach(b=>b.onclick=()=>{document.getElementById('raw').value=b.textContent;showPreview(interpretNatural(b.textContent))});
  document.getElementById('interpret').onclick=()=>showPreview(interpretNatural(document.getElementById('raw').value));
  document.getElementById('entry-manual').onclick=()=>{const raw=document.getElementById('raw');if(!raw.value.trim())raw.value='Nuevo movimiento';showPreview({...interpretNatural(raw.value),amount:0,concept:raw.value==='Nuevo movimiento'?'':raw.value,type:'GASTO',category_id:'',confidence:0,reason:'Entrada manual.'});document.getElementById('f-amount').focus()};
  back.addEventListener('input',captureEntryDraft);back.addEventListener('change',captureEntryDraft);
- document.getElementById('discard-entry').onclick=()=>{if(state.entrySaving)return;if(!confirm(state.entryPending?'El guardado puede haberse completado. Revisa Movimientos antes de crear otra entrada. ¿Descartar este borrador?':'¿Descartar este borrador local?'))return;EntryDrafts.clear(localStorage,state.user.id,state.household.id);state.entryPending=null;state.draft=null;back.remove()};
+ document.getElementById('discard-entry').onclick=()=>{if(state.entrySaving)return;if(!confirm(state.entryPending?'El guardado puede haberse completado. Revisa Movimientos antes de crear otra entrada. ¿Descartar este borrador?':'¿Descartar este borrador local?'))return;EntryDrafts.clear(localStorage,state.user.id,state.household.id);state.entryPending=null;state.draft=null;back.remove();updateConnectionState()};
  if(stored){
    document.getElementById('raw').value=stored.raw;state.entryExternal=stored.external||state.entryExternal;
    if(stored.draft&&stored.form){showPreview(stored.draft);for(const name of entryFields){const el=document.getElementById('f-'+name);if(el&&stored.form[name]!=null){el.value=stored.form[name];if(name==='type')el.onchange()}}document.getElementById('f-remember').checked=stored.remember!==false;document.getElementById('f-category').onchange()}
@@ -652,7 +681,8 @@ function showPreview(d){
  document.getElementById('save-tx').onclick=savePreview;captureEntryDraft();
 }
 async function savePreview(){
- if(state.entrySaving)return;
+ if(state.entrySaving)return;assertPrivateAccess();if(state.onboardingPreview)return;
+ const epoch=sessionEpoch,user=state.user.id,household=state.household.id,check=()=>assertSaveContext(epoch,user,household);
  const err=document.getElementById('form-error'),btn=document.getElementById('save-tx');
  const amount=Number(String(document.getElementById('f-amount').value).replace(',','.')),date=document.getElementById('f-date').value,concept=document.getElementById('f-concept').value.trim(),type=document.getElementById('f-type').value,category=document.getElementById('f-category').value,account=document.getElementById('f-account').value,dest=document.getElementById('f-dest').value,investment=document.getElementById('f-investment').value,person=document.getElementById('f-person').value.trim();
  const fail=m=>{err.textContent=m;err.style.display='block';return};
@@ -669,15 +699,25 @@ async function savePreview(){
  const payload={household_id:state.household.id,transaction_date:date,amount,concept,type,category_id:category||null,person_user_id:person===state.member?.display_name?state.user.id:null,person_label:person||null,account_id:account,destination_account_id:type==='TRANSFERENCIA_INTERNA'?dest:null,investment_id:(type==='INVERSION'||type==='RETIRADA_INVERSION')?investment:null,created_by:state.user.id,source:'MANUAL',external_id:external,notes:'Alta desde GitHub staging',raw_input:state.draft?.raw||null,classification_confidence:state.draft?.confidence||null,classification_reason:state.draft?.reason||null,classification_confirmed:true};
  payload.learn_category=learn;
  if(FinanceRules.shouldLearn(state.draft,category,type,true)){payload.classification_confidence=null;payload.classification_reason=learn?'Categoría corregida y recordada por el hogar.':'Categoría corregida por el hogar.'}
- state.entryPending=state.entryPending||payload;captureEntryDraft();lockEntryPending();state.entrySaving=true;
+ const previousPending=state.entryPending;state.entryPending=state.entryPending||payload;
+ if(state.entryPending.household_id!==household||state.entryPending.created_by!==user){btn.disabled=false;return fail('Este borrador pertenece a otra cuenta u hogar.')}
+ if(captureEntryDraft()===false){state.entryPending=previousPending;btn.disabled=false;btn.textContent=previousPending?'Comprobar y reintentar':'Confirmar y guardar';return fail('No se ha enviado: el dispositivo no pudo conservar el borrador. Mantén esta pantalla abierta e inténtalo de nuevo.')}
+ lockEntryPending();state.entrySaving=true;saveState(document.getElementById('draft-status'),'saving','Guardando en el hogar…');
  let saved=false;
  try{
-   const result=await EntryDrafts.saveOnce(state.entryPending,{find:async external=>(await rest('transactions','household_id=eq.'+state.household.id+'&external_id=eq.'+encodeURIComponent(external)+'&select=id&limit=1'))?.[0],insert:insertTransaction});
-   saved=true;try{EntryDrafts.clear(localStorage,state.user.id,state.household.id);localStorage.setItem('ff_last_account_v1',account)}catch{}
+   if(offline())throw offlineError();
+   const result=await EntryDrafts.saveOnce(state.entryPending,{assert:check,find:async external=>(await rest('transactions','household_id=eq.'+state.household.id+'&external_id=eq.'+encodeURIComponent(external)+'&select=id&limit=1'))?.[0],insert:insertTransaction});
+   check();saved=true;saveState(document.getElementById('draft-status'),'saved','Guardado en el hogar.');try{EntryDrafts.clear(localStorage,state.user.id,state.household.id);localStorage.setItem('ff_last_account_v1',account)}catch{}
    state.entryPending=null;state.draft=null;document.getElementById('register-modal')?.remove();toast(result.existing?'El movimiento ya estaba guardado. No se ha duplicado.':'Movimiento guardado correctamente');
-   await loadAll();location.hash='movimientos';renderApp();
- }catch(e){if(saved){alert('El movimiento está guardado, pero no se pudo actualizar la pantalla. Recarga la app.')}else{if([400,403,422].includes(e.status)){state.entryPending=null;document.getElementById('register-modal')?.querySelectorAll('input,select,textarea,button').forEach(el=>el.disabled=false);captureEntryDraft()}btn.disabled=false;btn.textContent=state.entryPending?'Comprobar y reintentar guardado':'Confirmar y guardar';fail('No se pudo confirmar el guardado. El borrador se conserva. '+e.message)}}
- finally{state.entrySaving=false}
+   await loadAll();check();location.hash='movimientos';renderApp();
+ }catch(e){
+   if(e.sessionCancelled||epoch!==sessionEpoch)return;
+   if(saved){toast('El movimiento está guardado. Actualiza los datos cuando vuelva la conexión.');return}
+   if(SaveRecovery.definite(e)){state.entryPending=null;document.getElementById('register-modal')?.querySelectorAll('input,select,textarea,button').forEach(el=>el.disabled=false);captureEntryDraft()}
+   btn.disabled=false;btn.textContent=state.entryPending?'Comprobar y reintentar':'Confirmar y guardar';
+   saveState(document.getElementById('draft-status'),state.entryPending?'pending':'error',SaveRecovery.message(e));fail(SaveRecovery.message(e));
+ }finally{if(epoch===sessionEpoch)state.entrySaving=false}
+
 }
 async function bankBuildRows(parsed,accountId,snapshot){
  const {columns,entries}=parsed,split=columns.debit>=0&&columns.credit>=0;
@@ -1526,8 +1566,9 @@ function shell(content){
  const financeViews=[['movimientos','Movimientos'],['analisis','Análisis'],['patrimonio','Patrimonio'],['objetivos','Objetivos']],financeView=currentView()==='finanzas'?'movimientos':currentView();
  const financeNav=navigationGroup()==='finanzas'?'<nav class="finance-nav" aria-label="Secciones de Finanzas">'+financeViews.map(([id,label])=>'<button data-view="'+id+'" class="'+(financeView===id?'active':'')+'" '+(financeView===id?'aria-current="page"':'')+'>'+label+'</button>').join('')+'</nav>':'';
  root.innerHTML='<div class="app"><aside class="sidebar"><div class="brand"><div class="logo"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><div class="brand-copy"><b>Casuo</b><small>'+esc(state.household.name)+'</small></div></div><nav class="nav" aria-label="Principal">'+mainNav.map(([id,icon,label])=>navButton(id,label,icon)).join('')+'</nav><div class="side-foot">'+accountMenu()+'</div></aside>'+
- '<main class="main"><div class="mobile-top"><div class="brand"><div class="logo"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><div class="brand-copy"><b>Casuo</b><small>'+esc(state.household.name)+'</small></div></div><div class="mobile-account-tools"><button class="notice-bell notice-open" aria-label="Avisos">⌁'+(unreadNotifications()?'<span class="notice-count">'+Math.min(99,unreadNotifications())+'</span>':'')+'</button>'+accountMenu()+'</div></div>'+financeNav+content+'</main>'+
+ '<main class="main"><div id="connection-state" role="status" aria-live="polite"></div><div class="mobile-top"><div class="brand"><div class="logo"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><div class="brand-copy"><b>Casuo</b><small>'+esc(state.household.name)+'</small></div></div><div class="mobile-account-tools"><button class="notice-bell notice-open" aria-label="Avisos">⌁'+(unreadNotifications()?'<span class="notice-count">'+Math.min(99,unreadNotifications())+'</span>':'')+'</button>'+accountMenu()+'</div></div>'+financeNav+content+'</main>'+
  '<nav class="bottom-nav" aria-label="Principal móvil">'+mainNav.map(([id,ic,l])=>'<button data-view="'+id+'" class="'+(navigationGroup()===id?'active':'')+'" '+(navigationGroup()===id?'aria-current="page"':'')+'><b aria-hidden="true">'+ic+'</b><span>'+l+'</span></button>').join('')+'</nav>'+(navigationGroup()==='mas'?'':'<button class="fab" title="'+(currentView()==='compra'?'Añadir producto':currentView()==='tareas'?'Nueva tarea':currentView()==='objetivos'?'Nuevo objetivo':'Registrar movimiento')+'">+</button>')+'</div>';
+ updateConnectionState();bindPendingActions();
  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(b.dataset.view!=='ajustes')state.settingsSection=null;location.hash=b.dataset.view});
  document.querySelectorAll('[data-account-action]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.account-menu').forEach(d=>d.open=false);if(b.dataset.accountAction==='logout')logoutDevice();else if(b.dataset.accountAction==='password')openPasswordChange();else goSettings(b.dataset.accountAction==='profile'?'perfil':b.dataset.accountAction==='family'?'familia':'seguridad')});
  document.querySelectorAll('.account-menu').forEach(d=>d.onkeydown=e=>{if(e.key==='Escape'){d.open=false;d.querySelector('summary').focus()}});
@@ -1566,8 +1607,8 @@ async function deleteMyAccount(password,confirmation){
  assertSessionEpoch(epoch);assertPrivateAccess();
  if(result?.deleted!==true||result?.user_id!==user)throw Error('No se pudo confirmar la baja. Vuelve a entrar para comprobar el estado de tu cuenta.');
  // Only erase this user's local preferences/drafts; other accounts are untouched.
- const prefix='ff_entry_draft_v1:'+user+':',keys=[];
- for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix))keys.push(key)}
+ const prefix='ff_entry_draft_v1:'+user+':',formPrefix='ff_form_draft_v1:'+user+':',keys=[];
+ for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix)||key?.startsWith(formPrefix))keys.push(key)}
  keys.forEach(key=>localStorage.removeItem(key));
  if(getDeviceLock()?.userId===user)localStorage.removeItem(DEVICE_LOCK);
  if(localStorage.getItem(LAST_EMAIL)===email)localStorage.removeItem(LAST_EMAIL);
@@ -1716,19 +1757,91 @@ function inferTask(raw){
  else if(/casa|limpiar|limpieza|ordenar/.test(nn))category='Casa';
  return {title:title.replace(/^[-,:;]+|[-,:;]+$/g,'').trim()||String(raw||'').trim(),due_date:due,assigned_to_user_id:assigned,priority,category,notes:'',reminder_days_before,recurrence_frequency,recurrence_interval_count,recurrence_end_date}
 }
+function pendingRowActions(resource){return state.user&&state.household?SaveRecovery.actions(localStorage,state.user.id,state.household.id).filter(x=>!resource||x.resource===resource):[]}
+function pendingActionsPanel(resource){
+ const items=pendingRowActions(resource),error=state.rowFeedback?.[resource];if(!items.length&&!error)return '';
+ if(!items.length)return '<section class="connection-note" role="status"><strong>No se ha guardado el cambio</strong><span>'+esc(error)+'</span></section>';
+ return '<section class="connection-note" aria-label="Cambios pendientes"><strong>Cambios pendientes de comprobar</strong><span>No se envían automáticamente. Reintenta para comprobar si ya se guardaron.</span>'+(error?'<p>'+esc(error)+'</p>':'')+items.map(x=>'<div><span>'+esc(x.label||'Cambio pendiente')+'</span> <button class="mini" data-retry-row="'+esc(x.id)+'" data-row-resource="'+resource+'">Comprobar y reintentar</button> <button class="mini" data-discard-row="'+esc(x.id)+'" data-row-resource="'+resource+'">Descartar</button></div>').join('')+'</section>';
+}
+function bindPendingActions(){
+ document.querySelectorAll('[data-retry-row]').forEach(b=>b.onclick=()=>{const op=pendingRowActions(b.dataset.rowResource).find(x=>x.id===b.dataset.retryRow);if(op)runRowChange(op.resource,null,null,op)});
+ document.querySelectorAll('[data-discard-row]').forEach(b=>b.onclick=()=>{if(!confirm('El cambio puede estar guardado. Actualiza los datos para revisar su estado. ¿Descartar este pendiente local?'))return;const resource=b.dataset.rowResource,id=b.dataset.discardRow;SaveRecovery.setActions(localStorage,state.user.id,state.household.id,pendingRowActions().filter(x=>x.resource!==resource||x.id!==id));renderApp()});
+}
+async function runRowChange(resource,item,patch,pending=null){
+ assertPrivateAccess();if(state.onboardingPreview)return;
+ const user=state.user.id,household=state.household.id,epoch=sessionEpoch,key=resource+':'+(pending?.id||item?.id),check=()=>assertSaveContext(epoch,user,household);
+ state.rowBusy=state.rowBusy||new Set();if(state.rowBusy.has(key))return;state.rowBusy.add(key);state.rowFeedback=state.rowFeedback||{};
+ const rowId=pending?.id||item.id,buttons=[...document.querySelectorAll('[data-task-toggle],[data-shop-buy],[data-shop-add],[data-shop-archive],[data-retry-row],[data-discard-row]')].filter(b=>!b.disabled&&Object.values(b.dataset||{}).includes(rowId));buttons.forEach(b=>b.disabled=true);
+ let confirmed=false;
+ try{
+  const existing=pendingRowActions(resource).find(x=>x.id===(pending?.id||item.id));
+  const op=existing||pending||{resource,household,id:item.id,create:false,expected:item.updated_at,payload:{...patch,household_id:household},label:(item.name||item.title)+' · '+(resource==='family_tasks'?(patch.status==='HECHA'?'Completar':'Reabrir'):patch.archived?'Retirar':patch.purchased?'Marcar comprado':'Añadir a la lista')};
+  try{SaveRecovery.setActions(localStorage,user,household,[...pendingRowActions().filter(x=>x.resource!==resource||x.id!==op.id),op])}catch{state.rowFeedback[resource]='No se ha enviado: el dispositivo no pudo conservar el cambio.';state.rowBusy.delete(key);renderApp();return}updateConnectionState();
+  toast(offline()?'Cambio pendiente. Reintenta cuando vuelva internet.':'Guardando cambio…');
+  const result=await saveSharedRecord(op,epoch,user,household);check();confirmed=true;
+  const field=resource==='shopping_items'?'shopping':'tasks';state.data[field]=[...(state.data[field]||[]).filter(x=>x.id!==result.record.id),result.record];
+  try{SaveRecovery.setActions(localStorage,user,household,pendingRowActions().filter(x=>x.resource!==resource||x.id!==op.id))}catch{}
+  if(resource==='family_tasks')try{await loadAll(true);check()}catch(e){if(e.sessionCancelled)throw e}
+  state.rowFeedback[resource]='';state.rowBusy.delete(key);renderApp();toast(result.existing?'Cambio confirmado. Ya estaba guardado.':'Cambio guardado.');
+ }catch(e){
+  if(e.sessionCancelled||epoch!==sessionEpoch)return;
+  if(confirmed){toast('El cambio está guardado. Actualiza los datos cuando vuelva la conexión.');return}
+  if(SaveRecovery.definite(e)){try{SaveRecovery.setActions(localStorage,user,household,pendingRowActions().filter(x=>resource!==x.resource||x.id!==(pending?.id||item.id)))}catch{}}
+  state.rowFeedback[resource]=SaveRecovery.message(e);state.rowBusy.delete(key);renderApp();toast(SaveRecovery.message(e));
+ }finally{if(epoch===sessionEpoch){state.rowBusy.delete(key);buttons.forEach(b=>b.disabled=false)}}
+}
+function recoverableDraft(kind,id){
+ const stored=SaveRecovery.read(localStorage,state.user.id,state.household.id,kind);
+ return stored&&(stored.pending||!id||stored.recordId===id)?stored:null;
+}
+function bindRecoverableForm(back,kind,recordId,fields,statusId,saveId,expected,stored){
+ const user=state.user.id,household=state.household.id,epoch=sessionEpoch,status=back.querySelector('#'+statusId),button=back.querySelector('#'+saveId);
+ const ctx={kind,recordId,expected:stored?.expected||expected,createId:stored?.createId||crypto.randomUUID(),pending:stored?.pending||null,busy:false};back.saveContext=ctx;
+ const values=()=>Object.fromEntries(fields.map(id=>{const el=back.querySelector('#'+id);return [id,el.type==='checkbox'?el.checked:el.value]}));
+ ctx.capture=()=>{try{assertSaveContext(epoch,user,household);SaveRecovery.write(localStorage,user,household,kind,{recordId:ctx.recordId,expected:ctx.expected,createId:ctx.createId,form:values(),pending:ctx.pending});if(!ctx.busy)saveState(status,ctx.pending?'pending':'draft',ctx.pending?'Guardado pendiente de comprobar. Pulsa Comprobar y reintentar.':'Borrador guardado en este dispositivo. Aún no se ha enviado.');return true}catch(e){if(e.sessionCancelled)return false;saveState(status,'error','No se pudo conservar el borrador en este dispositivo. Mantén esta pantalla abierta.');return false}};
+ ctx.lock=()=>{back.querySelectorAll('input,select').forEach(x=>x.disabled=!!ctx.pending);button.textContent=ctx.busy?'Guardando…':ctx.pending?'Comprobar y reintentar':(kind==='task'?'Guardar tarea':recordId?'Guardar cambios':'Añadir producto')};
+ if(stored){for(const id of fields){const el=back.querySelector('#'+id);if(stored.form[id]!==undefined){if(el.type==='checkbox')el.checked=stored.form[id];else el.value=stored.form[id]}}saveState(status,ctx.pending?'pending':'draft',ctx.pending?'Borrador recuperado. Comprueba el guardado antes de crear otro.':'Borrador recuperado. Revisa los datos antes de guardar.')}
+ ctx.lock();back.addEventListener('input',()=>{if(!ctx.busy)ctx.capture()});back.addEventListener('change',()=>{if(!ctx.busy)ctx.capture()});
+ const close=()=>{if(ctx.busy)return;ctx.capture();back.remove();updateConnectionState()};ctx.close=close;
+ const discard=back.querySelector('[data-discard-form]');if(discard)discard.onclick=()=>{if(ctx.busy)return;if(!confirm(ctx.pending?'El cambio puede estar guardado. Actualiza los datos antes de crear otro. ¿Descartar este borrador?':'¿Descartar este borrador local?'))return;SaveRecovery.clear(localStorage,user,household,kind);back.remove();updateConnectionState()};
+ return ctx;
+}
+async function saveRecoverableForm(back,resource,payload,apply){
+ const ctx=back.saveContext;if(ctx.busy)return;assertPrivateAccess();if(state.onboardingPreview)return;
+ const user=state.user.id,household=state.household.id,epoch=sessionEpoch,check=()=>assertSaveContext(epoch,user,household);
+ const status=back.querySelector(ctx.kind==='task'?'#task-save-state':'#shop-status'),button=back.querySelector(ctx.kind==='task'?'#task-save':'#shop-save');
+ const previousPending=ctx.pending;ctx.pending=ctx.pending||{resource,household,id:ctx.recordId||ctx.createId,create:!ctx.recordId,expected:ctx.expected,payload};
+ if(!ctx.capture()){ctx.pending=previousPending;ctx.lock();saveState(status,'error','No se ha enviado: no se pudo conservar el borrador. Mantén esta pantalla abierta.');return}
+ ctx.busy=true;button.disabled=true;ctx.lock();saveState(status,'saving','Guardando en el hogar…');let saved=false;
+ try{
+  const result=await saveSharedRecord(ctx.pending,epoch,user,household);check();saved=true;
+  apply(result.record);try{SaveRecovery.clear(localStorage,user,household,ctx.kind)}catch{}
+  saveState(status,'saved','Guardado en el hogar.');back.remove();updateConnectionState();toast(result.existing?'Guardado confirmado. No se ha duplicado.':'Guardado en el hogar.');
+  try{await loadAll(true);check();renderApp()}catch(e){if(!e.sessionCancelled&&epoch===sessionEpoch)toast('El cambio está guardado. Actualiza los datos cuando vuelva la conexión.')}
+ }catch(e){
+  if(e.sessionCancelled||epoch!==sessionEpoch)return;
+  if(!saved){if(SaveRecovery.definite(e)){ctx.pending=null;ctx.capture()}ctx.lock();saveState(status,ctx.pending?'pending':'error',SaveRecovery.message(e))}
+ }finally{if(epoch===sessionEpoch){ctx.busy=false;button.disabled=false;ctx.lock()}}
+}
 function openTaskEditor(id,prefill){
- const t=id?(state.data.tasks||[]).find(x=>x.id===id):Object.assign({title:'',notes:'',assigned_to_user_id:'',due_date:'',priority:'NORMAL',category:'',status:'PENDIENTE',reminder_days_before:0,recurrence_frequency:'NONE',recurrence_interval_count:1,recurrence_end_date:'',recurrence_anchor_date:null},prefill||{});
- if(!t)return;
+ if(!guardPrivateView()||state.onboardingPreview||document.getElementById('task-modal'))return;
+ const stored=recoverableDraft('task',id);if(stored)id=stored.recordId;
+ const t=id?((state.data.tasks||[]).find(x=>x.id===id)||{}):Object.assign({title:'',notes:'',assigned_to_user_id:'',due_date:'',priority:'NORMAL',category:'',status:'PENDIENTE',reminder_days_before:0,recurrence_frequency:'NONE',recurrence_interval_count:1,recurrence_end_date:'',recurrence_anchor_date:null},prefill||{});
+ if(!t&&!stored)return;
  const back=document.createElement('div');back.className='modal-back';back.id='task-modal';
  const assignee='<option value="">Cualquiera</option>'+state.data.members.map(m=>'<option value="'+m.user_id+'" '+(m.user_id===t.assigned_to_user_id?'selected':'')+'>'+esc(m.display_name||'Miembro')+'</option>').join('');
- back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Familia</span><h2>'+(id?'Editar tarea':'Nueva tarea')+'</h2></div><button class="close" id="task-x">×</button></div><div class="edit-grid"><label class="wide">Tarea<input id="task-title" value="'+esc(t.title)+'" placeholder="Ej. Sacar la basura cada martes"></label><label>Responsable<select id="task-assignee">'+assignee+'</select></label><label>Fecha límite<input id="task-due" type="date" value="'+esc(t.due_date||'')+'"></label><label>Prioridad<select id="task-priority"><option value="NORMAL">Normal</option><option value="IMPORTANTE">Importante</option></select></label><label>Categoría<input id="task-category" value="'+esc(t.category||'')+'" placeholder="Casa, Compras, Miguel…"></label><label>Recordatorio<select id="task-reminder"><option value="">Sin aviso</option><option value="0">El mismo día</option><option value="1">1 día antes</option><option value="2">2 días antes</option><option value="3">3 días antes</option><option value="7">1 semana antes</option></select></label><label>Repetir<select id="task-recurrence"><option value="NONE">No repetir</option><option value="DAILY">Días</option><option value="WEEKLY">Semanas</option><option value="MONTHLY">Meses</option><option value="YEARLY">Años</option></select></label><label id="task-interval-wrap">Cada cuántos períodos<input id="task-interval" type="number" inputmode="numeric" min="1" max="60" value="'+esc(t.recurrence_interval_count||1)+'"></label><label id="task-end-wrap">Repetir hasta<input id="task-end" type="date" value="'+esc(t.recurrence_end_date||'')+'"></label><label class="wide">Notas<input id="task-notes" value="'+esc(t.notes||'')+'" placeholder="Opcional"></label></div><div class="notice">Si la tarea se repite, al marcarla como hecha se creará automáticamente la siguiente fecha. Los avisos pueden llegar al iPhone aunque la app esté cerrada si las notificaciones están activadas.</div>'+(t.status==='HECHA'&&t.recurrence_frequency!=='NONE'?'<div class="task-recurrence-note">Esta ocurrencia ya está completada. Cambiarla no modifica una siguiente ocurrencia que ya se haya creado.</div>':'')+'<div id="task-error" class="status err" style="display:none"></div><div class="modal-actions"><button class="btn" id="task-cancel">Cancelar</button><button class="save" id="task-save">Guardar tarea</button></div></div>';
+ back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Familia</span><h2>'+(id?'Editar tarea':'Nueva tarea')+'</h2></div><button class="close" id="task-x">×</button></div><div class="edit-grid"><label class="wide">Tarea<input id="task-title" value="'+esc(t.title)+'" placeholder="Ej. Sacar la basura cada martes"></label><label>Responsable<select id="task-assignee">'+assignee+'</select></label><label>Fecha límite<input id="task-due" type="date" value="'+esc(t.due_date||'')+'"></label><label>Prioridad<select id="task-priority"><option value="NORMAL">Normal</option><option value="IMPORTANTE">Importante</option></select></label><label>Categoría<input id="task-category" value="'+esc(t.category||'')+'" placeholder="Casa, Compras, Miguel…"></label><label>Recordatorio<select id="task-reminder"><option value="">Sin aviso</option><option value="0">El mismo día</option><option value="1">1 día antes</option><option value="2">2 días antes</option><option value="3">3 días antes</option><option value="7">1 semana antes</option></select></label><label>Repetir<select id="task-recurrence"><option value="NONE">No repetir</option><option value="DAILY">Días</option><option value="WEEKLY">Semanas</option><option value="MONTHLY">Meses</option><option value="YEARLY">Años</option></select></label><label id="task-interval-wrap">Cada cuántos períodos<input id="task-interval" type="number" inputmode="numeric" min="1" max="60" value="'+esc(t.recurrence_interval_count||1)+'"></label><label id="task-end-wrap">Repetir hasta<input id="task-end" type="date" value="'+esc(t.recurrence_end_date||'')+'"></label><label class="wide">Notas<input id="task-notes" value="'+esc(t.notes||'')+'" placeholder="Opcional"></label></div><div class="notice">Si la tarea se repite, al marcarla como hecha se creará automáticamente la siguiente fecha. Los avisos pueden llegar al iPhone aunque la app esté cerrada si las notificaciones están activadas.</div>'+(t.status==='HECHA'&&t.recurrence_frequency!=='NONE'?'<div class="task-recurrence-note">Esta ocurrencia ya está completada. Cambiarla no modifica una siguiente ocurrencia que ya se haya creado.</div>':'')+'<div id="task-error" class="status err" role="alert" style="display:none"></div><div id="task-save-state" class="save-state" role="status" aria-live="polite">Solo se guarda en el hogar al confirmar.</div><div class="modal-actions"><button class="btn" id="task-cancel">Cancelar</button><button class="save" id="task-save">Guardar tarea</button></div><div class="draft-footer"><span class="bank-help">El borrador se conserva al cerrar.</span><button class="mini" data-discard-form>Descartar borrador</button></div></div>';
  document.body.appendChild(back);
  document.getElementById('task-priority').value=t.priority||'NORMAL';document.getElementById('task-recurrence').value=t.recurrence_frequency||'NONE';document.getElementById('task-reminder').value=t.reminder_days_before===null?'':String(t.reminder_days_before??0);
+ const ctx=bindRecoverableForm(back,'task',id,['task-title','task-assignee','task-due','task-priority','task-category','task-reminder','task-recurrence','task-interval','task-end','task-notes'],'task-save-state','task-save',t.updated_at,stored);
  const sync=()=>{const recurring=document.getElementById('task-recurrence').value!=='NONE';document.getElementById('task-interval-wrap').style.display=recurring?'grid':'none';document.getElementById('task-end-wrap').style.display=recurring?'grid':'none'};document.getElementById('task-recurrence').onchange=sync;sync();
- const close=()=>back.remove();document.getElementById('task-x').onclick=close;document.getElementById('task-cancel').onclick=close;back.onclick=e=>{if(e.target===back)close()};document.getElementById('task-save').onclick=()=>saveTaskEditor(id);
+ const close=ctx.close;document.getElementById('task-x').onclick=close;document.getElementById('task-cancel').onclick=close;back.onclick=e=>{if(e.target===back)close()};document.getElementById('task-save').onclick=()=>saveTaskEditor(id);
  setTimeout(()=>document.getElementById('task-title')?.focus(),30);
 }
 async function saveTaskEditor(id){
+ const back=document.getElementById('task-modal');if(!back||back.saveContext.busy)return;
+ const apply=item=>{state.data.tasks=[...(state.data.tasks||[]).filter(x=>x.id!==item.id),item]};
+ if(back.saveContext.pending)return saveRecoverableForm(back,'family_tasks',back.saveContext.pending.payload,apply);
  const title=document.getElementById('task-title').value.trim(),err=document.getElementById('task-error'),btn=document.getElementById('task-save'),due=document.getElementById('task-due').value||null,freq=document.getElementById('task-recurrence').value,interval=Math.max(1,Math.min(60,Number(document.getElementById('task-interval').value)||1)),reminderRaw=document.getElementById('task-reminder').value,endDate=document.getElementById('task-end').value||null,existing=id?(state.data.tasks||[]).find(x=>x.id===id):null;
  const fail=m=>{err.textContent=m;err.style.display='block';return};
  if(!title)return fail('Escribe una tarea.');
@@ -1737,16 +1850,13 @@ async function saveTaskEditor(id){
  const anchor=freq==='NONE'?null:(existing&&existing.recurrence_frequency===freq&&existing.due_date===due&&existing.recurrence_anchor_date?existing.recurrence_anchor_date:due);
  const payload={household_id:state.household.id,title,notes:document.getElementById('task-notes').value.trim()||null,assigned_to_user_id:document.getElementById('task-assignee').value||null,due_date:due,priority:document.getElementById('task-priority').value,category:document.getElementById('task-category').value.trim()||null,reminder_days_before:due?(reminderRaw===''?null:Number(reminderRaw)):null,recurrence_frequency:freq,recurrence_interval_count:freq==='NONE'?1:interval,recurrence_end_date:freq==='NONE'?null:endDate,recurrence_anchor_date:anchor};
  if(!id){payload.created_by=state.user.id;payload.status='PENDIENTE'}
- btn.disabled=true;btn.textContent='Guardando…';
- try{id?await updateTask(id,payload):await insertTask(payload);document.getElementById('task-modal')?.remove();await loadAll(true);renderApp();toast('Tarea guardada')}
- catch(e){btn.disabled=false;btn.textContent='Guardar tarea';fail(e.message)}
+ err.style.display='none';return saveRecoverableForm(back,'family_tasks',payload,apply);
 }
 async function toggleTask(id){
  const t=(state.data.tasks||[]).find(x=>x.id===id);if(!t)return;
- const wasDone=t.status==='HECHA',isRecurring=t.recurrence_frequency&&t.recurrence_frequency!=='NONE';
- try{await updateTask(id,{status:wasDone?'PENDIENTE':'HECHA'});await loadAll(true);renderApp();toast(wasDone?'Tarea reabierta':isRecurring?'Tarea completada · siguiente preparada':'Tarea completada')}
- catch(e){alert('No se pudo actualizar: '+e.message)}
+ return runRowChange('family_tasks',t,{status:t.status==='HECHA'?'PENDIENTE':'HECHA'});
 }
+
 async function removeTask(id){
  const t=(state.data.tasks||[]).find(x=>x.id===id);if(!t||!confirm('¿Borrar la tarea “'+t.title+'”?'))return;
  try{await deleteTask(id);await loadAll(true);renderApp();toast('Tarea borrada')}catch(e){alert('No se pudo borrar: '+e.message)}
@@ -1759,13 +1869,13 @@ function taskRows(list){
  }).join('')||'<div class="empty">No hay tareas aquí.</div>'
 }
 function bindTaskActions(){
- document.querySelectorAll('[data-task-toggle]').forEach(b=>b.onclick=()=>toggleTask(b.dataset.taskToggle));
+ document.querySelectorAll('[data-task-toggle]').forEach(b=>{b.disabled=!!state.rowBusy?.has('family_tasks:'+b.dataset.taskToggle);b.onclick=()=>toggleTask(b.dataset.taskToggle)});
  document.querySelectorAll('[data-task-edit]').forEach(b=>b.onclick=()=>openTaskEditor(b.dataset.taskEdit));
  document.querySelectorAll('[data-task-delete]').forEach(b=>b.onclick=()=>removeTask(b.dataset.taskDelete));
 }
 function viewTareas(){
  const tasks=state.data.tasks||[],pending=tasks.filter(t=>t.status==='PENDIENTE'),mine=pending.filter(t=>t.assigned_to_user_id===state.user.id),important=pending.filter(t=>t.priority==='IMPORTANTE'),today=pending.filter(t=>t.due_date===todayISO()),recurring=pending.filter(t=>t.recurrence_frequency&&t.recurrence_frequency!=='NONE');
- shell(head('Organización familiar','Tareas','Lista compartida, recordatorios y tareas recurrentes para Nico y Bea.','+ Nueva tarea','new-task')+
+ shell(head('Organización familiar','Tareas','Lista compartida, recordatorios y tareas recurrentes para vuestro hogar.','+ Nueva tarea','new-task')+pendingActionsPanel('family_tasks')+
  '<section class="metrics"><div class="metric"><span>Pendientes</span><strong>'+pending.length+'</strong><small>Total familiar</small></div><div class="metric"><span>Para ti</span><strong class="blue">'+mine.length+'</strong><small>Asignadas a '+esc(state.member?.display_name||'ti')+'</small></div><div class="metric"><span>Hoy</span><strong class="'+(today.length?'orange':'')+'">'+today.length+'</strong><small>Con fecha de hoy</small></div><div class="metric"><span>Importantes</span><strong class="'+(important.length?'red':'')+'">'+important.length+'</strong><small>'+recurring.length+' recurrentes activas</small></div></section>'+
  '<section class="panel"><div class="panel-head"><div><span class="sub">Añadir rápido</span><h2>¿Qué hay que hacer?</h2></div></div><div class="task-quick"><input id="task-quick-input" placeholder="Ej.: Sacar la basura cada martes para Nico"><button class="btn" id="task-quick-add">Preparar tarea</button></div><div class="inline-help">Entiende “hoy”, “mañana”, “para Nico/Bea”, “importante”, “cada martes” y “cada 6 meses”. Siempre podrás revisar antes de guardar.</div><div class="task-tabs"><button class="task-tab active" data-task-filter="pending">Pendientes</button><button class="task-tab" data-task-filter="mine">Mías</button><button class="task-tab" data-task-filter="recurring">Recurrentes</button><button class="task-tab" data-task-filter="done">Completadas</button><button class="task-tab" data-task-filter="all">Todas</button></div><div id="task-list" class="task-list"></div></section>');
  bindCommon();document.getElementById('new-task').onclick=()=>openTaskEditor(null);
@@ -1856,30 +1966,26 @@ function viewInicio(){
  '<div class="home-secondary"><details class="panel home-disclosure"><summary><span>Cuentas</span><small>'+state.data.accounts.length+'</small></summary><div class="home-disclosure-body">'+(state.data.accounts.map(a=>'<div class="home-due"><b>'+esc(a.name)+'</b><strong>'+money(a.current_balance)+'</strong></div>').join('')||'<p class="home-footnote">Añade tu primera cuenta para llevar sus saldos.</p>')+'<button class="mini" data-go="patrimonio">Ver patrimonio →</button></div></details><details class="panel home-disclosure"><summary><span>Objetivos</span><small>'+goals.length+'</small></summary><div class="home-disclosure-body">'+(goals.slice(0,3).map(g=>'<div class="goal-mini"><b>'+esc(g.name)+'</b><span>'+money(g.progress_amount)+' de '+money(g.target_amount)+'</span><div class="goal-track"><i style="width:'+goalPct(g).toFixed(1)+'%"></i></div></div>').join('')||'<p class="home-footnote">Crea una meta de ahorro cuando la necesitéis.</p>')+'<button class="mini" data-go="objetivos">Ver objetivos →</button></div></details></div><footer class="home-footer"><span>Datos registrados de vuestro hogar</span><button class="mini" id="refresh">Actualizar</button></footer></div>');
  bindCommon();bindFirstSteps();const recurring=document.getElementById('home-recurring');if(recurring)recurring.onclick=()=>{state.settingsSection='recurrentes';location.hash='ajustes'};document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>location.hash=b.dataset.go);
 }
-async function writeShopping(id,payload){
- const result=await authed('/rest/v1/shopping_items'+(id?'?id=eq.'+id+'&household_id=eq.'+state.household.id:''),{method:id?'PATCH':'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(id?payload:{...payload,household_id:state.household.id})});
- if(!result?.length)throw Error('No se pudo guardar el producto.');
- const item=result[0];state.data.shopping=[...(state.data.shopping||[]).filter(x=>x.id!==item.id),item].sort((a,b)=>a.id.localeCompare(b.id));return item;
-}
 function openShoppingEditor(id=null){
- const item=id?state.data.shopping.find(x=>x.id===id):null;
- const back=document.createElement('div');back.className='modal-back';let busy=false;
- back.innerHTML='<div class="modal"><div class="modal-head"><h2>'+esc(item?'Editar producto':'Añadir a la compra')+'</h2><button class="close" aria-label="Cerrar">×</button></div><div class="edit-grid"><label class="wide">Producto<input id="shop-name" maxlength="120" value="'+esc(item?.name||'')+'" placeholder="Ej.: Leche"></label><label>Cantidad<input id="shop-quantity" maxlength="80" value="'+esc(item?.quantity||'')+'" placeholder="Ej.: 2 litros"></label><label>Sección<select id="shop-section">'+FamilyShopping.SECTIONS.map(x=>'<option '+(x===(item?.section||'Otros')?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label><label class="wide">Nota<input id="shop-note" maxlength="500" value="'+esc(item?.note||'')+'" placeholder="Marca, tamaño…"></label></div><label class="rule-remember"><input type="checkbox" id="shop-favorite" '+(item?.favorite?'checked':'')+'>Producto habitual</label><p id="shop-status" class="bank-help" aria-live="polite"></p><div class="modal-actions"><button class="save" id="shop-save">'+(item?'Guardar cambios':'Añadir producto')+'</button></div></div>';
- document.body.appendChild(back);const get=id=>back.querySelector('#'+id),close=()=>{if(!busy)back.remove()};back.querySelector('.close').onclick=close;back.onclick=e=>{if(e.target===back)close()};
- get('shop-save').onclick=async()=>{
-   if(busy)return;
-   try{
-     const payload=FamilyShopping.payload({name:get('shop-name').value,quantity:get('shop-quantity').value,note:get('shop-note').value,section:get('shop-section').value,favorite:get('shop-favorite').checked});
-     busy=true;get('shop-save').disabled=true;get('shop-status').textContent='Guardando…';
-     if(!item){
-       const latest=await restAll('shopping_items','household_id=eq.'+state.household.id+'&select=*&order=id.asc');state.data.shopping=latest;
-       const existing=latest.find(x=>x.name.toLocaleLowerCase()===payload.name.toLocaleLowerCase());
-       if(existing){get('shop-status').textContent='Este producto ya existe. Puedes editarlo o volver a añadirlo desde la lista.';busy=false;get('shop-save').disabled=false;return}
-     }
-     await writeShopping(item?.id,{...payload,...(!item?{id:crypto.randomUUID()}:{} )});back.remove();viewCompra();toast('Producto guardado');
-   }catch(e){get('shop-status').textContent=e.code==='23505'?'Este producto ya existe en el hogar. Cierra y actualiza la lista.':'No se pudo confirmar el guardado: '+e.message+' Puedes reintentar; no se duplicará el mismo nombre.';busy=false;get('shop-save').disabled=false}
- };get('shop-name').focus();
+ if(!guardPrivateView()||state.onboardingPreview||document.getElementById('shopping-modal'))return;
+ const stored=recoverableDraft('shopping',id);if(stored)id=stored.recordId;
+ const item=id?(state.data.shopping||[]).find(x=>x.id===id)||{}:null;
+ const back=document.createElement('div');back.className='modal-back';back.id='shopping-modal';
+ back.innerHTML='<div class="modal"><div class="modal-head"><h2>'+esc(item?'Editar producto':'Añadir a la compra')+'</h2><button class="close" aria-label="Cerrar">×</button></div><div class="edit-grid"><label class="wide">Producto<input id="shop-name" maxlength="120" value="'+esc(item?.name||'')+'" placeholder="Ej.: Leche"></label><label>Cantidad<input id="shop-quantity" maxlength="80" value="'+esc(item?.quantity||'')+'" placeholder="Ej.: 2 litros"></label><label>Sección<select id="shop-section">'+FamilyShopping.SECTIONS.map(x=>'<option '+(x===(item?.section||'Otros')?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label><label class="wide">Nota<input id="shop-note" maxlength="500" value="'+esc(item?.note||'')+'" placeholder="Marca, tamaño…"></label></div><label class="rule-remember"><input type="checkbox" id="shop-favorite" '+(item?.favorite?'checked':'')+'>Producto habitual</label><p id="shop-status" class="save-state" role="status" aria-live="polite">Solo se guarda en el hogar al confirmar.</p><div class="modal-actions"><button class="save" id="shop-save">'+(item?'Guardar cambios':'Añadir producto')+'</button></div><div class="draft-footer"><span class="bank-help">El borrador se conserva al cerrar.</span><button class="mini" data-discard-form>Descartar borrador</button></div></div>';
+ document.body.appendChild(back);
+ const ctx=bindRecoverableForm(back,'shopping',id,['shop-name','shop-quantity','shop-section','shop-note','shop-favorite'],'shop-status','shop-save',item?.updated_at,stored);
+ back.querySelector('.close').onclick=ctx.close;back.onclick=e=>{if(e.target===back)ctx.close()};
+ back.querySelector('#shop-save').onclick=()=>saveShoppingEditor(back);
+ back.querySelector('#shop-name').focus();
 }
+async function saveShoppingEditor(back){
+ if(back.saveContext.busy)return;const get=id=>back.querySelector('#'+id),ctx=back.saveContext;
+ let payload;
+ try{payload=ctx.pending?.payload||{...FamilyShopping.payload({name:get('shop-name').value,quantity:get('shop-quantity').value,note:get('shop-note').value,section:get('shop-section').value,favorite:get('shop-favorite').checked}),household_id:state.household.id}}
+ catch(e){saveState(get('shop-status'),'error',e.message);return}
+ return saveRecoverableForm(back,'shopping_items',payload,item=>{state.data.shopping=[...(state.data.shopping||[]).filter(x=>x.id!==item.id),item].sort((a,b)=>a.id.localeCompare(b.id))});
+}
+
 function viewCompra(){
  const items=state.data.shopping||[],byName=(a,b)=>a.name.localeCompare(b.name,'es'),pending=items.filter(x=>!x.archived&&!x.purchased).sort(byName),bought=items.filter(x=>!x.archived&&x.purchased).sort(byName),favorites=items.filter(x=>x.favorite).sort((a,b)=>FamilyShopping.SECTIONS.indexOf(a.section)-FamilyShopping.SECTIONS.indexOf(b.section)||byName(a,b)),archived=items.filter(x=>x.archived&&!x.favorite).sort(byName);
  const row=(x,mode)=>{
@@ -1887,13 +1993,14 @@ function viewCompra(){
   return '<li class="shopping-row">'+(mode==='pending'?'<button class="shopping-check" data-shop-buy="'+x.id+'" aria-label="Marcar '+label+' como comprado" title="Marcar como comprado"><span aria-hidden="true"></span></button>':'<span class="shopping-dot" aria-hidden="true">•</span>')+'<button class="shopping-name" data-shop-edit="'+x.id+'" aria-label="Editar '+label+'"><span>'+label+'</span>'+(detail?'<small>'+detail+'</small>':'')+'</button>'+(mode==='pending'?'<button class="shopping-action" data-shop-archive="'+x.id+'" aria-label="Retirar '+label+'" title="Retirar de la lista">×</button>':'<button class="shopping-action" data-shop-add="'+x.id+'" aria-label="'+(onList?label+' ya está en la lista':'Añadir '+label+' a la lista')+'" title="'+(onList?'En la lista':'Añadir a la lista')+'">'+(onList?'✓':'+')+'</button>')+'</li>';
  };
  const list=(rows,mode)=>'<ul class="shopping-list">'+rows.map(x=>row(x,mode)).join('')+'</ul>';
- shell('<div class="shopping-page">'+head('Organización familiar','Compra',pending.length+' productos pendientes · Lista compartida del hogar','+ Añadir producto','shop-new')+'<div id="shop-feedback" class="bank-help" aria-live="polite"></div><section class="shopping-section" aria-label="Lista de la compra">'+(pending.length?list(pending,'pending'):'<p class="shopping-empty">La lista está vacía. Añade un producto o pulsa + en tus habituales.</p>')+'</section><section class="shopping-section"><h2>Habituales <span>'+favorites.length+'</span></h2><p class="shopping-hint">Pulsa + para añadir. Toca el nombre para editar.</p>'+(favorites.length?list(favorites,'favorite'):'<p class="shopping-empty">Marca «Producto habitual» al añadir o editar un producto.</p>')+'</section><section class="shopping-history"><details><summary>Comprados ('+bought.length+')</summary>'+list(bought,'bought')+'</details><details><summary>Retirados ('+archived.length+')</summary>'+list(archived,'archived')+'</details></section><p class="shopping-hint">Lista compartida · Se actualiza automáticamente. Marcar comprado no registra un gasto.</p></div>');
+ shell('<div class="shopping-page">'+head('Organización familiar','Compra',pending.length+' productos pendientes · Lista compartida del hogar','+ Añadir producto','shop-new')+pendingActionsPanel('shopping_items')+'<div id="shop-feedback" class="bank-help" aria-live="polite"></div><section class="shopping-section" aria-label="Lista de la compra">'+(pending.length?list(pending,'pending'):'<p class="shopping-empty">La lista está vacía. Añade un producto o pulsa + en tus habituales.</p>')+'</section><section class="shopping-section"><h2>Habituales <span>'+favorites.length+'</span></h2><p class="shopping-hint">Pulsa + para añadir. Toca el nombre para editar.</p>'+(favorites.length?list(favorites,'favorite'):'<p class="shopping-empty">Marca «Producto habitual» al añadir o editar un producto.</p>')+'</section><section class="shopping-history"><details><summary>Comprados ('+bought.length+')</summary>'+list(bought,'bought')+'</details><details><summary>Retirados ('+archived.length+')</summary>'+list(archived,'archived')+'</details></section><p class="shopping-hint">Lista compartida · Se actualiza automáticamente. Marcar comprado no registra un gasto.</p></div>');
  bindCommon();document.getElementById('shop-new').onclick=()=>openShoppingEditor();
  document.querySelectorAll('[data-shop-edit]').forEach(b=>b.onclick=()=>openShoppingEditor(b.dataset.shopEdit));
  for(const [action,patch] of [['buy',{purchased:true}],['add',{purchased:false,archived:false}],['archive',{archived:true}]])document.querySelectorAll('[data-shop-'+action+']').forEach(b=>{
    const id=b.dataset['shop'+action[0].toUpperCase()+action.slice(1)],item=items.find(x=>x.id===id);
    if(action==='add'&&!item.archived&&!item.purchased){b.disabled=true;return}
-   b.onclick=async()=>{b.disabled=true;try{await writeShopping(id,patch);if(currentView()==='compra')viewCompra()}catch(e){b.disabled=false;const message=document.getElementById('shop-feedback');if(message)message.textContent='No se pudo confirmar el cambio. Actualiza la lista o reintenta: '+e.message}};
+   if(state.rowBusy?.has('shopping_items:'+id))b.disabled=true;
+   b.onclick=()=>runRowChange('shopping_items',item,patch);
  });
 }
 function viewMovimientos(){

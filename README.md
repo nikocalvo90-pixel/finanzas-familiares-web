@@ -301,3 +301,40 @@ modificar los borradores de la nueva sesión.
 Pruebas: `node --test tests/*.test.cjs`, incluidas respuestas perdidas, cortes antes
 del envío, recarga/reintento, almacenamiento lleno, edición concurrente y cancelación
 de sesión. No se han modificado movimientos ni listas de usuarios reales.
+# Revisión de aislamiento entre familias — 11 octubre 2026
+
+Se revisaron RLS de todas las tablas públicas, vistas con `security_invoker`,
+permisos de ejecución, funciones financieras y funciones de pertenencia.
+Las pruebas con dos hogares y usuarios completamente sintéticos confirmaron
+aislamiento de tablas/vistas y RPCs, rechazo de invitaciones caducadas,
+revocadas o agotadas, y bloqueo de acciones del propietario para miembros.
+Los datos temporales se revierten en cada bloque de
+`supabase/tests/family_isolation_audit.sql`.
+
+Se corrigió el envío push: consentimiento, evento y dispositivo deben coincidir
+en hogar y usuario. Antes de cada envío se vuelven a comprobar el evento,
+consentimiento, suscripción y pertenencia actual. Un trigger privado elimina
+suscripciones, preferencias y eventos de ese hogar cuando se elimina una
+pertenencia, tanto por salida como por revocación. No modifica otros hogares ni
+historial financiero. El trabajo de avisos tampoco crea preferencias para un
+usuario que ya no pertenece al hogar. Se verificó la limpieza mediante la salida
+de un miembro sintético de dos hogares; la revocación directa por propietario
+usa el mismo trigger, aunque ese DELETE no se ejecutó en esta revisión.
+
+El servicio `family-notifications` conserva la autenticación propia con el token
+privado de cron y solo acepta POST. La configuración inicial no puede generarse
+por una petición anónima y los errores HTTP no exponen detalles internos.
+La dependencia `web-push` conserva su versión fijada 3.6.7.
+
+Validación: 143 pruebas Node, auditorías SQL por bloques y comprobación del
+servicio desplegado sin credenciales (POST 401 y GET 405). El almacén de documentos
+es privado y sus políticas exigen pertenencia actual; no se ejercitó la descarga
+física ni se enviaron avisos reales. Los enlaces ya firmados duran 60 segundos;
+los archivos descargados y avisos ya entregados no se pueden retirar remotamente.
+
+Advisors no muestra nuevas advertencias. Permanecen 18 RPCs públicos con
+`SECURITY DEFINER`, comprobados con autorización explícita; la extensión `pg_net`
+en public; y la protección de contraseñas filtradas desactivada en Auth.
+Referencias: [RPCs privilegiados](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable),
+[pg_net](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public),
+[contraseñas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).

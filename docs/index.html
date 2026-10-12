@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261012.32">
+<link rel="manifest" href="./manifest.webmanifest?v=20261012.33">
 <link rel="icon" href="./icons/casuo-house-c.ico">
 <link rel="icon" type="image/svg+xml" href="./icons/casuo-house-c.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/casuo-house-c-32.png">
@@ -47,21 +47,22 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 .profile-panel form{max-width:540px;margin-top:20px}.profile-heading{display:flex;gap:14px;align-items:center}.profile-heading h2{margin:0 0 5px}.profile-heading p{margin:0;color:var(--muted);font-size:12px}.profile-email{overflow-wrap:anywhere;margin:16px 0;color:var(--text)}.household-member{display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}.household-member:last-child{border-bottom:0}.household-member-copy{flex:1;min-width:0}.household-member-copy strong,.household-member-copy small{display:block;overflow-wrap:anywhere}.household-member-copy small{margin-top:5px;color:var(--muted);font-size:11px}.household-member .mini{flex:none}@media(max-width:480px){.household-member{flex-wrap:wrap}.household-member-copy{min-width:140px}}
 .save-state{font-size:12px;line-height:1.5;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:12px 0;color:var(--muted)}.save-state[data-state="pending"],.connection-note{color:#f0cf8b;background:rgba(238,185,80,.06)}.save-state[data-state="saving"]{color:#b6adff}.save-state[data-state="saved"]{color:#8cddb0}.connection-note{border:1px solid rgba(238,185,80,.2);border-radius:12px;padding:12px 14px;margin:0 0 20px;font-size:13px;line-height:1.6}.connection-note button{margin:6px 10px 0 0}.connection-note strong{display:block}.draft-footer{margin-top:16px;display:flex;justify-content:space-between;gap:12px;align-items:center}.draft-footer .mini{font-size:12px}
 </style>
-<link rel="stylesheet" href="./mobile.css?v=20261012.32">
+<link rel="stylesheet" href="./mobile.css?v=20261012.33">
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><p>Recuperando sesión…</p></div></div></div>
-<script src="./mobile-layout.js?v=20261012.32"></script>
-<script src="./smart-rules.js?v=20261012.32"></script>
-<script src="./shopping.js?v=20261012.32"></script>
-<script src="./onboarding.js?v=20261012.32"></script>
-<script src="./account-access.js?v=20261012.32"></script>
-<script src="./entry-drafts.js?v=20261012.32"></script>
-<script src="./save-recovery.js?v=20261012.32"></script>
-<script src="./backups.js?v=20261012.32"></script>
-<script src="./this-month.js?v=20261012.32"></script>
-<script src="./monthly-reports.js?v=20261012.32"></script>
-<script src="./transaction-documents.js?v=20261012.32"></script>
+<script src="./mobile-layout.js?v=20261012.33"></script>
+<script src="./smart-rules.js?v=20261012.33"></script>
+<script src="./shopping-batch.js?v=20261012.33"></script>
+<script src="./shopping.js?v=20261012.33"></script>
+<script src="./onboarding.js?v=20261012.33"></script>
+<script src="./account-access.js?v=20261012.33"></script>
+<script src="./entry-drafts.js?v=20261012.33"></script>
+<script src="./save-recovery.js?v=20261012.33"></script>
+<script src="./backups.js?v=20261012.33"></script>
+<script src="./this-month.js?v=20261012.33"></script>
+<script src="./monthly-reports.js?v=20261012.33"></script>
+<script src="./transaction-documents.js?v=20261012.33"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -70,7 +71,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261012.32';
+const APP_BUILD='20261012.33';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -615,14 +616,15 @@ function assertSaveContext(epoch,user,household){assertSessionEpoch(epoch);asser
 function updateConnectionState(){
  const host=document.getElementById('connection-state');if(!host||!privateAccess()||!state.household)return;
  const user=state.user.id,h=state.household.id,pending=[];
+ if(SaveRecovery.read(localStorage,user,h,'shopping-batch')?.form.operations?.length)pending.push(['shopping-batch','lista de compra']);
  if(EntryDrafts.read(localStorage,user,h)?.pending)pending.push(['entry','gasto']);
  for(const resource of new Set(SaveRecovery.actions(localStorage,user,h).map(x=>x.resource)))pending.push([resource==='shopping_items'?'shopping-list':'task-list',resource==='shopping_items'?'cambios de compra':'cambios de tareas']);
  for(const [kind,label] of [['shopping','producto'],['task','tarea']])if(SaveRecovery.read(localStorage,user,h,kind)?.pending)pending.push([kind,label]);
  if(!offline()&&!pending.length){host.innerHTML='';return}
  host.innerHTML='<div class="connection-note"><strong>'+ (offline()?'Sin conexión':'Hay guardados pendientes de comprobar')+'</strong><span>'+(offline()?'Puedes preparar borradores en este dispositivo. Para compartirlos, vuelve a conectar y reintenta.':'Comprueba los cambios pendientes antes de volver a introducirlos. No se envían automáticamente.')+'</span>'+pending.map(([kind,label])=>'<button class="mini" data-resume-save="'+kind+'">Revisar '+label+' →</button>').join('')+'</div>';
- host.querySelectorAll('[data-resume-save]').forEach(b=>b.onclick=()=>{if(b.dataset.resumeSave==='shopping-list')location.hash='compra';else if(b.dataset.resumeSave==='task-list')location.hash='tareas';else if(b.dataset.resumeSave==='entry')openRegister();else if(b.dataset.resumeSave==='task')openTaskEditor(null);else openShoppingEditor()});
+ host.querySelectorAll('[data-resume-save]').forEach(b=>b.onclick=()=>{if(b.dataset.resumeSave==='shopping-batch')openShoppingBatch();else if(b.dataset.resumeSave==='shopping-list')location.hash='compra';else if(b.dataset.resumeSave==='task-list')location.hash='tareas';else if(b.dataset.resumeSave==='entry')openRegister();else if(b.dataset.resumeSave==='task')openTaskEditor(null);else openShoppingEditor()});
 }
-window.addEventListener('offline',updateConnectionState);window.addEventListener('online',()=>{updateConnectionState();for(const id of ['draft-status','shop-status','task-save-state']){const el=document.getElementById(id);if(el?.dataset.state==='pending')el.textContent='La conexión ha vuelto. Pulsa Comprobar y reintentar; no se envía automáticamente.'}});
+window.addEventListener('offline',updateConnectionState);window.addEventListener('online',()=>{updateConnectionState();for(const id of ['draft-status','shop-status','task-save-state','batch-status']){const el=document.getElementById(id);if(el?.dataset.state==='pending')el.textContent='La conexión ha vuelto. Pulsa Comprobar y reintentar; no se envía automáticamente.'}});
 function saveState(el,status,message){if(!el)return;el.dataset.state=status;el.className='save-state';el.textContent=message;updateConnectionState()}
 async function saveSharedRecord(operation,epoch,user,household){
  const check=()=>assertSaveContext(epoch,user,household);check();
@@ -1988,6 +1990,68 @@ async function saveShoppingEditor(back){
  return saveRecoverableForm(back,'shopping_items',payload,item=>{state.data.shopping=[...(state.data.shopping||[]).filter(x=>x.id!==item.id),item].sort((a,b)=>a.id.localeCompare(b.id))});
 }
 
+function shoppingBatchDraft(){
+ if(!privateAccess()||!state.household)return null;
+ const saved=SaveRecovery.read(localStorage,state.user.id,state.household.id,'shopping-batch');
+ if(saved?.form.operations?.length&&!ShoppingBatch.validOperations(saved.form.operations,state.household.id))return null;
+ return saved;
+}
+function openShoppingBatch(){
+ if(!guardPrivateView()||state.onboardingPreview||document.getElementById('shopping-batch-modal'))return;
+ const user=state.user.id,household=state.household.id,epoch=sessionEpoch,snapshot=[...(state.data.shopping||[])],draft=shoppingBatchDraft()?.form||{};
+ const check=()=>assertSaveContext(epoch,user,household);
+ let rows=Array.isArray(draft.rows)?draft.rows:[],operations=draft.operations||[],busy=false;
+ const back=document.createElement('div');back.className='modal-back';back.id='shopping-batch-modal';
+ back.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-labelledby="shopping-batch-title"><div class="modal-head"><div><span class="eyebrow">Lista de la compra</span><h2 id="shopping-batch-title">Añadir varios</h2></div><button class="close" aria-label="Cerrar">×</button></div><label class="field">Escribe, pega o dicta tu lista<textarea id="batch-raw" class="quick-input" maxlength="6000" placeholder="Dos botellas de agua, un kéfir, leche y huevos" aria-describedby="batch-help"></textarea></label><p class="bank-help" id="batch-help">En el iPhone, toca el micrófono del teclado. Separa los productos con comas, saltos de línea o «y». Revisa el resultado antes de añadir.</p><button class="btn" id="batch-review">Revisar lista</button><div id="batch-preview"></div><label class="rule-remember"><input id="batch-favorite" type="checkbox">Guardar los seleccionados como habituales</label><div class="save-state" id="batch-status" role="status" aria-live="polite">El borrador se conserva al cerrar. No se añade nada hasta confirmar.</div><div class="modal-actions"><button class="btn" id="batch-cancel">Cerrar</button><button class="save" id="batch-save">Añadir seleccionados</button></div><div class="draft-footer"><span class="bank-help">Los productos se añaden uno a uno.</span><button class="mini" id="batch-discard">Descartar borrador</button></div></div>';
+ document.body.appendChild(back);
+ const get=id=>back.querySelector('#'+id),raw=get('batch-raw'),favorite=get('batch-favorite'),status=get('batch-status'),button=get('batch-save');
+ raw.value=draft.raw||'';favorite.checked=!!draft.favorite;
+ const persist=()=>{check();SaveRecovery.write(localStorage,user,household,'shopping-batch',{form:{raw:raw.value,rows,favorite:favorite.checked,operations}});updateConnectionState()};
+ const safelyPersist=()=>{try{persist();return true}catch(e){if(!e.sessionCancelled)saveState(status,'error','El dispositivo no pudo conservar el borrador. No se ha enviado nada nuevo.');return false}};
+ const lock=()=>{raw.readOnly=operations.length>0;favorite.disabled=busy||operations.length>0;get('batch-review').disabled=busy||operations.length>0;get('batch-discard').disabled=busy;get('batch-cancel').disabled=busy;for(const id of ['batch-select-all','batch-select-none']){const el=get(id);if(el)el.disabled=busy||operations.length>0}back.querySelector('.close').disabled=busy;back.querySelectorAll('[data-batch-field]').forEach(el=>el.disabled=busy||operations.length>0);button.disabled=busy||!rows.length;button.textContent=busy?'Añadiendo…':operations.length?'Comprobar y reintentar':'Añadir seleccionados'};
+ const matchOptions=row=>{
+  const candidates=ShoppingBatch.candidates(row.name,snapshot).items,chosen=snapshot.find(i=>i.id===row.match),choices=[...candidates];if(chosen&&!choices.some(i=>i.id===chosen.id))choices.unshift(chosen);for(const item of snapshot)if(!choices.some(i=>i.id===item.id))choices.push(item);
+  return '<option value="">Elige una coincidencia…</option>'+choices.map(i=>'<option value="'+esc(i.id)+'" '+(row.match===i.id?'selected':'')+'>'+esc(i.name)+(i.favorite?' · habitual':'')+'</option>').join('')+'<option value="new" '+(row.match==='new'?'selected':'')+'>Crear producto nuevo</option>';
+ };
+ const draw=()=>{
+  get('batch-preview').innerHTML=rows.length?'<div class="bulk-toolbar"><strong>'+rows.filter(r=>r.selected).length+' de '+rows.length+' seleccionados</strong><button class="mini" id="batch-select-all" '+(operations.length?'disabled':'')+'>Seleccionar todos</button><button class="mini" id="batch-select-none" '+(operations.length?'disabled':'')+'>Desmarcar todos</button></div>'+rows.map((row,index)=>{
+   const chosen=snapshot.find(i=>i.id===row.match);
+   return '<section class="bulk-row"><label class="bulk-select"><input type="checkbox" data-batch-index="'+index+'" data-batch-field="selected" '+(row.selected?'checked':'')+' aria-label="Seleccionar '+esc(row.name)+'"></label><div class="bulk-fields"><label>Producto<input data-batch-index="'+index+'" data-batch-field="name" maxlength="120" value="'+esc(row.name)+'"></label><label>Cantidad<input data-batch-index="'+index+'" data-batch-field="quantity" maxlength="80" value="'+esc(row.quantity)+'" placeholder="Opcional"></label><label class="bulk-match">Usar producto<select data-batch-index="'+index+'" data-batch-field="match">'+matchOptions(row)+'</select></label>'+(row.warning?'<p class="bank-help">'+esc(row.warning)+'</p>':'')+(chosen&&!chosen.archived&&!chosen.purchased?'<p class="bank-help">Ya está en la lista. La cantidad solo cambia si escribes una.</p>':'')+'</div></section>';
+  }).join(''):'';
+  back.querySelectorAll('[data-batch-field]').forEach(el=>{
+   const change=()=>{
+    const row=rows[Number(el.dataset.batchIndex)],field=el.dataset.batchField;row[field]=field==='selected'?el.checked:el.value;
+    if(field==='name'){const c=ShoppingBatch.candidates(row.name,snapshot);row.match=c.exact&&c.items.length===1?c.items[0].id:c.items.length?'':'new';const select=back.querySelector('[data-batch-index="'+el.dataset.batchIndex+'"][data-batch-field="match"]');select.innerHTML=matchOptions(row);select.value=row.match}
+    safelyPersist();get('batch-preview').querySelector('.bulk-toolbar strong').textContent=rows.filter(r=>r.selected).length+' de '+rows.length+' seleccionados';
+   };
+   if(['name','quantity'].includes(el.dataset.batchField))el.oninput=change;else el.onchange=change;
+  });
+  const all=get('batch-select-all'),none=get('batch-select-none');if(all)all.onclick=()=>{rows.forEach(r=>r.selected=true);safelyPersist();draw()};if(none)none.onclick=()=>{rows.forEach(r=>r.selected=false);safelyPersist();draw()};lock();
+ };
+ const close=()=>{if(busy)return;if(safelyPersist())back.remove()};back.querySelector('.close').onclick=close;get('batch-cancel').onclick=close;back.onclick=e=>{if(e.target===back)close()};
+ raw.oninput=()=>{rows=[];safelyPersist();draw()};favorite.onchange=safelyPersist;
+ get('batch-review').onclick=()=>{try{check();rows=ShoppingBatch.review(raw.value,snapshot);if(safelyPersist()){draw();saveState(status,'draft','Revisa nombres, cantidades y coincidencias. Puedes desmarcar lo que no quieras añadir.')}}catch(e){saveState(status,'error',e.message)}};
+ get('batch-discard').onclick=()=>{if(!confirm(operations.length?'Lo que ya se haya añadido permanecerá en la lista. ¿Descartar los pendientes y el borrador?':'¿Descartar esta lista sin añadirla?'))return;check();SaveRecovery.clear(localStorage,user,household,'shopping-batch');back.remove();updateConnectionState()};
+ button.onclick=async()=>{
+  if(busy)return;let prepared=false;
+  try{
+   check();if(!operations.length){operations=ShoppingBatch.prepare(rows,snapshot,household,favorite.checked,()=>crypto.randomUUID());prepared=true}
+   if(!safelyPersist()){if(prepared)operations=[];lock();return}
+   busy=true;lock();saveState(status,'saving','Añadiendo los productos seleccionados…');
+   const progress=()=>{status.textContent=operations.filter(o=>o.done).length+' de '+operations.length+' productos confirmados.'};
+   await ShoppingBatch.execute(operations,{assert:check,persist,progress,save:op=>saveSharedRecord(op,epoch,user,household),apply:item=>{state.data.shopping=[...(state.data.shopping||[]).filter(x=>x.id!==item.id),item]}});
+   check();try{SaveRecovery.clear(localStorage,user,household,'shopping-batch')}catch{}
+   back.remove();toast('Lista actualizada: '+operations.length+' productos revisados.');
+   try{await loadAll(true);check();renderApp()}catch(e){if(!e.sessionCancelled){renderApp();toast('Los productos están guardados. Actualiza para ver los últimos cambios.')}}
+  }catch(e){
+   if(e.sessionCancelled)return;
+   const confirmed=operations.filter(o=>o.done).length;
+   saveState(status,operations.length?'pending':'error',(operations.length?confirmed+' de '+operations.length+' confirmados. ':'')+(operations.length?SaveRecovery.message(e):e.message));
+  }finally{if(epoch===sessionEpoch){busy=false;lock()}}
+ };
+ draw();if(operations.length)saveState(status,'pending',operations.filter(o=>o.done).length+' de '+operations.length+' confirmados. Pulsa Comprobar y reintentar; no se envían solos.');
+}
+
 function viewCompra(){
  const items=state.data.shopping||[],byName=(a,b)=>a.name.localeCompare(b.name,'es'),pending=items.filter(x=>!x.archived&&!x.purchased).sort(byName),bought=items.filter(x=>!x.archived&&x.purchased).sort(byName),favorites=items.filter(x=>x.favorite).sort((a,b)=>FamilyShopping.SECTIONS.indexOf(a.section)-FamilyShopping.SECTIONS.indexOf(b.section)||byName(a,b)),archived=items.filter(x=>x.archived&&!x.favorite).sort(byName);
  const row=(x,mode)=>{
@@ -1995,8 +2059,8 @@ function viewCompra(){
   return '<li class="shopping-row">'+(mode==='pending'?'<button class="shopping-check" data-shop-buy="'+x.id+'" aria-label="Marcar '+label+' como comprado" title="Marcar como comprado"><span aria-hidden="true"></span></button>':'<span class="shopping-dot" aria-hidden="true">•</span>')+'<button class="shopping-name" data-shop-edit="'+x.id+'" aria-label="Editar '+label+'"><span>'+label+'</span>'+(detail?'<small>'+detail+'</small>':'')+'</button>'+(mode==='pending'?'<button class="shopping-action" data-shop-archive="'+x.id+'" aria-label="Retirar '+label+'" title="Retirar de la lista">×</button>':'<button class="shopping-action" data-shop-add="'+x.id+'" aria-label="'+(onList?label+' ya está en la lista':'Añadir '+label+' a la lista')+'" title="'+(onList?'En la lista':'Añadir a la lista')+'">'+(onList?'✓':'+')+'</button>')+'</li>';
  };
  const list=(rows,mode)=>'<ul class="shopping-list">'+rows.map(x=>row(x,mode)).join('')+'</ul>';
- shell('<div class="shopping-page">'+head('Organización familiar','Compra',pending.length+' productos pendientes · Lista compartida del hogar','+ Añadir producto','shop-new')+pendingActionsPanel('shopping_items')+'<div id="shop-feedback" class="bank-help" aria-live="polite"></div><section class="shopping-section" aria-label="Lista de la compra">'+(pending.length?list(pending,'pending'):'<p class="shopping-empty">La lista está vacía. Añade un producto o pulsa + en tus habituales.</p>')+'</section><section class="shopping-section"><h2>Habituales <span>'+favorites.length+'</span></h2><p class="shopping-hint">Pulsa + para añadir. Toca el nombre para editar.</p>'+(favorites.length?list(favorites,'favorite'):'<p class="shopping-empty">Marca «Producto habitual» al añadir o editar un producto.</p>')+'</section><section class="shopping-history"><details><summary>Comprados ('+bought.length+')</summary>'+list(bought,'bought')+'</details><details><summary>Retirados ('+archived.length+')</summary>'+list(archived,'archived')+'</details></section><p class="shopping-hint">Lista compartida · Se actualiza automáticamente. Marcar comprado no registra un gasto.</p></div>');
- bindCommon();document.getElementById('shop-new').onclick=()=>openShoppingEditor();
+ shell('<div class="shopping-page">'+head('Organización familiar','Compra',pending.length+' productos pendientes · Lista compartida del hogar','+ Añadir producto','shop-new')+'<div class="shopping-bulk-actions"><button class="btn" id="shop-batch">'+(shoppingBatchDraft()?'Continuar lista de varios productos':'Añadir varios')+'</button><span>Escribe, pega o dicta una lista</span></div>'+pendingActionsPanel('shopping_items')+'<div id="shop-feedback" class="bank-help" aria-live="polite"></div><section class="shopping-section" aria-label="Lista de la compra">'+(pending.length?list(pending,'pending'):'<p class="shopping-empty">La lista está vacía. Añade un producto o pulsa + en tus habituales.</p>')+'</section><section class="shopping-section"><h2>Habituales <span>'+favorites.length+'</span></h2><p class="shopping-hint">Pulsa + para añadir. Toca el nombre para editar.</p>'+(favorites.length?list(favorites,'favorite'):'<p class="shopping-empty">Marca «Producto habitual» al añadir o editar un producto.</p>')+'</section><section class="shopping-history"><details><summary>Comprados ('+bought.length+')</summary>'+list(bought,'bought')+'</details><details><summary>Retirados ('+archived.length+')</summary>'+list(archived,'archived')+'</details></section><p class="shopping-hint">Lista compartida · Se actualiza automáticamente. Marcar comprado no registra un gasto.</p></div>');
+ bindCommon();document.getElementById('shop-batch').onclick=openShoppingBatch;document.getElementById('shop-new').onclick=()=>openShoppingEditor();
  document.querySelectorAll('[data-shop-edit]').forEach(b=>b.onclick=()=>openShoppingEditor(b.dataset.shopEdit));
  for(const [action,patch] of [['buy',{purchased:true}],['add',{purchased:false,archived:false}],['archive',{archived:true}]])document.querySelectorAll('[data-shop-'+action+']').forEach(b=>{
    const id=b.dataset['shop'+action[0].toUpperCase()+action.slice(1)],item=items.find(x=>x.id===id);

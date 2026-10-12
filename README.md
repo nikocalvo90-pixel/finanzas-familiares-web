@@ -359,3 +359,37 @@ cubiertos. No se modifican datos ni reglas de negocio. La comprobación visual e
 Chromium/WebKit no pudo ejecutarse: los navegadores no estaban instalados y su
 descarga falló. Queda comprobar con un iPhone físico el teclado, los controles
 nativos de fecha y los márgenes al abrir desde pantalla de inicio.
+
+# Añadir varios productos — 12 octubre 2026
+
+Compra ofrece «Añadir varios» para escribir, pegar o dictar listas mediante el
+micrófono del teclado del dispositivo. No se graba audio en Casuo ni se añade
+ningún servicio de transcripción o IA de pago. `shopping-batch.js` separa comas,
+saltos de línea y conjunciones, extrae cantidades sencillas y conserva comas
+decimales. Acepta hasta 60 productos y 6000 caracteres; las frases complejas
+requieren corrección en la revisión.
+
+La revisión permite editar nombres y cantidades, seleccionar todos/desmarcar,
+elegir coincidencias y guardar los productos como habituales. Las coincidencias
+únicas reconocen acentos y algunos plurales comunes. Las coincidencias parciales
+o múltiples exigen elección explícita. Los nombres repetidos se agrupan sin
+sumar cantidades; si son distintas se pide revisarlas. Se mantienen nombres,
+notas y secciones de los productos existentes. Una cantidad vacía conserva la
+anterior; una cantidad escrita la sustituye. Al reutilizar un producto se vuelve
+a poner en la lista pendiente, incluso si estaba comprado o retirado.
+
+El borrador se conserva por usuario y hogar en el almacén local ya existente.
+Antes de enviar se fija cada operación, con UUID para nuevas filas y versión
+esperada para las existentes. Los productos se confirman uno a uno, con progreso
+parcial visible y sin promesa de transacción atómica. Los reintentos omiten lo
+confirmado y comprueban UUID/cambios antes de escribir; no se envían solos al
+reconectar. Los fallos de almacenamiento impiden iniciar nuevos envíos. Un cambio
+de sesión impide aplicar respuestas tardías. Se usan las APIs y políticas de
+compra existentes; no hay cambios de esquema ni datos reales durante las pruebas.
+
+Validación: 161 pruebas Node y sintaxis del JavaScript inline. Incluyen listas
+naturales/pegadas, decimales, cantidades conflictivas, selección ambigua,
+duplicados, metadatos conservados, pérdida de respuesta, progreso parcial,
+reintentos, cambio de sesión y fallo de almacenamiento. La integración de la UI
+se prueba con un DOM simulado; quedan la comprobación visual y el dictado en un
+iPhone físico. Versión publicada: `20261012.33`.

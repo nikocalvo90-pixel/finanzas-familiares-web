@@ -338,3 +338,24 @@ en public; y la protección de contraseñas filtradas desactivada en Auth.
 Referencias: [RPCs privilegiados](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable),
 [pg_net](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public),
 [contraseñas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+
+# Comodidad en móvil — 12 octubre 2026
+
+La versión `20261012.32` incorpora `mobile.css` y `mobile-layout.js`. Se amplían
+los controles táctiles, la navegación y las opciones de cuenta; los campos usan
+al menos 16 px para evitar el zoom automático al editar en iPhone. El formulario
+de movimientos pasa a una columna en móvil. La importación usa el desplazamiento
+del propio formulario para reducir los paneles con scroll dentro de otro scroll.
+
+El área de los formularios sigue la altura y desplazamiento de `visualViewport`.
+Cuando un campo está activo y el teclado reduce el espacio, se ocultan los accesos
+inferiores y se desplaza el campo dentro del formulario para dejar sitio a guardar.
+El zoom manual sigue disponible y no activa la detección de teclado. Se conserva
+el comportamiento previo en escritorio y el ajuste tiene alternativas sin API.
+
+Validación: 147 pruebas Node y comprobación de sintaxis del JavaScript inline.
+Las nuevas pruebas cubren teclado, cambio de orientación, zoom, foco y campos
+cubiertos. No se modifican datos ni reglas de negocio. La comprobación visual en
+Chromium/WebKit no pudo ejecutarse: los navegadores no estaban instalados y su
+descarga falló. Queda comprobar con un iPhone físico el teclado, los controles
+nativos de fecha y los márgenes al abrir desde pantalla de inicio.

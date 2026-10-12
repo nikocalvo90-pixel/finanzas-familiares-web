@@ -1,0 +1,36 @@
+/* Touch layouts share the desktop palette and keep browser zoom available. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,summary{touch-action:manipulation}
+@media(max-width:760px){
+ .app,.login,.loading,.lock-screen{min-height:100svh}
+ .main{padding-bottom:calc(116px + env(safe-area-inset-bottom));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+ .mobile-top .brand{min-width:0;flex:1}.mobile-top .brand-copy{min-width:0;max-width:calc(100vw - 182px)}
+ .mobile-account-tools{flex:none;gap:8px}.notice-bell{width:44px;height:44px}
+ .mobile-top .account-menu summary{width:44px;min-height:44px;justify-content:center}
+ .account-popover{max-height:calc(100vh - 110px);max-height:calc(var(--visible-height,100dvh) - 110px);overflow-y:auto;overscroll-behavior:contain}
+ .bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr));left:max(9px,env(safe-area-inset-left));right:max(9px,env(safe-area-inset-right))}
+ .bottom-nav button{min-height:48px;font-size:11px;gap:4px}.bottom-nav button b{font-size:20px}
+ .btn,.mini,.save,.primary,.example,.close,.task-check{min-height:44px}
+ .mini,.example{font-size:12px;padding:10px 12px}.close,.task-check{width:44px;flex-shrink:0}
+ .tx-actions,.task-actions{flex-wrap:wrap;gap:8px}
+ input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:16px!important;min-height:46px;max-width:100%;min-width:0}
+ input[type=checkbox],input[type=radio]{width:20px;height:20px;flex-shrink:0}
+ .field,.edit-grid label,.bank-form label,.bank-edit label{font-size:12px}
+ .filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .modal-back{inset:auto 0;top:var(--visible-top,0px);height:100vh;height:var(--visible-height,100dvh);padding:0;align-items:end}
+ .modal,.entry-modal .modal{max-height:calc(100% - max(12px,env(safe-area-inset-top)));padding:20px 16px calc(20px + env(safe-area-inset-bottom));overscroll-behavior:contain;scroll-padding-block:20px 90px}
+ .modal-head h2{overflow-wrap:anywhere}.modal-head .close{flex:none}
+ .modal-actions,.bank-actions{gap:10px;padding-bottom:8px;z-index:3}
+ .modal-actions button{min-width:0;white-space:normal}
+ .entry-modal .edit-grid{grid-template-columns:minmax(0,1fr)}
+ .entry-modal .edit-grid .wide{grid-column:auto}
+ .entry-modal #f-amount{font-size:23px!important}
+ .bank-list{max-height:none;overflow:visible}.bank-summary{position:static}
+ .draft-footer{flex-wrap:wrap}.draft-footer .mini{margin-left:auto}
+ .toast{width:max-content;max-width:calc(100vw - 32px);bottom:calc(90px + env(safe-area-inset-bottom));overflow-wrap:anywhere}
+ body:has(.modal-back){overflow:hidden}
+ .keyboard-open .bottom-nav,.keyboard-open .fab{visibility:hidden;pointer-events:none}
+ .keyboard-open .toast{bottom:calc(100vh - var(--visible-height) - var(--visible-top) + 12px)}
+ .keyboard-open .modal{padding-bottom:16px}
+}
+@media(max-width:380px){.finance-nav{flex-wrap:wrap}.finance-nav button{flex:1 1 calc(50% - 6px);min-height:44px}.login-card{padding:22px 18px}}

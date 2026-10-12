@@ -393,3 +393,47 @@ duplicados, metadatos conservados, pérdida de respuesta, progreso parcial,
 reintentos, cambio de sesión y fallo de almacenamiento. La integración de la UI
 se prueba con un DOM simulado; quedan la comprobación visual y el dictado en un
 iPhone físico. Versión publicada: `20261012.33`.
+
+# Presupuestos por categoría — 12 octubre 2026
+
+`20261012.34` añade Finanzas → Presupuestos, con selector de mes, límites por
+categoría de gasto y resumen en Inicio. Usa la tabla `budgets` y sus políticas
+existentes: no se crean límites reales, ni se modifica el esquema o se añade un
+servicio de pago. Todos los miembros del hogar pueden colaborar en los límites.
+
+`budgets.js` calcula en céntimos gastos menos devoluciones según la fecha del
+movimiento. Excluye inversiones, transferencias y movimientos futuros del mes
+en curso. Las devoluciones se atribuyen al mes en que se registran, aunque puedan
+corresponder a un gasto anterior. Una cifra neta negativa se muestra como tal.
+Los gastos sin límite se presentan aparte; no entran en el disponible de las
+categorías con límite, y ese disponible no es un saldo bancario. Un límite de
+cero es explícito. Hay señales al 80 %, al alcanzar el límite y al superarlo;
+son avisos dentro de la vista y de Inicio, no nuevas notificaciones push.
+
+El mes en curso se compara con los mismos días del mes anterior, ajustando al
+último día cuando el anterior es más corto. Los meses pasados se comparan
+completos. Los límites se aplican solo al mes elegido; no hay renovación mensual
+automática. Se pueden editar o quitar sin borrar gastos ni otros meses. La vista
+se actualiza con cambios compartidos, también al consultar otro mes.
+
+Se consultan todos los movimientos de los periodos necesarios con paginación,
+no solo los 500 de la pantalla de movimientos. Inicio evita esa consulta adicional
+si aún no hay categorías con límite. Los errores de carga no se presentan como
+cero gastado y un fallo de la consulta de límites no detiene la sincronización
+de los datos anteriores.
+
+Los guardados conservan borrador, UUID y versión esperada, como compra y tareas.
+No se sobreescriben cambios concurrentes ni se reenvían altas confirmadas.
+Quitar un límite requiere confirmación y la versión vigente; una respuesta perdida
+se comprueba con una nueva lectura y pertenencia actual. No se guarda una cola
+local de borrado ni se ejecutan borrados al reconectar.
+
+Validación: 177 pruebas Node, sintaxis del JavaScript inline y diff. Las pruebas
+incluyen cálculo, devoluciones, decimales, umbrales, mes bisiesto, comparación
+parcial, gastos sin límite, paginación, pérdida de respuesta, cambio de sesión,
+fallo de almacenamiento, edición/borrado concurrente y sincronización del mes
+seleccionado. `supabase/tests/budgets.sql` pasó con hogares sintéticos y rollback:
+restricciones de categoría/mes/importe, duplicados, colaboración, aislamiento,
+escritura condicional y pérdida de acceso. No cambió ningún presupuesto real.
+Advisors conserva los avisos previos documentados, sin nuevos avisos. La UI se
+comprueba con DOM simulado; sigue pendiente la revisión visual en iPhone físico.

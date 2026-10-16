@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261012.34">
+<link rel="manifest" href="./manifest.webmanifest?v=20261016.35">
 <link rel="icon" href="./icons/casuo-house-c.ico">
 <link rel="icon" type="image/svg+xml" href="./icons/casuo-house-c.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/casuo-house-c-32.png">
@@ -47,24 +47,26 @@ button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}.si
 .profile-panel form{max-width:540px;margin-top:20px}.profile-heading{display:flex;gap:14px;align-items:center}.profile-heading h2{margin:0 0 5px}.profile-heading p{margin:0;color:var(--muted);font-size:12px}.profile-email{overflow-wrap:anywhere;margin:16px 0;color:var(--text)}.household-member{display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}.household-member:last-child{border-bottom:0}.household-member-copy{flex:1;min-width:0}.household-member-copy strong,.household-member-copy small{display:block;overflow-wrap:anywhere}.household-member-copy small{margin-top:5px;color:var(--muted);font-size:11px}.household-member .mini{flex:none}@media(max-width:480px){.household-member{flex-wrap:wrap}.household-member-copy{min-width:140px}}
 .save-state{font-size:12px;line-height:1.5;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:12px 0;color:var(--muted)}.save-state[data-state="pending"],.connection-note{color:#f0cf8b;background:rgba(238,185,80,.06)}.save-state[data-state="saving"]{color:#b6adff}.save-state[data-state="saved"]{color:#8cddb0}.connection-note{border:1px solid rgba(238,185,80,.2);border-radius:12px;padding:12px 14px;margin:0 0 20px;font-size:13px;line-height:1.6}.connection-note button{margin:6px 10px 0 0}.connection-note strong{display:block}.draft-footer{margin-top:16px;display:flex;justify-content:space-between;gap:12px;align-items:center}.draft-footer .mini{font-size:12px}
 </style>
-<link rel="stylesheet" href="./mobile.css?v=20261012.34">
-<link rel="stylesheet" href="./budgets.css?v=20261012.34">
+<link rel="stylesheet" href="./mobile.css?v=20261016.35">
+<link rel="stylesheet" href="./usual-spending.css?v=20261016.35">
+<link rel="stylesheet" href="./budgets.css?v=20261016.35">
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><p>Recuperando sesión…</p></div></div></div>
-<script src="./mobile-layout.js?v=20261012.34"></script>
-<script src="./smart-rules.js?v=20261012.34"></script>
-<script src="./budgets.js?v=20261012.34"></script>
-<script src="./shopping-batch.js?v=20261012.34"></script>
-<script src="./shopping.js?v=20261012.34"></script>
-<script src="./onboarding.js?v=20261012.34"></script>
-<script src="./account-access.js?v=20261012.34"></script>
-<script src="./entry-drafts.js?v=20261012.34"></script>
-<script src="./save-recovery.js?v=20261012.34"></script>
-<script src="./backups.js?v=20261012.34"></script>
-<script src="./this-month.js?v=20261012.34"></script>
-<script src="./monthly-reports.js?v=20261012.34"></script>
-<script src="./transaction-documents.js?v=20261012.34"></script>
+<script src="./mobile-layout.js?v=20261016.35"></script>
+<script src="./smart-rules.js?v=20261016.35"></script>
+<script src="./usual-spending.js?v=20261016.35"></script>
+<script src="./budgets.js?v=20261016.35"></script>
+<script src="./shopping-batch.js?v=20261016.35"></script>
+<script src="./shopping.js?v=20261016.35"></script>
+<script src="./onboarding.js?v=20261016.35"></script>
+<script src="./account-access.js?v=20261016.35"></script>
+<script src="./entry-drafts.js?v=20261016.35"></script>
+<script src="./save-recovery.js?v=20261016.35"></script>
+<script src="./backups.js?v=20261016.35"></script>
+<script src="./this-month.js?v=20261016.35"></script>
+<script src="./monthly-reports.js?v=20261016.35"></script>
+<script src="./transaction-documents.js?v=20261016.35"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -73,7 +75,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261012.34';
+const APP_BUILD='20261016.35';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -334,7 +336,7 @@ const rpc=(name,body)=>authed('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stri
 async function joinHousehold(code,displayName){return rpc('join_household_by_code',{p_code:String(code||'').trim().toUpperCase(),p_display_name:String(displayName||'').trim()||null})}
 async function createHouseholdInvite(){return rpc('create_household_invite',{p_household:state.household.id})}
 async function insertTransaction(payload){return authed('/rest/v1/transactions',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)})}
-async function updateTransaction(id,payload){return authed('/rest/v1/transactions?id=eq.'+encodeURIComponent(id)+'&household_id=eq.'+encodeURIComponent(state.household.id),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)})}
+async function updateTransaction(id,payload,expected){return authed('/rest/v1/transactions?id=eq.'+encodeURIComponent(id)+'&household_id=eq.'+encodeURIComponent(state.household.id)+(expected?'&updated_at=eq.'+encodeURIComponent(expected):''),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)})}
 async function deleteTransaction(id){return authed('/rest/v1/transactions?id=eq.'+encodeURIComponent(id)+'&household_id=eq.'+encodeURIComponent(state.household.id),{method:'DELETE',headers:{Prefer:'return=representation'}})}
 async function insertRecurring(payload){return authed('/rest/v1/recurring_rules',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)})}
 async function updateRecurring(id,payload){return authed('/rest/v1/recurring_rules?id=eq.'+encodeURIComponent(id)+'&household_id=eq.'+encodeURIComponent(state.household.id),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(payload)})}
@@ -618,13 +620,14 @@ function assertSaveContext(epoch,user,household){assertSessionEpoch(epoch);asser
 function updateConnectionState(){
  const host=document.getElementById('connection-state');if(!host||!privateAccess()||!state.household)return;
  const user=state.user.id,h=state.household.id,pending=[];
+ if(SaveRecovery.read(localStorage,user,h,'history-accounts')?.form.operations?.length)pending.push(['history-accounts','cuentas históricas']);
  if(SaveRecovery.read(localStorage,user,h,'shopping-batch')?.form.operations?.length)pending.push(['shopping-batch','lista de compra']);
  if(EntryDrafts.read(localStorage,user,h)?.pending)pending.push(['entry','gasto']);
  for(const resource of new Set(SaveRecovery.actions(localStorage,user,h).map(x=>x.resource)))pending.push([resource==='shopping_items'?'shopping-list':'task-list',resource==='shopping_items'?'cambios de compra':'cambios de tareas']);
  for(const [kind,label] of [['shopping','producto'],['task','tarea'],['budget','presupuesto']])if(SaveRecovery.read(localStorage,user,h,kind)?.pending)pending.push([kind,label]);
  if(!offline()&&!pending.length){host.innerHTML='';return}
  host.innerHTML='<div class="connection-note"><strong>'+ (offline()?'Sin conexión':'Hay guardados pendientes de comprobar')+'</strong><span>'+(offline()?'Puedes preparar borradores en este dispositivo. Para compartirlos, vuelve a conectar y reintenta.':'Comprueba los cambios pendientes antes de volver a introducirlos. No se envían automáticamente.')+'</span>'+pending.map(([kind,label])=>'<button class="mini" data-resume-save="'+kind+'">Revisar '+label+' →</button>').join('')+'</div>';
- host.querySelectorAll('[data-resume-save]').forEach(b=>b.onclick=()=>{if(b.dataset.resumeSave==='shopping-batch')openShoppingBatch();else if(b.dataset.resumeSave==='shopping-list')location.hash='compra';else if(b.dataset.resumeSave==='task-list')location.hash='tareas';else if(b.dataset.resumeSave==='entry')openRegister();else if(b.dataset.resumeSave==='task')openTaskEditor(null);else if(b.dataset.resumeSave==='budget')openBudgetEditor();else openShoppingEditor()});
+ host.querySelectorAll('[data-resume-save]').forEach(b=>b.onclick=()=>{if(b.dataset.resumeSave==='history-accounts')openHistoryAccounts();else if(b.dataset.resumeSave==='shopping-batch')openShoppingBatch();else if(b.dataset.resumeSave==='shopping-list')location.hash='compra';else if(b.dataset.resumeSave==='task-list')location.hash='tareas';else if(b.dataset.resumeSave==='entry')openRegister();else if(b.dataset.resumeSave==='task')openTaskEditor(null);else if(b.dataset.resumeSave==='budget')openBudgetEditor();else openShoppingEditor()});
 }
 window.addEventListener('offline',updateConnectionState);window.addEventListener('online',()=>{updateConnectionState();for(const id of ['draft-status','shop-status','task-save-state','batch-status','budget-save-state']){const el=document.getElementById(id);if(el?.dataset.state==='pending')el.textContent='La conexión ha vuelto. Pulsa Comprobar y reintentar; no se envía automáticamente.'}});
 function saveState(el,status,message){if(!el)return;el.dataset.state=status;el.className='save-state';el.textContent=message;updateConnectionState()}
@@ -914,21 +917,22 @@ function openBankImport(){
    finally{busy=false;controlsBusy(false);render()}
  }
 }
-function transactionById(id){return state.data.transactions.find(t=>t.id===id)||null}
+function transactionById(id){return historicalTransaction(id)||state.data.transactions.find(t=>t.id===id)||null}
 function openEditTransaction(id){
  const t=transactionById(id);if(!t)return;
  const back=document.createElement('div');back.className='modal-back';back.id='edit-modal';
  const cats=optionList(state.data.categories,t.category_id,c=>c.name),acc=optionList(state.data.accounts,t.account_id,a=>a.name+' · '+money(a.current_balance)),dest=optionList(state.data.accounts,t.destination_account_id,a=>a.name),inv=optionList(state.data.investments,t.investment_id,i=>i.name);
- back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Editar movimiento</span><h2>'+esc(t.concept)+'</h2></div><button class="close" id="close-edit">×</button></div><div class="edit-grid"><label>Importe<input id="e-amount" inputmode="decimal" value="'+esc(t.amount)+'"></label><label>Fecha<input id="e-date" type="date" value="'+esc(t.transaction_date)+'"></label><label class="wide">Concepto<input id="e-concept" value="'+esc(t.concept)+'"></label><label>Tipo<select id="e-type"><option>GASTO</option><option>INGRESO</option><option>INVERSION</option><option>RETIRADA_INVERSION</option><option>TRANSFERENCIA_INTERNA</option><option>DEVOLUCION</option></select></label><label>Categoría<select id="e-category">'+cats+'</select></label><label>Cuenta<select id="e-account">'+acc+'</select></label><label id="e-dest-wrap">Cuenta destino<select id="e-dest">'+dest+'</select></label><label id="e-inv-wrap">Inversión<select id="e-investment">'+inv+'</select></label><label>Persona<input id="e-person" value="'+esc(t.person_label||'')+'"></label><label class="wide">Notas<input id="e-notes" value="'+esc(t.notes||'')+'"></label></div><div class="notice">La edición queda registrada en el historial de auditoría. Si el mes está cerrado, Supabase bloqueará el cambio.</div><label class="rule-remember"><input type="checkbox" id="e-remember" checked>Recordar los cambios de categoría para este concepto</label><div id="edit-error" class="status err" style="display:none"></div><div class="modal-actions"><button class="btn" id="edit-cancel">Cancelar</button><button class="save" id="edit-save">Guardar cambios</button></div></div>';
- document.body.appendChild(back);document.getElementById('e-type').value=t.type;
+ back.innerHTML='<div class="modal"><div class="modal-head"><div><span class="eyebrow">Editar movimiento</span><h2>'+esc(t.concept)+'</h2></div><button class="close" id="close-edit">×</button></div><div class="edit-grid"><label>Importe<input id="e-amount" inputmode="decimal" value="'+esc(t.amount)+'"></label><label>Fecha<input id="e-date" type="date" value="'+esc(t.transaction_date)+'"></label><label class="wide">Concepto<input id="e-concept" value="'+esc(t.concept)+'"></label><label>Tipo<select id="e-type"><option>GASTO</option><option>INGRESO</option><option>INVERSION</option><option>RETIRADA_INVERSION</option><option>TRANSFERENCIA_INTERNA</option><option>DEVOLUCION</option></select></label><label>Categoría<select id="e-category">'+cats+'</select></label><label>Cuenta<select id="e-account">'+acc+'</select></label><label id="e-dest-wrap">Cuenta destino<select id="e-dest">'+dest+'</select></label><label id="e-inv-wrap">Inversión<select id="e-investment">'+inv+'</select></label><label>Persona<input id="e-person" value="'+esc(t.person_label||'')+'"></label><label class="wide">Notas<input id="e-notes" value="'+esc(t.notes||'')+'"></label></div><div class="notice">La edición queda registrada en el historial de auditoría. Si el mes está cerrado, Supabase bloqueará el cambio.</div><label class="rule-remember"><input type="checkbox" id="e-exclude">Excluir de la media habitual y del coste normalizado (extraordinario u otro motivo)</label><p class="bank-help">El importe seguirá contando en el gasto real. No marques un recibo anual habitual solo por ser elevado: usa su periodización.</p><label class="rule-remember"><input type="checkbox" id="e-remember" checked>Recordar los cambios de categoría para este concepto</label><div id="edit-error" class="status err" style="display:none"></div><div class="modal-actions"><button class="btn" id="edit-cancel">Cancelar</button><button class="save" id="edit-save">Guardar cambios</button></div></div>';
+ back.editContext={epoch:sessionEpoch,user:state.user.id,household:state.household.id,transaction:{...t}};document.body.appendChild(back);document.getElementById('e-type').value=t.type;document.getElementById('e-exclude').checked=!!t.exclude_from_normalized;
  const close=()=>back.remove();document.getElementById('close-edit').onclick=close;document.getElementById('edit-cancel').onclick=close;back.onclick=e=>{if(e.target===back)close()};
  const sync=()=>{const tp=document.getElementById('e-type').value;const cs=document.getElementById('e-category'),cv=cs.value;cs.innerHTML=optionList(state.data.categories.filter(c=>!c.is_archived&&c.kind===tp),cv,c=>c.name);document.getElementById('e-dest-wrap').style.display=tp==='TRANSFERENCIA_INTERNA'?'grid':'none';document.getElementById('e-inv-wrap').style.display=(tp==='INVERSION'||tp==='RETIRADA_INVERSION')?'grid':'none'};document.getElementById('e-type').onchange=sync;sync();
  document.getElementById('edit-save').onclick=()=>saveEditTransaction(t.id);
 }
 async function saveEditTransaction(id){
- const err=document.getElementById('edit-error'),btn=document.getElementById('edit-save');
+ const modal=document.getElementById('edit-modal'),ctx=modal?.editContext;if(!ctx)return;const check=()=>assertSaveContext(ctx.epoch,ctx.user,ctx.household);check();const err=document.getElementById('edit-error'),btn=document.getElementById('edit-save');
  const amount=Number(String(document.getElementById('e-amount').value).replace(',','.')),date=document.getElementById('e-date').value,concept=document.getElementById('e-concept').value.trim(),type=document.getElementById('e-type').value,category=document.getElementById('e-category').value,account=document.getElementById('e-account').value,dest=document.getElementById('e-dest').value,investment=document.getElementById('e-investment').value,person=document.getElementById('e-person').value.trim(),notes=document.getElementById('e-notes').value.trim();
  const fail=m=>{err.textContent=m;err.style.display='block';return};
+ if(!ctx.transaction.updated_at)return fail('Actualiza los datos antes de editar este movimiento.');
  if(!(amount>0))return fail('El importe debe ser mayor que cero.');
  if(!date||!concept)return fail('Fecha y concepto son obligatorios.');
  if(type==='TRANSFERENCIA_INTERNA'&&(!account||!dest||dest===account))return fail('La transferencia necesita dos cuentas distintas.');
@@ -936,10 +940,11 @@ async function saveEditTransaction(id){
  err.style.display='none';btn.disabled=true;btn.textContent='Guardando…';
  const matchedMember=state.data.members.find(m=>norm(m.display_name)===norm(person));
  const payload={transaction_date:date,amount,concept,type,category_id:category||null,person_user_id:matchedMember?.user_id||null,person_label:person||null,account_id:account||null,destination_account_id:type==='TRANSFERENCIA_INTERNA'?dest:null,investment_id:(type==='INVERSION'||type==='RETIRADA_INVERSION')?investment:null,notes:notes||null,classification_confirmed:true};
+ payload.exclude_from_normalized=document.getElementById('e-exclude').checked;
  payload.learn_category=FinanceRules.shouldLearn(transactionById(id),category,type,document.getElementById('e-remember').checked);
  if(category!==(transactionById(id)?.category_id||'')||type!==transactionById(id)?.type){payload.classification_confidence=null;payload.classification_reason='Categoría corregida por el hogar.'}
- try{const rows=await updateTransaction(id,payload);if(!rows?.length)throw new Error('No se modificó ningún movimiento.');document.getElementById('edit-modal')?.remove();toast('Movimiento actualizado');await loadAll();renderApp()}
- catch(e){btn.disabled=false;btn.textContent='Guardar cambios';fail(e.message)}
+ try{const rows=await updateTransaction(id,payload,ctx.transaction.updated_at);check();if(!rows?.length)throw new Error('El movimiento ha cambiado. Actualiza los datos antes de editarlo.');modal.remove();state.usualFeed=null;toast('Movimiento actualizado');await loadAll();check();renderApp()}
+ catch(e){if(e.sessionCancelled||ctx.epoch!==sessionEpoch)return;btn.disabled=false;btn.textContent='Guardar cambios';fail(e.message)}
 }
 async function confirmDeleteTransaction(id){
  const t=transactionById(id);if(!t)return;
@@ -1240,7 +1245,7 @@ async function loadAll(silent=false){
    rpc('monthly_financial_trend',{p_household:h,p_months:12}),
    rpc('expense_category_breakdown',{p_household:h,p_from:mr.from,p_to:mr.to}),
    rest('categories','household_id=eq.'+h+'&select=id,name,kind,is_archived&order=sort_order.asc'),
-   rest('transactions','household_id=eq.'+h+'&select=id,transaction_date,amount,type,concept,category_id,person_label,person_user_id,account_id,destination_account_id,investment_id,notes,external_id,raw_input,classification_confidence,classification_reason,classification_confirmed&order=transaction_date.desc,created_at.desc&limit=500'),
+   rest('transactions','household_id=eq.'+h+'&select=id,transaction_date,amount,type,concept,category_id,person_label,person_user_id,account_id,destination_account_id,investment_id,notes,external_id,raw_input,classification_confidence,classification_reason,classification_confirmed,exclude_from_normalized,updated_at&order=transaction_date.desc,created_at.desc&limit=500'),
    rest('account_balances_current','household_id=eq.'+h+'&select=id,name,type,currency,current_balance,balance_base_date,include_in_cash,include_in_net_worth&order=name.asc'),
    rest('investment_values_current','household_id=eq.'+h+'&select=id,name,provider,asset_type,currency,current_value,valuation_date&order=name.asc'),
    rest('assets','household_id=eq.'+h+'&select=id,name,type,owner_user_id,purchase_date,purchase_value,current_value,valuation_date,notes,is_archived,archived_at,archived_by,archive_note&order=is_archived.asc,name.asc'),
@@ -2193,13 +2198,67 @@ async function removeBudget(id,button){
  finally{if(epoch===sessionEpoch)button.disabled=false}
 }
 
+function usualSpendingPanel(){
+ return '<section class="panel" id="usual-panel"><div class="panel-head"><div><span class="sub">Planificación familiar</span><h2>¿Cuánto necesitáis al mes?</h2></div><button class="btn" id="usual-refresh">Revisar histórico</button></div><p class="bank-help">Calcula el gasto habitual con los meses que tengáis completos. Los desembolsos excluidos se conservan en el gasto real. Inversiones y transferencias quedan fuera.</p><div id="usual-result" aria-live="polite">Leyendo el histórico completo…</div></section>';
+}
+async function fetchUsualFeed(household){
+ const q='household_id=eq.'+encodeURIComponent(household)+'&select=*';
+ const [transactions,schedules,allocations,accounts,closures]=await Promise.all(['transactions','normalization_schedules','normalized_allocations','accounts','monthly_closures'].map(resource=>restAll(resource,q+'&order=id.asc')));
+ return {household,transactions,schedules,allocations,accounts,closures};
+}
+function historicalTransaction(id){return state.usualFeed?.household===state.household?.id&&state.usualFeed.epoch===sessionEpoch?state.usualFeed.transactions.find(t=>t.id===id):null}
+function bindUsualSpending(){
+ const target=document.getElementById('usual-result'),button=document.getElementById('usual-refresh');if(!target||!button)return;
+ const epoch=sessionEpoch,user=state.user.id,household=state.household.id;let generation=0;
+ button.onclick=load;load();
+ async function load(){const ticket=++generation;button.disabled=true;target.textContent='Leyendo todos los movimientos y sus repartos…';
+  try{const feed=await fetchUsualFeed(household);assertSaveContext(epoch,user,household);if(ticket!==generation||!target.isConnected)return;state.usualFeed={...feed,epoch};draw()}
+  catch(e){if(e.sessionCancelled||epoch!==sessionEpoch||!target.isConnected)return;target.textContent='No se ha podido calcular: '+e.message}
+  finally{if(epoch===sessionEpoch)button.disabled=false}
+ }
+ function draw(){
+  const feed=state.usualFeed,current=localMonth().slice(0,7),selected=state.usualMonths||[],periodized=state.usualPeriodized!==false,r=UsualSpending.report(feed,selected,todayISO(),periodized),missing=feed.transactions.filter(t=>!t.account_id),months=UsualSpending.periods(todayISO());
+  const avg=value=>value===null?'—':money(value/100),closed=new Set(feed.closures.filter(c=>c.status==='CLOSED').map(c=>c.month.slice(0,7)));
+  const available=months.map(m=>{const row=r.months.find(x=>x.month===m);return '<label><input type="checkbox" data-usual-month="'+m+'" '+(selected.includes(m)?'checked ':'')+(m===current?'disabled ':'')+'><span>'+esc(monthName(m+'-01'))+'<small class="bank-help"> · '+(m===current?'En curso':closed.has(m)?'Cerrado':(row?.count||0)+' movimientos')+'</small></span></label>'}).join('');
+  target.innerHTML='<h3>1. Elige los meses completos</h3><p class="bank-help">Marca solo meses con todos los gastos registrados. Haber terminado el mes no garantiza tener todos sus movimientos. El mes en curso se muestra aparte. Esta selección se conserva durante tu sesión.</p><div class="usual-months">'+available+'</div><div class="usual-controls"><label><input type="checkbox" id="usual-periodized" '+(periodized?'checked':'')+'>Aplicar los repartos mensuales ya configurados</label><button class="mini" id="usual-clear">Quitar selección</button></div><p class="bank-help">Los seguros o impuestos anuales se reparten solo si tienen una periodización configurada. No se deduce por el nombre del gasto. Edita las reglas en Ajustes → Recurrentes.</p><div class="usual-kpis"><div><span>Media habitual mensual</span><strong>'+avg(r.average)+'</strong><small>'+r.selected.length+' meses elegidos'+(r.selected.length<3?' · Muestra limitada':'')+'</small></div><div><span>Extraordinarios y otras exclusiones</span><strong>'+money(r.excluded/100)+'</strong><small>Total neto excluido en los meses elegidos</small></div><div><span>Cuentas pendientes en la muestra</span><strong>'+r.missing+'</strong><small>Gastos y devoluciones sin cuenta identificada</small></div></div>'+(r.selected.length?'<p class="bank-help">Media por origen '+(periodized?'del coste repartido':'del pago')+': efectivo '+avg(r.cash)+' · cuentas '+avg(r.bank)+' · sin identificar '+avg(r.unknown)+'. Los importes sin cuenta se incluyen en la media total. Las devoluciones reducen el gasto.</p>':'<p class="notice">Selecciona al menos un mes completo para obtener una media. Casuo no considera completos los meses automáticamente.</p>')+(r.missing?'<p class="notice">La distribución entre efectivo y cuentas es provisional mientras falten cuentas. La media también depende de que hayáis registrado todos los gastos.</p>':'')+'<details class="usual-details"><summary>Ver detalle mensual</summary><div class="usual-table"><table class="trend"><thead><tr><th>Mes</th><th>Gasto neto real</th><th>Excluido</th><th>Habitual'+(periodized?' periodizado':'')+'</th></tr></thead><tbody>'+months.slice().reverse().map(m=>{const x=r.months.find(x=>x.month===m)||{net:0,excluded:0,usual:0};return '<tr><td>'+esc(monthName(m+'-01'))+(m===current?' · en curso':'')+'</td><td>'+money(x.net/100)+'</td><td>'+money(x.excluded/100)+'</td><td>'+money(x.usual/100)+'</td></tr>'}).join('')+'</tbody></table></div></details><h3>2. Completa las cuentas y revisa exclusiones</h3><p class="bank-help">'+missing.length+' movimientos históricos sin cuenta. En meses cerrados, el propietario debe reabrirlos desde Cierre mensual antes de editar y cerrarlos después.</p><div class="invite-actions"><button class="btn" id="history-accounts">'+(SaveRecovery.read(localStorage,user,household,'history-accounts')?.form.operations?.length?'Continuar asignación pendiente':'Asignar cuentas en bloque')+'</button></div><details class="usual-details"><summary>Revisar gastos y exclusiones</summary><div class="filters"><input id="usual-query" placeholder="Buscar un gasto para revisar"><select id="usual-detail-month"><option value="">Todos los meses</option>'+months.slice().reverse().map(m=>'<option value="'+m+'">'+esc(monthName(m+'-01'))+'</option>').join('')+'</select><select id="usual-detail-mode"><option value="all">Gastos y devoluciones</option><option value="excluded">Solo excluidos</option></select></div><p class="bank-help">Para excluir un extraordinario, pulsa Editar y marca «Excluir de la media habitual». Las exclusiones existentes del coste normalizado también se respetan. Las devoluciones vinculadas a un gasto excluido se excluyen junto a él.</p><div id="usual-detail"></div><button class="mini" id="usual-more">Ver más movimientos</button></details>';
+  target.querySelectorAll('[data-usual-month]').forEach(el=>el.onchange=()=>{state.usualMonths=[...target.querySelectorAll('[data-usual-month]:checked')].map(x=>x.dataset.usualMonth);draw()});
+  target.querySelector('#usual-periodized').onchange=e=>{state.usualPeriodized=e.target.checked;draw()};target.querySelector('#usual-clear').onclick=()=>{state.usualMonths=[];draw()};target.querySelector('#history-accounts').onclick=()=>openHistoryAccounts();
+  const query=target.querySelector('#usual-query'),month=target.querySelector('#usual-detail-month'),mode=target.querySelector('#usual-detail-mode'),detail=target.querySelector('#usual-detail'),more=target.querySelector('#usual-more');let limit=30;
+  const detailDraw=()=>{const items=feed.transactions.filter(t=>['GASTO','DEVOLUCION'].includes(t.type)&&(!month.value||t.transaction_date.startsWith(month.value))&&(!query.value||norm(t.concept).includes(norm(query.value)))&&(mode.value!=='excluded'||t.exclude_from_normalized||feed.transactions.find(x=>x.id===t.reimburses_transaction_id)?.exclude_from_normalized)).sort((a,b)=>b.transaction_date.localeCompare(a.transaction_date));detail.innerHTML=txRows(items.slice(0,limit),true);more.hidden=items.length<=limit;bindTransactionActions()};query.oninput=month.onchange=mode.onchange=()=>{limit=30;detailDraw()};more.onclick=()=>{limit+=30;detailDraw()};detailDraw();
+ }
+}
+async function saveHistoryAccount(operation,epoch,user,household){
+ const check=()=>assertSaveContext(epoch,user,household);check();
+ if(operation.resource!=='transactions'||operation.create!==false||operation.household!==household||operation.payload?.household_id!==household||!operation.payload.account_id||Object.keys(operation.payload).some(k=>!['household_id','account_id'].includes(k)))throw Error('Asignación no válida.');
+ if(offline())throw offlineError();
+ return SaveRecovery.save(operation,{assert:check,find:async id=>(await rest('transactions','household_id=eq.'+encodeURIComponent(household)+'&id=eq.'+encodeURIComponent(id)+'&select=*&limit=1'))?.[0],write:async op=>{const rows=await authed('/rest/v1/transactions?household_id=eq.'+encodeURIComponent(household)+'&id=eq.'+encodeURIComponent(op.id)+'&account_id=is.null&updated_at=eq.'+encodeURIComponent(op.expected),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(op.payload)});if(!rows?.length)throw SaveRecovery.conflict('El movimiento ha cambiado. Actualiza el histórico antes de continuar.');return rows}});
+}
+async function openHistoryAccounts(){
+ if(!guardPrivateView()||state.onboardingPreview||document.getElementById('history-accounts-modal'))return;
+ const epoch=sessionEpoch,user=state.user.id,household=state.household.id,check=()=>assertSaveContext(epoch,user,household),stored=SaveRecovery.read(localStorage,user,household,'history-accounts');
+ let operations=stored?.form.operations||[],busy=false,feed;
+ const back=document.createElement('div');back.className='modal-back';back.id='history-accounts-modal';back.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-labelledby="history-title"><div class="modal-head"><h2 id="history-title">Completar cuentas históricas</h2><button class="close" aria-label="Cerrar">×</button></div><p class="bank-help">Selecciona hasta 100 movimientos sin cuenta y asigna una cuenta común al lote. Los meses cerrados deben reabrirse primero; las transferencias se revisan individualmente.</p><div id="history-account-tools"></div><div id="history-account-list" class="history-review-list"></div><p id="history-account-status" class="save-state" role="status" aria-live="polite">Cargando histórico…</p><div class="modal-actions"><button class="btn" id="history-discard">Descartar pendientes</button><button class="save" id="history-save" disabled>Asignar cuenta</button></div></div>';document.body.appendChild(back);
+ const get=id=>back.querySelector('#'+id),status=get('history-account-status'),save=get('history-save'),close=()=>{if(!busy)back.remove()};back.querySelector('.close').onclick=close;
+ const persist=()=>{check();SaveRecovery.write(localStorage,user,household,'history-accounts',{form:{operations}});updateConnectionState()};
+ const progress=()=>{status.textContent=operations.filter(x=>x.done).length+' de '+operations.length+' asignaciones confirmadas. Cerrar conserva las pendientes.'};
+ function frozen(){get('history-account-tools').querySelectorAll('input,select,button').forEach(e=>e.disabled=busy||!!operations.length);get('history-account-list').querySelectorAll('input').forEach(e=>e.disabled=busy||!!operations.length||e.dataset.closed==='true');save.disabled=busy;get('history-discard').disabled=busy;back.querySelector('.close').disabled=busy;save.textContent=operations.length?'Comprobar y continuar':'Asignar cuenta'}
+ get('history-discard').onclick=()=>{if(busy||!confirm('Las asignaciones ya guardadas se conservarán. ¿Descartar los pendientes locales?'))return;check();SaveRecovery.clear(localStorage,user,household,'history-accounts');back.remove();updateConnectionState()};
+ try{feed=await fetchUsualFeed(household);check();if(!back.isConnected)return;const missing=feed.transactions.filter(t=>!t.account_id&&t.type!=='TRANSFERENCIA_INTERNA'),closed=new Set(feed.closures.filter(c=>c.status==='CLOSED').map(c=>c.month.slice(0,7))),months=[...new Set(missing.map(t=>t.transaction_date.slice(0,7)))].sort().reverse(),chosen=new Set();
+  get('history-account-tools').innerHTML='<label>Cuenta para los seleccionados<select id="history-account-choice">'+optionList(feed.accounts.filter(a=>!a.is_archived),'',a=>a.name)+'</select></label><div class="filters"><input id="history-query" placeholder="Buscar concepto"><select id="history-month"><option value="">Todos los meses</option>'+months.map(m=>'<option value="'+m+'">'+esc(monthName(m+'-01'))+'</option>').join('')+'</select></div><button class="mini" id="history-select">Seleccionar visibles (máximo 100)</button> <button class="mini" id="history-unselect">Quitar selección</button><p class="bank-help" id="history-selection-count"></p>';
+  let visible=[];const draw=()=>{visible=missing.filter(t=>(!get('history-month').value||t.transaction_date.startsWith(get('history-month').value))&&norm(t.concept).includes(norm(get('history-query').value)));get('history-account-list').innerHTML=visible.map(t=>'<label class="history-pick"><input type="checkbox" data-history-id="'+t.id+'" data-closed="'+closed.has(t.transaction_date.slice(0,7))+'" '+(chosen.has(t.id)?'checked ':'')+(closed.has(t.transaction_date.slice(0,7))?'disabled ':'')+'><span><b>'+esc(t.concept)+'</b><small>'+esc(t.transaction_date)+' · '+esc(t.type)+(closed.has(t.transaction_date.slice(0,7))?' · Mes cerrado':'')+'</small></span><strong>'+money(t.amount)+'</strong></label>').join('')||'<p class="bank-help">No hay movimientos sin cuenta con este filtro.</p>';get('history-selection-count').textContent=chosen.size+' seleccionados en total · '+visible.length+' visibles';get('history-account-list').querySelectorAll('[data-history-id]').forEach(el=>el.onchange=()=>{if(el.checked&&chosen.size>=100){el.checked=false;status.textContent='El máximo es 100 por lote.';return}el.checked?chosen.add(el.dataset.historyId):chosen.delete(el.dataset.historyId);get('history-selection-count').textContent=chosen.size+' seleccionados en total · '+visible.length+' visibles'});frozen()};
+  get('history-query').oninput=get('history-month').onchange=draw;get('history-select').onclick=()=>{for(const t of visible)if(chosen.size<100&&!closed.has(t.transaction_date.slice(0,7)))chosen.add(t.id);draw()};get('history-unselect').onclick=()=>{chosen.clear();draw()};draw();if(operations.length)progress();else status.textContent=missing.length+' movimientos sin cuenta. La asignación afecta al histórico y al saldo calculado de la cuenta.';
+  save.onclick=async()=>{if(busy)return;try{check();if(!operations.length){const account=feed.accounts.find(a=>a.id===get('history-account-choice').value);operations=UsualSpending.accountOperations(feed.transactions,[...chosen],account,household,closed)}persist();busy=true;frozen();for(const op of operations){check();if(op.done)continue;const result=await saveHistoryAccount(op,epoch,user,household);check();op.done=true;persist();const i=feed.transactions.findIndex(t=>t.id===op.id);if(i>=0)feed.transactions[i]=result.record;progress()}check();SaveRecovery.clear(localStorage,user,household,'history-accounts');back.remove();updateConnectionState();await loadAll(true);check();renderApp();toast('Cuentas asignadas. Actualiza la conciliación si es necesario.')}
+   catch(e){if(e.sessionCancelled||epoch!==sessionEpoch)return;status.textContent=(operations.length?operations.filter(x=>x.done).length+' confirmadas. ':'')+SaveRecovery.message(e)}finally{if(epoch===sessionEpoch){busy=false;frozen()}}};
+ }catch(e){if(e.sessionCancelled||epoch!==sessionEpoch)return;status.textContent='No se pudo abrir el histórico: '+e.message;save.disabled=true}
+}
+
 function viewAnalisis(){
  const b=state.data.breakdown,t=state.data.trend,max=Math.max(1,...b.map(x=>Number(x.amount||0)));
- shell(head('Evolución','Análisis','Tendencias mensuales, categorías y control de cierre.')+monthlyComparisonPanel()+
+ shell(head('Evolución','Análisis','Tendencias mensuales, categorías y control de cierre.')+usualSpendingPanel()+monthlyComparisonPanel()+
  '<section class="grid"><div class="panel"><div class="panel-head"><div><span class="sub">12 meses</span><h2>Evolución financiera</h2></div></div><div style="overflow:auto"><table class="trend"><thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Inversión</th><th>Ahorro</th><th>Normalizado</th></tr></thead><tbody>'+t.map(r=>'<tr><td>'+esc(monthName(r.month))+'</td><td class="green">'+money(r.income)+'</td><td class="red">'+money(r.expenses)+'</td><td class="purple">'+money(r.invested)+'</td><td>'+money(r.operating_savings)+'</td><td>'+money(r.normalized_cost)+'</td></tr>').join('')+'</tbody></table></div></div>'+
  '<div class="panel"><div class="panel-head"><div><span class="sub">Mes actual</span><h2>Gasto por categoría</h2></div></div><div class="bars">'+(b.length?b.map(x=>'<div><div class="bar-head"><span>'+esc(x.category_name)+'</span><strong>'+money(x.amount)+'</strong></div><div class="track"><i style="width:'+Math.max(2,Math.round(Number(x.amount||0)/max*100))+'%"></i></div></div>').join(''):'<div class="empty">Sin gasto categorizado.</div>')+'</div></div></section>'+
  '<section class="panel"><div class="panel-head"><div><span class="sub">Control mensual</span><h2>Cierre y Excel acumulativo</h2></div><span class="chip-ok">AUDITADO</span></div><p style="color:#879bb3;font-size:12px;line-height:1.5;margin:0">Revisa duplicados, bloquea el mes cerrado y genera un Excel con movimientos, resumen mensual, categorías, cuentas, inversiones, patrimonio, periodizaciones, cierres y valoraciones.</p><div class="invite-actions"><button class="btn" id="open-month-close">Revisar cierre mensual</button><button class="btn" id="export-workbook">Exportar Excel ahora</button></div><div class="excel-note">El mes en curso puede revisarse y exportarse, pero no cerrarse hasta su último día.</div></section>');
- bindCommon();bindMonthlyComparison();document.getElementById('open-month-close').onclick=openMonthClose;document.getElementById('export-workbook').onclick=exportWorkbook
+ bindCommon();bindUsualSpending();bindMonthlyComparison();document.getElementById('open-month-close').onclick=openMonthClose;document.getElementById('export-workbook').onclick=exportWorkbook
 }
 
 function recurringMeta(r){

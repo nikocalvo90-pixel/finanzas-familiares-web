@@ -449,3 +449,28 @@ The account review assigns a selected active household account to at most 100 pr
 As an explicitly authorized one-time correction, seventeen September recurrent movements were linked to the unique account of the same recurring rule/type in October: fourteen expenses, one income and two investment contributions. The existing September closure was reopened and reclosed using the regular owner functions within one serializable transaction. Assertions required exactly seventeen changes, identical transaction content except account/timestamp, and an identical financial closure snapshot. September remains CLOSED with 55 other unassigned movements; no ambiguous assignments or extraordinary classifications were made. No personal record identifiers or private export are included in this repository.
 
 Validation: 194 Node tests pass, including the existing suite and new calculation/controller cases for complete months, refunds, allocations, deduplication, unknown accounts, batch scope/limits, pagination, lost PATCH response, stale versions, atomic races, session changes, and editor exclusions. Inline JavaScript syntax and whitespace checks pass. Live RLS policies and composite household/account constraints were inspected; no new schema, grants, policies or privileged APIs were introduced. Security advisors retain the previously documented pg_net/public, authenticated SECURITY DEFINER and password-protection warnings. No signed-in browser or physical iPhone visual QA was performed for this build.
+
+### Build 20261018.36 — presentación interactiva e identidad clara
+
+La portada pública se sustituye por la landing aprobada de Casuo: demostraciones
+locales de gastos, presupuestos, compra y recurrentes, explicación de uso, FAQ y
+accesos a los formularios reales de entrada y registro. `casuo-landing.js` monta
+la presentación dentro de Shadow DOM para aislar sus estilos e identificadores
+del resto de la app. Sus enlaces internos desplazan la página sin modificar las
+rutas de la aplicación. La demo no consulta, escribe ni conserva datos del hogar.
+
+La app adopta fondo suave, tarjetas blancas, texto verde oscuro, indicadores con
+contraste y navegación en verde. El estilo base pasa de inline a `casuo-app.css`;
+`casuo-light.css` define la identidad común. Se mantienen los ajustes móviles,
+los formularios, los datos y la lógica financiera. El símbolo Casa + C conserva
+su forma y se actualiza a la paleta aprobada; manifest y barras del sistema usan
+el fondo claro. Invitaciones, recuperación, bloqueo y sesiones activas conservan
+sus flujos. Una presentación no disponible no impide acceder al formulario ni
+cierra la sesión de quien consulta su vista previa.
+
+Validación: 195 pruebas Node pasan, además de once comprobaciones funcionales de
+la landing con un modelo DOM. Comprobados JavaScript inline/externo, referencias
+a assets y ausencia de cambios en la lógica de la app fuera del montaje de la
+portada y estilos inline. La revisión visual autenticada y en un iPhone físico
+requiere una sesión/dispositivo real. La vista privada de Sites mantiene sus
+permisos; esta publicación se realiza sobre el casuo.es existente.

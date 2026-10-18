@@ -1,0 +1,45 @@
+/* Casuo light identity: soft canvas, white surfaces and a green workspace. */
+:root{color-scheme:light;--bg:#f6f8f2;--panel:#fff;--panel2:#f0f4e9;--line:#dde4d9;--text:#173e3c;--muted:#62725e;--purple:#6d8860;--green:#46734f;--red:#ad554e;--blue:#3e7280;--orange:#96613b}
+body{background:var(--bg);font-family:Inter,"Avenir Next",Avenir,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.sidebar{background:#173e3c;color:#e3edde;border-right:0;backdrop-filter:none}
+.sidebar .brand-copy b{font-size:22px;font-weight:600;letter-spacing:-.9px}
+.sidebar .brand-copy small,.sidebar .user-copy small,.sidebar .account-chevron{color:#b4c9b1}
+.sidebar .nav button{color:#bbd0ba;font-weight:550}
+.sidebar .nav button.active{color:#d9f0c7;background:#34594d;box-shadow:inset 0 0 0 1px #52705b}
+.sidebar .nav button:hover{background:#2a5147;color:#e4f0dc}
+.sidebar .side-foot{border-color:#416153}
+.sidebar .account-menu summary{color:#e3edde}
+.sidebar .account-menu summary:hover,.sidebar .account-menu[open] summary{background:#2a5147}
+.sidebar .avatar{background:#466553;color:#eaf3e3}
+.logo{background:#173e3c;border-radius:12px;box-shadow:none}
+.metric,.panel,.entity-card{background:#fff;box-shadow:0 8px 28px -20px rgba(23,62,60,.16);border-color:#dde4d9}
+.home-page .panel{box-shadow:0 8px 28px -20px rgba(23,62,60,.12)}
+.home-month{background:#edf3e5!important;border-color:#d8e4cc}
+.home-month .home-total{color:#173e3c;font-weight:600}
+.home-primary,.primary,.save,.fab{background:#173e3c;color:#fff;border-color:transparent;font-weight:600}
+.home-primary:hover,.primary:hover,.save:hover,.fab:hover{background:#2b5551;color:#fff}
+.btn,.mini{background:#fff;color:#294a3e;font-weight:600;border-color:#dce4d6}
+.btn:hover,.mini:hover{background:#edf3e5;color:#173e3c}
+.mini.danger{color:#ad554e;background:#fcf0ec}
+.page-head h1,.home-heading h1{font-weight:600;letter-spacing:-.045em}
+.panel-head h2,.home-page h2,.settings-menu-card b,.task-title{font-weight:600}
+.metric strong,.entity-card .value,.wealth-value{font-weight:600}
+.wealth-hero{background:#edf3e5;box-shadow:none;border-color:#d8e4cc}
+.track,.goal-track,.budget-track{background:#e9efdf;border-color:#dce4d6}
+.track i,.goal-track i,.budget-track i{background:#89ad6d}
+.auth-tabs{background:#eef3e7}.auth-tabs button.active{background:#fff;color:#173e3c;box-shadow:0 2px 7px #173e3c0a}
+.finance-nav{background:#edf1e7}.finance-nav button.active{background:#fff;color:#173e3c;box-shadow:0 2px 6px #173e3c08}
+.task-tab.active{background:#dcebcf;color:#294d35;border-color:#b8d1a4}
+.login-card,.lock-card{background:#fff;box-shadow:0 18px 60px -35px #173e3c40;border-color:#dce4d6}
+.lock-screen{background:#edf3e6}.lock-icon{background:#e2efd5}
+.modal{background:#fff;box-shadow:0 24px 80px #173e3c22}.modal-back{background:rgba(23,62,60,.28);backdrop-filter:blur(5px)}
+.modal-actions{background:linear-gradient(0deg,#fff 75%,transparent)}
+.account-popover{background:#fff;color:#173e3c;border-color:#dce4d6;box-shadow:0 18px 50px #173e3c20}
+.account-popover button{color:#173e3c}.account-popover button:hover{background:#edf3e5}.account-popover .account-signout{color:#ad554e}
+.toast{background:#173e3c;color:#f2f8ee;border-color:#3e6350;box-shadow:0 12px 35px #173e3c22}
+.notice-count{background:#173e3c;color:#fff;border-color:#fff}
+.budget-summary>div,.budget-card{background:#fff}.budget-card.near .budget-badge,.budget-card.reached .budget-badge{color:#906232}.budget-card.over .budget-badge{color:#ad554e}
+input,textarea,select{accent-color:#587a4c}input::placeholder,textarea::placeholder{color:#73856b}
+:focus-visible{outline:2px solid #638950;outline-offset:3px}
+@media(max-width:900px){.bottom-nav{background:rgba(255,255,255,.97);border-color:#dce4d6;box-shadow:0 10px 32px #173e3c15}.bottom-nav button{color:#62725e}.bottom-nav button.active{background:#e1edd6;color:#294d35}.mobile-top{background:rgba(246,248,242,.96);border-bottom:1px solid #e2e8dc}.mobile-top .brand-copy b{color:#173e3c}.mobile-top .brand-copy small{color:#62725e}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}

@@ -8,12 +8,12 @@ const script=html.slice(html.indexOf('(function(){')+'(function(){'.length,html.
 const response=(data,status=200)=>({ok:status<400,status,text:async()=>JSON.stringify(data)});
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}};
 function setup(){
- const storage=new Map(),elements=new Map(),events={},intervals=new Set(),removed=[];
+ const storage=new Map(),elements=new Map(),events={},intervals=new Set(),removed=[];let landing;
  const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',dataset:{},querySelectorAll:()=>[],classList:{toggle(){}},textContent:''});return elements.get(id)};
  const ctx=vm.createContext({Intl,URL,URLSearchParams,Uint8Array,AbortController,AbortSignal,crypto:webcrypto,atob,EntryDrafts:require('../docs/entry-drafts.js'),SaveRecovery:require('../docs/save-recovery.js'),FamilyAccess:require('../docs/account-access.js'),FamilyOnboarding:require('../docs/onboarding.js'),
    localStorage:{get length(){return storage.size},key:i=>[...storage.keys()][i]||null,getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
    document:{getElementById:element,querySelector:()=>null,querySelectorAll:()=>[{remove:()=>removed.push(true)}],addEventListener:(name,cb)=>events[name]=cb,hidden:false},
-   window:{addEventListener:(name,cb)=>events[name]=cb},navigator:{userAgent:'Test'},
+   window:{addEventListener:(name,cb)=>events[name]=cb,CasuoLanding:{mount:options=>{landing=options;options.root.innerHTML='<div class="welcome-page">'+require('../docs/casuo-landing.js').markup+'</div>'}}},navigator:{userAgent:'Test'},
    location:{href:'https://example.com/app/',hash:'#inicio'},setTimeout,clearTimeout,
    setInterval:fn=>{intervals.add(fn);return fn},clearInterval:fn=>intervals.delete(fn),
    fetch:async()=>response([])
@@ -21,7 +21,7 @@ function setup(){
  vm.runInContext(script,ctx);
  const run=s=>vm.runInContext(s,ctx);
  run("saveSession({access_token:'token',refresh_token:'refresh',user:{id:'user'}});state.user={id:'user',email:'test@example.com'};state.household={id:'household',name:'Test'};state.data={secret:'private'};state.deviceUnlocked=true");
- return {ctx,run,events,intervals,removed,root:element('root')};
+ return {ctx,run,events,intervals,removed,root:element('root'),landing:()=>landing};
 }
 test('real router and shell cannot render private content when locked',()=>{
  const s=setup();
@@ -277,12 +277,12 @@ test('a late household rename response cannot change another session',async()=>{
 
 test('public welcome uses fictional data and sends Start and Enter to the correct auth mode',()=>{
  const s=setup();s.run("clearSession();renderLogin()");
- assert.match(s.root.innerHTML,/welcome-page/);assert.match(s.root.innerHTML,/Datos ficticios/);
+ assert.match(s.root.innerHTML,/welcome-page/);assert.match(s.root.innerHTML,/datos (ficticios|de ejemplo)/i);
  assert.doesNotMatch(s.root.innerHTML,/test@example.com|private/);assert.equal(s.run('state.data'),null);
- s.run("document.getElementById('welcome-start').onclick()");
+ s.landing().onStart();
  assert.equal(s.run("document.getElementById('signup-pane').hidden"),false);
  assert.equal(s.run("document.getElementById('login-pane').hidden"),true);
- s.run("document.getElementById('auth-home').onclick();document.getElementById('welcome-enter').onclick()");
+ s.run("document.getElementById('auth-home').onclick()");s.landing().onEnter();
  assert.equal(s.run("document.getElementById('login-pane').hidden"),false);
  assert.equal(s.run("document.getElementById('signup-pane').hidden"),true);
 });
@@ -299,8 +299,15 @@ test('welcome preview keeps the authenticated household and returns to the app',
  const s=setup();s.run("renderApp=()=>document.getElementById('root').innerHTML='APP';renderWelcome(true)");
  assert.equal(s.run('state.household.id'),'household');assert.equal(s.run('state.user.id'),'user');
  assert.equal(s.run('state.data.secret'),'private');assert.doesNotMatch(s.root.innerHTML,/test@example.com|private/);
- s.run("document.getElementById('welcome-start').onclick()");assert.equal(s.root.innerHTML,'APP');
+ s.landing().onStart();assert.equal(s.root.innerHTML,'APP');
  assert.equal(s.run('getSession().access_token'),'token');
+});
+
+test('a missing landing asset preserves authenticated preview state and leaves public auth usable',()=>{
+ const s=setup();s.run("delete window.CasuoLanding;toast=()=>{};renderApp=()=>document.getElementById('root').innerHTML='APP';renderWelcome(true)");
+ assert.equal(s.root.innerHTML,'APP');assert.equal(s.run('state.user.id'),'user');assert.equal(s.run('state.data.secret'),'private');
+ s.run('clearSession();renderLogin()');assert.match(s.root.innerHTML,/No se ha podido cargar la presentación/);
+ assert.equal(s.run("document.getElementById('login-pane').hidden"),false);
 });
 
 test('first steps respect household data, member permissions and scoped dismissal',()=>{

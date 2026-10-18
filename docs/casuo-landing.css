@@ -13,3 +13,7 @@
 @media(max-width:850px){.feature-tab{font-size:11px}.feature-copy>p{font-size:13px}.check-list{font-size:11px}.try-hint{font-size:10px}.more-features>span{font-size:10px}.header-inner nav,.header-login{font-size:12px}}
 @media(max-width:620px){.hero-note,.hero-people{font-size:10px}.hero-actions .text-link{font-size:11px}.feature-tab{font-size:11px}.feature-copy>p{font-size:13px}.check-list{font-size:12px;gap:9px}.try-hint{font-size:10px}.demo-card h4{font-size:12px}.demo-row strong,.demo-row b{font-size:11px}.demo-row small{font-size:9px}.demo-caption{font-size:9px}.demo-action{font-size:11px}.more-features>span{font-size:11px}.steps p{font-size:13px}.phone-banner p{font-size:12px}.phone-banner .text-link{font-size:11px}.faq-grid>div>p:last-child{font-size:13px}.faq-items summary{font-size:14px}.faq-items details>p{font-size:13px}.final-cta p{font-size:13px}.final-cta>small{font-size:9px}.footer-inner{font-size:10px}.recurring-summary{flex-wrap:wrap;gap:5px}.recurring-summary strong{font-size:20px}}
 @media(prefers-reduced-motion:reduce){:host{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
+/* Keep the mobile trigger hidden on desktop despite shared icon-button rules. */
+.menu-toggle.icon-button{display:none}
+.shopping-item{min-height:44px}
+@media(max-width:850px){.menu-toggle.icon-button{display:grid}.feature-tab{min-height:44px}}

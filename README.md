@@ -450,7 +450,7 @@ As an explicitly authorized one-time correction, seventeen September recurrent m
 
 Validation: 194 Node tests pass, including the existing suite and new calculation/controller cases for complete months, refunds, allocations, deduplication, unknown accounts, batch scope/limits, pagination, lost PATCH response, stale versions, atomic races, session changes, and editor exclusions. Inline JavaScript syntax and whitespace checks pass. Live RLS policies and composite household/account constraints were inspected; no new schema, grants, policies or privileged APIs were introduced. Security advisors retain the previously documented pg_net/public, authenticated SECURITY DEFINER and password-protection warnings. No signed-in browser or physical iPhone visual QA was performed for this build.
 
-### Build 20261018.36 — presentación interactiva e identidad clara
+### Build 20261018.37 — presentación interactiva e identidad clara
 
 La portada pública se sustituye por la landing aprobada de Casuo: demostraciones
 locales de gastos, presupuestos, compra y recurrentes, explicación de uso, FAQ y
@@ -474,3 +474,5 @@ a assets y ausencia de cambios en la lógica de la app fuera del montaje de la
 portada y estilos inline. La revisión visual autenticada y en un iPhone físico
 requiere una sesión/dispositivo real. La vista privada de Sites mantiene sus
 permisos; esta publicación se realiza sobre el casuo.es existente.
+
+Revisión de publicación: portada, pestaña interactiva de presupuestos y formulario real de entrada comprobados en Chrome. Se corrigió la prioridad CSS del menú móvil para ocultar su botón en escritorio.

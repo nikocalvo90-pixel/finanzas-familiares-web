@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-kNVUZGPbWHLHrzuBcUliJOvNCY8/MV2Vs+4jrT/zMok='; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://lqsoxkoiwczouhvefmgg.supabase.co; img-src 'self' data: blob: https://lqsoxkoiwczouhvefmgg.supabase.co; font-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f6f8f2">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -10,7 +12,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="./manifest.webmanifest?v=20261018.37">
+<link rel="manifest" href="./manifest.webmanifest?v=20261021.38">
 <link rel="icon" href="./icons/casuo-house-c.ico">
 <link rel="icon" type="image/svg+xml" href="./icons/casuo-house-c.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/casuo-house-c-32.png">
@@ -20,30 +22,30 @@
 <meta property="og:title" content="Casuo · Tu casa, en orden">
 <meta property="og:description" content="Menos cosas sueltas. Un lugar para vuestro hogar: finanzas, compra y tareas compartidas.">
 <meta property="og:type" content="website">
-<link rel="stylesheet" href="./casuo-app.css?v=20261018.37">
-<link rel="stylesheet" href="./mobile.css?v=20261018.37">
-<link rel="stylesheet" href="./usual-spending.css?v=20261018.37">
-<link rel="stylesheet" href="./budgets.css?v=20261018.37">
-<link rel="stylesheet" href="./casuo-light.css?v=20261018.37">
-<link rel="preload" as="style" href="./casuo-landing.css?v=20261018.37">
+<link rel="stylesheet" href="./casuo-app.css?v=20261021.38">
+<link rel="stylesheet" href="./mobile.css?v=20261021.38">
+<link rel="stylesheet" href="./usual-spending.css?v=20261021.38">
+<link rel="stylesheet" href="./budgets.css?v=20261021.38">
+<link rel="stylesheet" href="./casuo-light.css?v=20261021.38">
+<link rel="preload" as="style" href="./casuo-landing.css?v=20261021.38">
 </head>
 <body>
 <div id="root"><div class="loading"><div><div class="logo" style="margin:auto"><img src="./icons/casuo-house-c.svg" alt="" width="43" height="43"></div><p>Recuperando sesión…</p></div></div></div>
-<script src="./casuo-landing.js?v=20261018.37"></script>
-<script src="./mobile-layout.js?v=20261018.37"></script>
-<script src="./smart-rules.js?v=20261018.37"></script>
-<script src="./usual-spending.js?v=20261018.37"></script>
-<script src="./budgets.js?v=20261018.37"></script>
-<script src="./shopping-batch.js?v=20261018.37"></script>
-<script src="./shopping.js?v=20261018.37"></script>
-<script src="./onboarding.js?v=20261018.37"></script>
-<script src="./account-access.js?v=20261018.37"></script>
-<script src="./entry-drafts.js?v=20261018.37"></script>
-<script src="./save-recovery.js?v=20261018.37"></script>
-<script src="./backups.js?v=20261018.37"></script>
-<script src="./this-month.js?v=20261018.37"></script>
-<script src="./monthly-reports.js?v=20261018.37"></script>
-<script src="./transaction-documents.js?v=20261018.37"></script>
+<script src="./casuo-landing.js?v=20261021.38"></script>
+<script src="./mobile-layout.js?v=20261021.38"></script>
+<script src="./smart-rules.js?v=20261021.38"></script>
+<script src="./usual-spending.js?v=20261021.38"></script>
+<script src="./budgets.js?v=20261021.38"></script>
+<script src="./shopping-batch.js?v=20261021.38"></script>
+<script src="./shopping.js?v=20261021.38"></script>
+<script src="./onboarding.js?v=20261021.38"></script>
+<script src="./account-access.js?v=20261021.38"></script>
+<script src="./entry-drafts.js?v=20261021.38"></script>
+<script src="./save-recovery.js?v=20261021.38"></script>
+<script src="./backups.js?v=20261021.38"></script>
+<script src="./this-month.js?v=20261021.38"></script>
+<script src="./monthly-reports.js?v=20261021.38"></script>
+<script src="./transaction-documents.js?v=20261021.38"></script>
 <script>
 (function(){
 const SUPA='https://lqsoxkoiwczouhvefmgg.supabase.co';
@@ -52,7 +54,7 @@ const STORE='ff_session_github_staging_v1';
 const PENDING_JOIN='ff_pending_join_v1';
 const LAST_EMAIL='ff_last_email_v1';
 const DEVICE_LOCK='ff_device_lock_v1';
-const APP_BUILD='20261018.37';
+const APP_BUILD='20261021.38';
 const root=document.getElementById('root');
 const eur=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});
 const monthFmt=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
@@ -63,8 +65,20 @@ let sessionEpoch=0,refreshInFlight=null;
 const pendingRequests=new Set();
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money=v=>eur.format(Number(v||0));
-const getSession=()=>{try{return JSON.parse(localStorage.getItem(STORE)||'null')}catch{return null}};
-const saveSession=s=>localStorage.setItem(STORE,JSON.stringify(s));
+function sessionRecord(s){
+ if(!s||typeof s!=='object')return null;
+ const clean={};
+ for(const key of ['access_token','refresh_token','token_type'])if(typeof s[key]==='string')clean[key]=s[key];
+ for(const key of ['expires_at','expires_in'])if(Number.isFinite(s[key]))clean[key]=s[key];
+ if(s.passwordRecovery===true)clean.passwordRecovery=true;
+ if(s.user&&typeof s.user==='object'){
+  clean.user={};for(const key of ['id','email'])if(typeof s.user[key]==='string')clean.user[key]=s.user[key];
+  if(typeof s.user.user_metadata?.display_name==='string')clean.user.user_metadata={display_name:s.user.user_metadata.display_name};
+ }
+ return clean;
+}
+const getSession=()=>{try{return sessionRecord(JSON.parse(localStorage.getItem(STORE)||'null'))}catch{return null}};
+const saveSession=s=>localStorage.setItem(STORE,JSON.stringify(sessionRecord(s)));
 const clearSession=()=>localStorage.removeItem(STORE);
 function sessionCancelled(){const e=new Error('La sesión ha cambiado o la app está bloqueada.');e.name='AbortError';e.sessionCancelled=true;return e}
 function assertSessionEpoch(epoch){if(epoch!==sessionEpoch)throw sessionCancelled()}
@@ -590,7 +604,7 @@ function bankApplySnapshot(rows,snapshot){
  }
 }
 function toast(msg){const x=document.createElement('div');x.className='toast';x.textContent=msg;document.body.appendChild(x);setTimeout(()=>x.remove(),2600)}
-function optionList(items,value,labelFn){return '<option value="">Seleccionar…</option>'+items.map(x=>'<option value="'+x.id+'" '+(x.id===value?'selected':'')+'>'+esc(labelFn(x))+'</option>').join('')}
+function optionList(items,value,labelFn){return '<option value="">Seleccionar…</option>'+items.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===value?'selected':'')+'>'+esc(labelFn(x))+'</option>').join('')}
 function offline(){return navigator.onLine===false}
 function offlineError(){const e=Error('Sin conexión');e.offline=true;return e}
 function assertSaveContext(epoch,user,household){assertSessionEpoch(epoch);assertPrivateAccess();if(state.user?.id!==user||state.household?.id!==household)throw sessionCancelled()}

@@ -23,6 +23,17 @@ function setup(){
  run("saveSession({access_token:'token',refresh_token:'refresh',user:{id:'user'}});state.user={id:'user',email:'test@example.com'};state.household={id:'household',name:'Test'};state.data={secret:'private'};state.deviceUnlocked=true");
  return {ctx,run,events,intervals,removed,root:element('root'),landing:()=>landing};
 }
+test('session persistence never keeps password fields, provider tokens or arbitrary auth metadata',()=>{
+ const s=setup();s.run("saveSession({access_token:'a',refresh_token:'r',expires_at:123,token_type:'bearer',passwordRecovery:true,password:'DO-NOT-STORE',current_password:'DO-NOT-STORE',provider_token:'DO-NOT-STORE',user:{id:'u',email:'a@example.invalid',password:'DO-NOT-STORE',user_metadata:{display_name:'Ana',password:'DO-NOT-STORE',role:'OWNER'},app_metadata:{secret:'DO-NOT-STORE'}}})");
+ const stored=s.run('localStorage.getItem(STORE)');assert(!stored.includes('DO-NOT-STORE'));assert(!stored.includes('OWNER'));
+ const saved=JSON.parse(stored);assert.equal(saved.access_token,'a');assert.equal(saved.refresh_token,'r');assert.equal(saved.passwordRecovery,true);assert.equal(saved.user.user_metadata.display_name,'Ana');
+});
+test('untrusted account labels and option attributes remain encoded text',()=>{
+ const s=setup(),payload='\"><img src=x onerror=alert(1)> & \'<svg/onload=alert(2)>';
+ s.ctx.attack=payload;s.run('state.member={display_name:attack};state.user.email=attack');
+ const menu=s.run('accountMenu()');assert(!menu.includes('<img src=x'));assert(!menu.includes('<svg/onload'));assert(menu.includes('&lt;img'));
+ const option=s.run('optionList([{id:attack,name:attack}],null,x=>x.name)');assert(!option.includes('<img src=x'));assert(!option.includes('value="'+payload));assert(option.includes('&quot;'));
+});
 test('real router and shell cannot render private content when locked',()=>{
  const s=setup();
  s.run("setDeviceLock({enabled:true,userId:'user',credentialId:'YQ'});state.deviceUnlocked=false;viewInicio=()=>{throw Error('private view reached')};renderApp()");

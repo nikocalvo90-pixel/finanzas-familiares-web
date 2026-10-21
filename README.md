@@ -476,3 +476,50 @@ requiere una sesión/dispositivo real. La vista privada de Sites mantiene sus
 permisos; esta publicación se realiza sobre el casuo.es existente.
 
 Revisión de publicación: portada, pestaña interactiva de presupuestos y formulario real de entrada comprobados en Chrome. Se corrigió la prioridad CSS del menú móvil para ocultar su botón en escritorio.
+
+### Build 20261021.38 — endurecimiento del navegador y revisión de seguridad
+
+Se añade Content Security Policy antes de cargar los recursos: JavaScript local y
+el hash SHA-256 exacto del script de aplicación; sin `unsafe-inline` ni
+`unsafe-eval` para scripts, y sin manejadores HTML inline. Conexiones limitadas al
+origen de la app y a su API de Supabase; objetos, marcos y etiquetas base
+bloqueados. Los estilos inline se conservan por compatibilidad con los controles
+actuales. `Referrer-Policy` se establece mediante meta como `no-referrer`. La CSP
+mediante meta no sustituye cabeceras de servidor ni proporciona frame-ancestors.
+Tras editar el script inline o la versión, ejecutar
+`node scripts/update-security-policy.cjs` y después `node --test tests/*.test.cjs`.
+Las pruebas fallan si la huella no corresponde al código real.
+
+La persistencia de sesión usa una lista explícita de campos de token y perfil
+mínimo: descarta contraseñas, contraseñas anteriores, tokens de proveedores y
+metadatos arbitrarios. Los identificadores de las opciones de formularios se
+escapan, igual que sus etiquetas. Esto complementa el escape HTML y el uso de
+textContent existentes; la CSP es defensa adicional, no un sustituto del escape.
+Los tokens siguen siendo legibles por JavaScript en localStorage. No se promete
+cifrado local, cookies HttpOnly, cifrado extremo a extremo ni protección absoluta
+frente a XSS. Un bloqueo biométrico de interfaz no cifra los borradores locales.
+
+Revisión del servidor, sin extraer contraseñas/hashes individuales ni modificar
+usuarios: las contraseñas existentes no vacías usan formato bcrypt, no se ha
+encontrado otro formato; todas las tablas public tienen RLS y no admiten SELECT
+anónimo; las vistas financieras usan security_invoker. Una prueba con identidad
+sin pertenencia devolvió cero filas privadas en las tablas y vistas consultables,
+con rollback. La configuración pública de notificaciones se excluye expresamente
+porque contiene configuración cliente pública. Los documentos permanecen en un
+bucket privado; el bucket público heredado contiene solo assets de la aplicación.
+Solo restore_household_backup usa SQL dinámico entre las funciones públicas
+revisadas: usa parámetros USING y formato de identificadores. Esta revisión no
+constituye una prueba de penetración completa ni una auditoría externa.
+
+Siguen pendientes los avisos de protección de contraseñas filtradas desactivada,
+extensión pg_net en public y 18 funciones SECURITY DEFINER invocables por usuarios
+autenticados. Las funciones privilegiadas consultadas no permiten ejecución
+anónima y las invocables por usuarios incluyen comprobación de identidad o
+pertenencia; no se han alterado sus permisos ni reglas de negocio en esta versión.
+Activar protección de contraseñas filtradas depende del plan del proveedor y no se
+ha contratado ningún servicio. La app no implementa todavía MFA ni un servidor
+intermedio con sesiones HttpOnly.
+
+Validación: 199 pruebas Node, incluidas persistencia sin contraseñas, escape de
+campos maliciosos, hashes CSP y carga del parser Excel sin generación dinámica de
+código. Se conserva la lógica financiera y el diseño claro.

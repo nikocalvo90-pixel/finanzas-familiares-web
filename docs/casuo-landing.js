@@ -9,7 +9,7 @@
     root.innerHTML='<div class="welcome-page" id="casuo-landing-host"></div>';
     const host=root.querySelector('#casuo-landing-host');
     const view=host.attachShadow({mode:'open'});
-    view.innerHTML='<link rel="stylesheet" href="./casuo-landing.css?v=20261018.37">'+markup;
+    view.innerHTML='<link rel="stylesheet" href="./casuo-landing.css?v=20261021.38">'+markup;
 
   const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
   const announce = (message) => { view.getElementById("demo-live").textContent = message; };

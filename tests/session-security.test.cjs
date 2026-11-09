@@ -23,6 +23,29 @@ function setup(){
  run("saveSession({access_token:'token',refresh_token:'refresh',user:{id:'user'}});state.user={id:'user',email:'test@example.com'};state.household={id:'household',name:'Test'};state.data={secret:'private'};state.deviceUnlocked=true");
  return {ctx,run,events,intervals,removed,root:element('root'),landing:()=>landing};
 }
+for(const form of ['profile-form','household-form'])test('shared sync preserves unsaved '+form+' fields even after focus leaves',async()=>{
+ const s=setup();let renders=0;
+ s.run("state.member={role:'OWNER',display_name:'Before'}");
+ s.ctx.document.querySelector=selector=>selector.includes('#'+form)?{}:null;
+ s.ctx.fetch=async()=>response([{role:'OWNER',display_name:'Changed elsewhere'}]);
+ s.ctx.onRender=()=>renders++;s.run('renderApp=onRender');
+ await s.run('checkForSharedChanges()');
+ assert.equal(renders,0,'background sync must not replace an unsaved inline form');
+});
+test('shared sync rechecks editing state after its asynchronous reads',async()=>{
+ const s=setup(),pending=deferred();let renders=0,editing=false;
+ s.run("state.member={role:'OWNER',display_name:'Before'};state.loadedMonth='2000-01-01'");
+ s.ctx.document.querySelector=selector=>editing&&selector.includes('.modal-back')?{}:null;
+ s.ctx.fetch=async url=>url.includes('/rpc/')?pending.promise:response(url.includes('household_members')?[{role:'OWNER',display_name:'Before'}]:[]);
+ s.ctx.onRender=()=>renders++;s.run('renderApp=onRender');
+ const sync=s.run('checkForSharedChanges()');await new Promise(r=>setImmediate(r));
+ editing=true;pending.resolve(response({version:2}));await sync;
+ assert.equal(renders,0,'an editor opened during sync must postpone the rerender');
+});
+test('membership revocation still clears private data while an inline form is open',async()=>{
+ const s=setup();s.ctx.document.querySelector=()=>({});s.ctx.fetch=async()=>response([]);
+ await s.run('checkForSharedChanges()');assert.equal(s.run('getSession()'),null);assert.equal(s.run('state.data'),null);
+});
 test('session persistence never keeps password fields, provider tokens or arbitrary auth metadata',()=>{
  const s=setup();s.run("saveSession({access_token:'a',refresh_token:'r',expires_at:123,token_type:'bearer',passwordRecovery:true,password:'DO-NOT-STORE',current_password:'DO-NOT-STORE',provider_token:'DO-NOT-STORE',user:{id:'u',email:'a@example.invalid',password:'DO-NOT-STORE',user_metadata:{display_name:'Ana',password:'DO-NOT-STORE',role:'OWNER'},app_metadata:{secret:'DO-NOT-STORE'}}})");
  const stored=s.run('localStorage.getItem(STORE)');assert(!stored.includes('DO-NOT-STORE'));assert(!stored.includes('OWNER'));

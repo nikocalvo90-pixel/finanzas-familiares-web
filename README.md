@@ -523,3 +523,22 @@ intermedio con sesiones HttpOnly.
 Validación: 199 pruebas Node, incluidas persistencia sin contraseñas, escape de
 campos maliciosos, hashes CSP y carga del parser Excel sin generación dinámica de
 código. Se conserva la lógica financiera y el diseño claro.
+
+
+### Build 20261109.39 — conservar formularios durante la sincronización
+
+La sincronización compartida aplaza la reconstrucción de la pantalla mientras
+están abiertos los formularios de perfil, nombre del hogar o un modal. Se vuelve
+a comprobar ese estado después de las lecturas asíncronas, para proteger también
+a quien abre un editor mientras llega una respuesta. La comprobación de pertenencia
+al hogar sigue ejecutándose y revoca el acceso aunque haya un formulario abierto.
+
+La actualización visual queda aplazada durante toda la estancia en esos formularios,
+aunque no se hayan modificado. Esta corrección no conserva campos al navegar
+voluntariamente y no cambia la adaptación del teclado ni el historial de navegación.
+
+Validación: 203 pruebas Node aprobadas; tres nuevas regresiones fallan en la base
+anterior y pasan con esta corrección, y una cuarta conserva la revocación de acceso
+con un formulario abierto. Hash CSP regenerado, sintaxis JavaScript y whitespace
+comprobados. No se ha realizado revisión visual autenticada ni pruebas en Safari
+o un iPhone físico; esos recorridos siguen pendientes.
